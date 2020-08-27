@@ -1,0 +1,5 @@
+python==3.7.6
+pandas==01.0.1
+numpy==1.18.1
+deap==1.2.2
+scoop==0.7.1.1

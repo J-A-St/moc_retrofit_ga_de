@@ -3,6 +3,7 @@ import numpy as np
 
 class OperationParameter:
     """Heat exchanger operation parameter"""
+    # TODO: properties need to come from operation parameter matrix!
 
     def __init__(self, case_study, topology, number):
         self.number_operating_cases = case_study.number_operating_cases
@@ -43,21 +44,11 @@ class OperationParameter:
         return 1 / (1 / self.film_heat_transfer_coefficients_hot_stream + 1 / self.film_heat_transfer_coefficients_cold_stream)
 
     @property
-    def is_feasible(self):
-        is_feasible = [False] * self.number_operating_cases
-        for operating_case in self.range_operating_cases:
-            if np.isnan(self.logarithmic_mean_temperature_differences[operating_case]) or self.logarithmic_mean_temperature_differences[operating_case] <= 0:
-                is_feasible[operating_case] = False
-            else:
-                is_feasible[operating_case] = True
-        return all(is_feasible)
-
-    @property
     def needed_areas(self):
         """Update area of the heat exchanger."""
         needed_areas = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
-            if not self.is_feasible:
+            if np.isnan(self.logarithmic_mean_temperature_differences[operating_case]) or self.logarithmic_mean_temperature_differences[operating_case] <= 0:
                 needed_areas[operating_case] = 0
             else:
                 needed_areas[operating_case] = self.heat_loads[operating_case] / (self.overall_heat_transfer_coefficients[operating_case] * self.logarithmic_mean_temperature_differences[operating_case])

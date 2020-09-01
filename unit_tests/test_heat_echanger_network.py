@@ -18,7 +18,7 @@ def setup_model():
 def test_heat_exchanger_address_matrix():
     test_network, test_case = setup_model()
     for exchanger in test_case.range_heat_exchangers:
-        assert all(test_network.address_matrix[exchanger] == test_network.heat_exchangers[exchanger].topology.address_vector)
+        assert all(test_network.addresses.matrix[exchanger] == test_network.heat_exchangers[exchanger].topology.address_vector)
 
 
 def test_operation_parameter_matrix():

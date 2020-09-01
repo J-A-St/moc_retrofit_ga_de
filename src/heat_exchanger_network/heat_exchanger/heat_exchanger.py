@@ -7,12 +7,11 @@ from src.heat_exchanger_network.heat_exchanger.topology import Topology
 
 class HeatExchanger:
     """"Heat exchanger object"""
-    # TODO: include HEX, bypass, and admixer cost here
 
-    def __init__(self, case_study, number):
+    def __init__(self, exchanger_addresses, case_study, number):
         self.number = number
         # Topology instance variables
-        self.topology = Topology(case_study, number)
+        self.topology = Topology(exchanger_addresses, case_study, number)
         # Operation parameter instance variables
         self.operation_parameter = OperationParameter(case_study, self.topology, number)
         # Cost instance variables
@@ -61,6 +60,16 @@ class HeatExchanger:
         else:
             bypass_costs += self.costs.remove_bypass_costs
         return bypass_costs
+
+    @property
+    def is_feasible(self):
+        is_feasible = [False] * self.operation_parameter.number_operating_cases
+        for operating_case in self.operation_parameter.range_operating_cases:
+            if np.isnan(self.operation_parameter.logarithmic_mean_temperature_differences[operating_case]) or self.operation_parameter.logarithmic_mean_temperature_differences[operating_case] <= 0:
+                is_feasible[operating_case] = False
+            else:
+                is_feasible[operating_case] = True
+        return all(is_feasible)
 
     def __repr__(self):
         return '\n'.join(['heat exchanger number {}:'.format(self.number), 'address matrix: {}'.format(self.topology.address_vector),

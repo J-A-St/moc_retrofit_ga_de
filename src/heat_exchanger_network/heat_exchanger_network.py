@@ -1,10 +1,10 @@
 import numpy as np
 
 from src.heat_exchanger_network.economics import Economics
+from src.heat_exchanger_network.exchanger_addresses import ExchangerAddresses
 from src.heat_exchanger_network.heat_exchanger.heat_exchanger import HeatExchanger
 from src.heat_exchanger_network.heat_exchanger.balance_utility_heat_exchanger import BalanceUtilityHeatExchanger
 from src.heat_exchanger_network.restrictions import Restrictions
-from src.heat_exchanger_network.temperature_calculation import TemperatureCalculation
 
 
 class HeatExchangerNetwork:
@@ -22,6 +22,8 @@ class HeatExchangerNetwork:
         self.range_operating_cases = case_study.range_operating_cases
         self.hot_streams = case_study.hot_streams
         self.cold_streams = case_study.cold_streams
+        self.addresses = ExchangerAddresses(case_study)
+        # TODO: analog to EAM do the same operation parameters
 
         # Utilities
         self.hot_utilities_indices = case_study.hot_utilities_indices
@@ -32,7 +34,7 @@ class HeatExchangerNetwork:
         # Heat exchangers
         self.heat_exchangers = list()
         for exchanger in case_study.range_heat_exchangers:
-            self.heat_exchangers.append(HeatExchanger(case_study, exchanger))
+            self.heat_exchangers.append(HeatExchanger(self.addresses, case_study, exchanger))
 
         # Balance utility heat exchangers
         self.balance_utility_heat_exchanger = list()
@@ -45,15 +47,17 @@ class HeatExchangerNetwork:
         # Economics
         self.economics = Economics(case_study)
 
-    @property
-    def address_matrix(self):
-        heat_exchanger_address_matrix = np.zeros([self.number_heat_exchangers, len(self.heat_exchangers[0].topology.address_vector)], dtype=int)
-        for exchanger in self.range_heat_exchangers:
-            heat_exchanger_address_matrix[exchanger] = self.heat_exchangers[exchanger].topology.address_vector
-        return heat_exchanger_address_matrix
+    # @property
+    # def address_matrix(self):
+    #     # TODO: replace this with initialized address matrix and create exchangers based on this!
+    #     heat_exchanger_address_matrix = np.zeros([self.number_heat_exchangers, len(self.heat_exchangers[0].topology.address_vector)], dtype=int)
+    #     for exchanger in self.range_heat_exchangers:
+    #         heat_exchanger_address_matrix[exchanger] = self.heat_exchangers[exchanger].topology.address_vector
+    #     return heat_exchanger_address_matrix
 
     @property
     def operation_parameter_matrix(self):
+        # TODO: create random EAM here with boundaries from caste study and initialize exchangers based on this!
         operation_parameter_matrix = np.zeros([len(self.heat_exchangers[0].operation_parameter.matrix), self.number_heat_exchangers, self.number_operating_cases])
         for exchanger in self.range_heat_exchangers:
             for parameter in range(len(self.heat_exchangers[0].operation_parameter.matrix)):

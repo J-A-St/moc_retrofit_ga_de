@@ -1,13 +1,7 @@
 import os
-import pytest
-import numpy as np
+
 
 from src.read_data.read_case_study_data import CaseStudy
-from src.heat_exchanger_network.stream import Stream
-from src.heat_exchanger_network.restrictions import Restrictions
-from src.heat_exchanger_network.operating_case import OperatingCase
-from src.heat_exchanger_network.heat_exchanger.heat_exchanger import HeatExchanger
-from src.heat_exchanger_network.economics import Economics
 from src.heat_exchanger_network.heat_exchanger_network import HeatExchangerNetwork
 
 

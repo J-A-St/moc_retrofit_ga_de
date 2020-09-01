@@ -26,16 +26,6 @@ class Topology:
     def address_vector(self):
         return [self.hot_stream, self.cold_stream, self.enthalpy_stage, self.bypass_hot_stream_existent, self.admixer_hot_stream_existent, self.bypass_cold_stream_existent, self.admixer_cold_stream_existent, self.existent]
 
-    def update_heat_exchanger_topology(self, hot_stream, cold_stream, enthalpy_stage, bypass_hot_stream_existent, admixer_hot_stream_existent, bypass_cold_stream_existent, admixer_cold_stream_existent, existent):
-        self.hot_stream = hot_stream
-        self.cold_stream = cold_stream
-        self.enthalpy_stage = enthalpy_stage
-        self.bypass_hot_stream_existent = bypass_hot_stream_existent
-        self.admixer_hot_stream_existent = admixer_hot_stream_existent
-        self.bypass_cold_stream_existent = bypass_cold_stream_existent
-        self.admixer_cold_stream_existent = admixer_cold_stream_existent
-        self.existent = existent
-
     def __repr__(self):
         pass
 

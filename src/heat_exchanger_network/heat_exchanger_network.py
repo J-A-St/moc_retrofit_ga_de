@@ -9,7 +9,7 @@ from src.heat_exchanger_network.temperature_calculation import TemperatureCalcul
 
 class HeatExchangerNetwork:
     """Heat exchanger network object"""
-    # TODO: include HEN (sum of all HEX costs) utility balance HEX, split, re-piping, re-sequencing, and operation costs
+    # TODO: include HEN (sum of all HEX costs) utility balance HEX, split, re-piping, re-sequencing, match costs, and operation costs
 
     def __init__(self, case_study):
         self.number_heat_exchangers = case_study.number_heat_exchangers
@@ -60,33 +60,6 @@ class HeatExchangerNetwork:
                 operation_parameter_matrix[parameter, exchanger] = self.heat_exchangers[exchanger].operation_parameter.matrix[parameter]
         return operation_parameter_matrix
 
-    # def get_sorted_heat_exchangers_on_stream(self, stream, stream_type):
-    #     heat_exchanger_on_stream = []
-    #     for exchanger in self.range_heat_exchangers:
-    #         if self.heat_exchangers[exchanger].topology.existent and \
-    #             ((stream_type == 'hot' and self.heat_exchangers[exchanger].topology.hot_stream == stream) or
-    #              (stream_type == 'cold' and self.heat_exchangers[exchanger].topology.cold_stream == stream)):
-    #             heat_exchanger_on_stream.append(exchanger)
-    #     heat_exchanger_on_stream_sorted = np.zeros([len(heat_exchanger_on_stream)], dtype=int)
-    #     if stream_type == 'hot':
-    #         heat_exchanger_on_stream_sorted = sorted(heat_exchanger_on_stream, key=lambda on_stream: self.heat_exchangers[on_stream].topology.number_on_hot_stream)
-    #     elif stream_type == 'cold':
-    #         heat_exchanger_on_stream_sorted = sorted(heat_exchanger_on_stream, key=lambda on_stream: self.heat_exchangers[on_stream].topology.number_on_cold_stream)
-    #     return np.array(heat_exchanger_on_stream_sorted)
-
-    # def get_heat_exchanger_above_on_stream(self, stream, stream_type, exchanger):
-    #     sorted_heat_exchanger_on_stream = self.get_sorted_heat_exchangers_on_stream(stream, stream_type)
-    #     if exchanger == sorted_heat_exchanger_on_stream[-1]:
-    #         raise Exception('This is the last or the sole heat exchanger on the stream, you cannot get a heat exchanger above!')
-    #     return sorted_heat_exchanger_on_stream[np.argwhere(sorted_heat_exchanger_on_stream == exchanger) + 1]
-
-    # def get_heat_exchanger_below_on_stream(self, stream, stream_type, exchanger):
-    #     sorted_heat_exchanger_on_stream = self.get_sorted_heat_exchangers_on_stream(
-    #         stream, stream_type)
-    #     if exchanger == sorted_heat_exchanger_on_stream[0]:
-    #         raise Exception('This it the first or the sole heat exchanger on the stream, you cannot get a heat exchanger below!')
-    #     return sorted_heat_exchanger_on_stream[np.argwhere(sorted_heat_exchanger_on_stream == exchanger) - 1]
-
     def get_utility_heat_exchangers(self, stream_type):
         utility_heat_exchanger = []
         for exchanger in self.range_heat_exchangers:
@@ -97,14 +70,15 @@ class HeatExchangerNetwork:
         return np.array(utility_heat_exchanger)
 
     def update_utility_demand(self, operating_cases):
+        # TODO: utility demand of balance utility exchanger is not jet included!
         hot_utility_exchangers = self.get_utility_heat_exchangers('hot')
         cold_utility_exchangers = self.get_utility_heat_exchangers('cold')
         hot_utility_demand = np.zeros([self.number_operating_cases])
         cold_utility_demand = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
-            hot_utility_demand[operating_case] = np.sum([self.heat_exchangers[exchanger].process_quantities.heat_loads[operating_case] *
+            hot_utility_demand[operating_case] = np.sum([self.heat_exchangers[exchanger].operation_parameter.heat_loads[operating_case] *
                                                          operating_cases[operating_case].duration for exchanger in hot_utility_exchangers])
-            cold_utility_demand[operating_case] = np.sum([self.heat_exchangers[exchanger].process_quantities.heat_loads[operating_case] *
+            cold_utility_demand[operating_case] = np.sum([self.heat_exchangers[exchanger].operation_parameter.heat_loads[operating_case] *
                                                           operating_cases[operating_case].duration for exchanger in cold_utility_exchangers])
         self.hot_utility_demand = hot_utility_demand
         self.cold_utility_demand = cold_utility_demand

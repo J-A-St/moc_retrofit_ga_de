@@ -13,7 +13,7 @@ class HeatExchanger:
         # Topology instance variables
         self.topology = Topology(case_study, number)
         # Operation parameter instance variables
-        self.operation_parameter = OperationParameter(case_study, number)
+        self.operation_parameter = OperationParameter(case_study, self.topology, number)
         # Cost instance variables
         self.costs = Costs(case_study, number)
 
@@ -60,6 +60,11 @@ class HeatExchanger:
         else:
             bypass_costs += self.costs.remove_bypass_costs
         return bypass_costs
+
+    @property
+    def is_feasible(self):
+        # TODO: needs to be implemented (negative temperature differences or NaN)
+        pass
 
     def __repr__(self):
         return '\n'.join(['heat exchanger number {}:'.format(self.number), 'address matrix: {}'.format(self.topology.address_vector),

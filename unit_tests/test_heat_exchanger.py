@@ -46,46 +46,47 @@ def test_operation_parameter():
     assert initial_area == test_exchanger.operation_parameter.initial_area * 1.2
 
 
-def test_update_logarithmic_temperature_differences():
+def test_logarithmic_temperature_differences():
     test_exchanger, test_case = setup_module()
-    logarithmic_temperature_difference = np.zeros([test_case.number_operating_cases])
+    logarithmic_mean_temperature_difference = np.zeros([test_case.number_operating_cases])
     for operating_case in test_case.range_operating_cases:
         test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] = 400
         test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] = 300
         test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case] = 250
         test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case] = 350
-        logarithmic_temperature_difference[operating_case] = 400 - 350
-    test_exchanger.operation_parameter.update_logarithmic_temperature_differences()
+        logarithmic_mean_temperature_difference[operating_case] = 400 - 350
     for operating_case in test_case.range_operating_cases:
-        assert logarithmic_temperature_difference[operating_case] == test_exchanger.operation_parameter.logarithmic_temperature_differences[operating_case]
+        assert logarithmic_mean_temperature_difference[operating_case] == test_exchanger.operation_parameter.logarithmic_mean_temperature_differences[operating_case]
 
     for operating_case in test_case.range_operating_cases:
         test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] = 400
         test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] = 300
         test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case] = 290
         test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case] = 350
-        logarithmic_temperature_difference[operating_case] = (10-50) / np.log(10/50)
-    test_exchanger.operation_parameter.update_logarithmic_temperature_differences()
-
+        logarithmic_mean_temperature_difference[operating_case] = (10-50) / np.log(10/50)
     for operating_case in test_case.range_operating_cases:
-        assert logarithmic_temperature_difference[operating_case] == test_exchanger.operation_parameter.logarithmic_temperature_differences[operating_case]
+        assert logarithmic_mean_temperature_difference[operating_case] == test_exchanger.operation_parameter.logarithmic_mean_temperature_differences[operating_case]
 
 
-def test_update_area():
+def test_needed_areas():
     test_exchanger, test_case = setup_module()
     hot_streams = test_case.hot_streams
     cold_streams = test_case.cold_streams
     topology = test_exchanger.topology
+    logarithmic_mean_temperature_difference = np.zeros([test_case.number_operating_cases])
     areas = np.zeros([test_case.number_operating_cases])
     for operating_case in test_case.range_operating_cases:
-        test_exchanger.operation_parameter.logarithmic_temperature_differences[operating_case] = 5 + 10 * operating_case
+        test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] = 400
+        test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] = 300
+        test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case] = 290
+        test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case] = 350
+        logarithmic_mean_temperature_difference[operating_case] = (10-50) / np.log(10/50)
 
-    test_exchanger.operation_parameter.update_needed_areas(topology, hot_streams, cold_streams)
     for operating_case in test_case.range_operating_cases:
         overall_heat_transfer_coefficient = 1 / (1 / hot_streams[topology.hot_stream].film_heat_transfer_coefficients[operating_case] +
                                                  1 / cold_streams[topology.cold_stream].film_heat_transfer_coefficients[operating_case])
         areas[operating_case] = test_exchanger.operation_parameter.heat_loads[operating_case] / \
-            (overall_heat_transfer_coefficient * test_exchanger.operation_parameter.logarithmic_temperature_differences[operating_case])
+            (overall_heat_transfer_coefficient * test_exchanger.operation_parameter.logarithmic_mean_temperature_differences[operating_case])
     for operating_case in test_case.range_operating_cases:
         assert areas[operating_case] == test_exchanger.operation_parameter.needed_areas[operating_case]
 
@@ -207,3 +208,7 @@ def test_bypass_costs():
     test_exchanger.topology.bypass_hot_stream_existent = True
     test_exchanger.topology.bypass_cold_stream_existent = True
     assert test_exchanger.bypass_costs == test_exchanger.costs.base_bypass_costs
+
+
+def test_feasible():
+    pass

@@ -9,6 +9,7 @@ from src.heat_exchanger_network.temperature_calculation import TemperatureCalcul
 
 class HeatExchangerNetwork:
     """Heat exchanger network object"""
+    # TODO: include HEN (sum of all HEX costs) utility balance HEX, split, re-piping, re-sequencing, and operation costs
 
     def __init__(self, case_study):
         self.number_heat_exchangers = case_study.number_heat_exchangers

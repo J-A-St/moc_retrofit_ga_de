@@ -3,6 +3,7 @@ import numpy as np
 
 class BalanceUtilityHeatExchanger:
     """Utility heat exchanger object"""
+    # TODO: include investment cost
 
     def __init__(self, case_study, number):
         self.number = number

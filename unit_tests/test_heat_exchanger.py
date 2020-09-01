@@ -37,6 +37,8 @@ def test_topology():
     for indice in enumerate(heat_exchanger_topology):
         assert heat_exchanger_topology[indice[0]] == test_exchanger.topology.address_vector[indice[0]]
 
+    assert test_exchanger.topology.initial_existent != test_exchanger.topology.existent
+
 
 def test_operation_parameter():
     test_exchanger, test_case = setup_module()
@@ -88,70 +90,120 @@ def test_update_area():
         assert areas[operating_case] == test_exchanger.operation_parameter.needed_areas[operating_case]
 
 
-def test_costs():
+def test_costs_coefficients():
     test_exchanger, test_case = setup_module()
-    base_cost = test_case.initial_exchanger_address_matrix['c_0_HEX'][0]
-    assert base_cost == test_exchanger.costs.base_cost
+    base_costs = test_case.initial_exchanger_address_matrix['c_0_HEX'][0]
+    assert base_costs == test_exchanger.costs.base_costs
 
-    specific_area_cost = test_case.initial_exchanger_address_matrix['c_A_HEX'][0]
-    assert specific_area_cost == test_exchanger.costs.specific_area_cost
+    specific_area_costs = test_case.initial_exchanger_address_matrix['c_A_HEX'][0]
+    assert specific_area_costs == test_exchanger.costs.specific_area_costs
 
     degression_area = test_case.initial_exchanger_address_matrix['d_f_HEX'][0]
     assert degression_area == test_exchanger.costs.degression_area
 
-    remove_cost = test_case.initial_exchanger_address_matrix['c_R_HEX'][0]
-    assert remove_cost == test_exchanger.costs.remove_cost
+    remove_costs = test_case.initial_exchanger_address_matrix['c_R_HEX'][0]
+    assert remove_costs == test_exchanger.costs.remove_costs
 
-    base_split_cost = test_case.initial_exchanger_address_matrix['c_0_split'][0]
-    assert base_split_cost == test_exchanger.costs.base_split_cost
+    base_split_costs = test_case.initial_exchanger_address_matrix['c_0_split'][0]
+    assert base_split_costs == test_exchanger.costs.base_split_costs
 
-    specific_split_cost = test_case.initial_exchanger_address_matrix['c_M_split'][0]
-    assert specific_split_cost == test_exchanger.costs.specific_split_cost
+    specific_split_costs = test_case.initial_exchanger_address_matrix['c_M_split'][0]
+    assert specific_split_costs == test_exchanger.costs.specific_split_costs
 
     degression_split = test_case.initial_exchanger_address_matrix['d_f_split'][0]
     assert degression_split == test_exchanger.costs.degression_split
 
-    remove_split_cost = test_case.initial_exchanger_address_matrix['c_R_split'][0]
-    assert remove_split_cost == test_exchanger.costs.remove_split_cost
+    remove_split_costs = test_case.initial_exchanger_address_matrix['c_R_split'][0]
+    assert remove_split_costs == test_exchanger.costs.remove_split_costs
 
-    base_bypass_cost = test_case.initial_exchanger_address_matrix['c_0_bypass'][0]
-    assert base_bypass_cost == test_exchanger.costs.base_bypass_cost
+    base_bypass_costs = test_case.initial_exchanger_address_matrix['c_0_bypass'][0]
+    assert base_bypass_costs == test_exchanger.costs.base_bypass_costs
 
-    specific_bypass_cost = test_case.initial_exchanger_address_matrix['c_M_bypass'][0]
-    assert specific_bypass_cost == test_exchanger.costs.specific_bypass_cost
+    specific_bypass_costs = test_case.initial_exchanger_address_matrix['c_M_bypass'][0]
+    assert specific_bypass_costs == test_exchanger.costs.specific_bypass_costs
 
     degression_bypass = test_case.initial_exchanger_address_matrix['d_f_bypass'][0]
     assert degression_bypass == test_exchanger.costs.degression_bypass
 
-    remove_bypass_cost = test_case.initial_exchanger_address_matrix['c_R_bypass'][0]
-    assert remove_bypass_cost == test_exchanger.costs.remove_bypass_cost
+    remove_bypass_costs = test_case.initial_exchanger_address_matrix['c_R_bypass'][0]
+    assert remove_bypass_costs == test_exchanger.costs.remove_bypass_costs
 
-    base_admixer_cost = test_case.initial_exchanger_address_matrix['c_0_admixer'][0]
-    assert base_admixer_cost == test_exchanger.costs.base_admixer_cost
+    base_admixer_costs = test_case.initial_exchanger_address_matrix['c_0_admixer'][0]
+    assert base_admixer_costs == test_exchanger.costs.base_admixer_costs
 
-    specific_admixer_cost = test_case.initial_exchanger_address_matrix['c_M_admixer'][0]
-    assert specific_admixer_cost == test_exchanger.costs.specific_admixer_cost
+    specific_admixer_costs = test_case.initial_exchanger_address_matrix['c_M_admixer'][0]
+    assert specific_admixer_costs == test_exchanger.costs.specific_admixer_costs
 
     degression_admixer = test_case.initial_exchanger_address_matrix['d_f_admixer'][0]
     assert degression_admixer == test_exchanger.costs.degression_admixer
 
-    remove_admixer_cost = test_case.initial_exchanger_address_matrix['c_R_admixer'][0]
-    assert remove_admixer_cost == test_exchanger.costs.remove_admixer_cost
+    remove_admixer_costs = test_case.initial_exchanger_address_matrix['c_R_admixer'][0]
+    assert remove_admixer_costs == test_exchanger.costs.remove_admixer_costs
 
-    base_repipe_cost = test_case.initial_exchanger_address_matrix['c_0_repipe'][0]
-    assert base_repipe_cost == test_exchanger.costs.base_repipe_cost
+    base_repipe_costs = test_case.initial_exchanger_address_matrix['c_0_repipe'][0]
+    assert base_repipe_costs == test_exchanger.costs.base_repipe_costs
 
-    specific_repipe_cost = test_case.initial_exchanger_address_matrix['c_M_repipe'][0]
-    assert specific_repipe_cost == test_exchanger.costs.specific_repipe_cost
+    specific_repipe_costs = test_case.initial_exchanger_address_matrix['c_M_repipe'][0]
+    assert specific_repipe_costs == test_exchanger.costs.specific_repipe_costs
 
     degression_repipe = test_case.initial_exchanger_address_matrix['d_f_repipe'][0]
     assert degression_repipe == test_exchanger.costs.degression_repipe
 
-    base_resequence_cost = test_case.initial_exchanger_address_matrix['c_0_resequence'][0]
-    assert base_resequence_cost == test_exchanger.costs.base_resequence_cost
+    base_resequence_costs = test_case.initial_exchanger_address_matrix['c_0_resequence'][0]
+    assert base_resequence_costs == test_exchanger.costs.base_resequence_costs
 
-    specific_resequence_cost = test_case.initial_exchanger_address_matrix['c_M_resequence'][0]
-    assert specific_resequence_cost == test_exchanger.costs.specific_resequence_cost
+    specific_resequence_costs = test_case.initial_exchanger_address_matrix['c_M_resequence'][0]
+    assert specific_resequence_costs == test_exchanger.costs.specific_resequence_costs
 
     degression_resequence = test_case.initial_exchanger_address_matrix['d_f_resequence'][0]
     assert degression_resequence == test_exchanger.costs.degression_resequence
+
+
+def test_heat_exchanger_costs():
+    test_exchanger, test_case = setup_module()
+    test_exchanger.operation_parameter.area = 2000
+    exchanger_costs = test_exchanger.costs.base_costs + test_exchanger.costs.specific_area_costs * (test_exchanger.operation_parameter.area - test_exchanger.operation_parameter.initial_area)**test_exchanger.costs.degression_area
+    assert exchanger_costs == test_exchanger.exchanger_costs
+    test_exchanger.operation_parameter.area = 1000
+    assert test_exchanger.exchanger_costs == 0
+    test_exchanger.topology.existent = False
+    assert test_exchanger.exchanger_costs == test_exchanger.costs.remove_costs
+    test_exchanger_5 = HeatExchanger(test_case, 5)
+    test_exchanger_5.topology.existent = True
+    test_exchanger_5.operation_parameter.area = 2000
+    exchanger_costs_5 = test_exchanger_5.costs.base_costs + test_exchanger_5.costs.specific_area_costs * (test_exchanger_5.operation_parameter.area - test_exchanger_5.operation_parameter.initial_area)**test_exchanger_5.costs.degression_area
+    assert exchanger_costs_5 == test_exchanger_5.exchanger_costs
+    test_exchanger_5.topology.existent = False
+    assert test_exchanger_5.exchanger_costs == 0
+
+
+def test_admixer_costs():
+    test_exchanger, _ = setup_module()
+    test_exchanger.topology.admixer_hot_stream_existent = True
+    test_exchanger.topology.admixer_cold_stream_existent = True
+    assert test_exchanger.admixer_costs == test_exchanger.costs.base_admixer_costs * 2
+    test_exchanger.topology.admixer_hot_stream_existent = False
+    test_exchanger.topology.admixer_cold_stream_existent = True
+    assert test_exchanger.admixer_costs == test_exchanger.costs.base_admixer_costs + test_exchanger.costs.remove_admixer_costs
+    test_exchanger.topology.admixer_hot_stream_existent = False
+    test_exchanger.topology.admixer_cold_stream_existent = False
+    assert test_exchanger.admixer_costs == 0
+    test_exchanger.topology.admixer_hot_stream_existent = True
+    test_exchanger.topology.admixer_cold_stream_existent = False
+    assert test_exchanger.admixer_costs == test_exchanger.admixer_costs == test_exchanger.costs.base_admixer_costs
+
+
+def test_bypass_costs():
+    test_exchanger, _ = setup_module()
+    test_exchanger.topology.bypass_hot_stream_existent = True
+    test_exchanger.topology.bypass_cold_stream_existent = False
+    assert test_exchanger.bypass_costs == 0
+    test_exchanger.topology.bypass_hot_stream_existent = False
+    test_exchanger.topology.bypass_cold_stream_existent = True
+    assert test_exchanger.bypass_costs == test_exchanger.costs.remove_bypass_costs + test_exchanger.costs.base_bypass_costs
+    test_exchanger.topology.bypass_hot_stream_existent = False
+    test_exchanger.topology.bypass_cold_stream_existent = False
+    assert test_exchanger.bypass_costs == test_exchanger.costs.remove_bypass_costs
+    test_exchanger.topology.bypass_hot_stream_existent = True
+    test_exchanger.topology.bypass_cold_stream_existent = True
+    assert test_exchanger.bypass_costs == test_exchanger.costs.base_bypass_costs

@@ -27,8 +27,7 @@ class OperationParameter:
 
     @property
     def logarithmic_mean_temperature_differences(self):
-        """Update logarithmic temperature differences in the heat exchanger. ATTENTION: Negative (both temperature differences are negative) or NaN (if only one temperature difference is negative) are possible. This is important for the penalty function"""
-        # TODO: How do we consider NaN or negative LMTDs for penalty functions or rejection?
+        """Update logarithmic temperature differences in the heat exchanger."""
         lograrithmic_mean_temperature_differences = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
             temperature_difference_a = self.inlet_temperatures_hot_stream[operating_case] - self.outlet_temperatures_cold_stream[operating_case]
@@ -44,11 +43,24 @@ class OperationParameter:
         return 1 / (1 / self.film_heat_transfer_coefficients_hot_stream + 1 / self.film_heat_transfer_coefficients_cold_stream)
 
     @property
+    def is_feasible(self):
+        is_feasible = [False] * self.number_operating_cases
+        for operating_case in self.range_operating_cases:
+            if np.isnan(self.logarithmic_mean_temperature_differences[operating_case]) or self.logarithmic_mean_temperature_differences[operating_case] <= 0:
+                is_feasible[operating_case] = False
+            else:
+                is_feasible[operating_case] = True
+        return all(is_feasible)
+
+    @property
     def needed_areas(self):
-        """Update area of the heat exchanger. ATTENTION: Negative (negative temperature difference) or NaN (NaN temperature difference) are possible. This is important for the penalty function"""
+        """Update area of the heat exchanger."""
         needed_areas = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
-            needed_areas[operating_case] = self.heat_loads[operating_case] / (self.overall_heat_transfer_coefficients[operating_case] * self.logarithmic_mean_temperature_differences[operating_case])
+            if not self.is_feasible:
+                needed_areas[operating_case] = 0
+            else:
+                needed_areas[operating_case] = self.heat_loads[operating_case] / (self.overall_heat_transfer_coefficients[operating_case] * self.logarithmic_mean_temperature_differences[operating_case])
         return needed_areas
 
     def __repr__(self):

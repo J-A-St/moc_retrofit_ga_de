@@ -211,4 +211,25 @@ def test_bypass_costs():
 
 
 def test_feasible():
-    pass
+    test_exchanger, test_case = setup_module()
+    for operating_case in test_case.range_operating_cases:
+        test_exchanger.operation_parameter.heat_loads[operating_case] = 2000
+        test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] = 400
+        test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] = 300
+        test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case] = 290
+        test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case] = 350
+    assert test_exchanger.operation_parameter.is_feasible
+    for operating_case in test_case.range_operating_cases:
+        test_exchanger.operation_parameter.heat_loads[operating_case] = 2000
+        test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] = 200
+        test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] = 300
+        test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case] = 400
+        test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case] = 350
+    assert not test_exchanger.operation_parameter.is_feasible
+    for operating_case in test_case.range_operating_cases:
+        test_exchanger.operation_parameter.heat_loads[operating_case] = 2000
+        test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] = 400
+        test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] = 300
+        test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case] = 400
+        test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case] = 350
+    assert not test_exchanger.operation_parameter.is_feasible

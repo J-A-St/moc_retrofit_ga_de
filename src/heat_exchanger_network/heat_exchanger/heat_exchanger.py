@@ -1,3 +1,4 @@
+import numpy as np
 
 from src.heat_exchanger_network.heat_exchanger.costs import Costs
 from src.heat_exchanger_network.heat_exchanger.operation_parameter import OperationParameter
@@ -61,11 +62,6 @@ class HeatExchanger:
             bypass_costs += self.costs.remove_bypass_costs
         return bypass_costs
 
-    @property
-    def is_feasible(self):
-        # TODO: needs to be implemented (negative temperature differences or NaN)
-        pass
-
     def __repr__(self):
         return '\n'.join(['heat exchanger number {}:'.format(self.number), 'address matrix: {}'.format(self.topology.address_vector),
                           'heat loads: {}'.format(self.operation_parameter.heat_loads), 'hot stream split factions: {}'.format(self.operation_parameter.split_fractions_hot_stream),
@@ -76,7 +72,7 @@ class HeatExchanger:
                           'outlet temperatures hot stream: {}'.format(self.operation_parameter.outlet_temperatures_hot_stream),
                           'inlet temperatures cold stream: {}'.format(self.operation_parameter.inlet_temperatures_cold_stream),
                           'outlet temperatures cold stream: {}'.format(self.operation_parameter.outlet_temperatures_cold_stream),
-                          'logarithmic temperature difference: {}'.format(self.operation_parameter.logarithmic_temperature_differences),
+                          'logarithmic temperature difference: {}'.format(self.operation_parameter.logarithmic_mean_temperature_differences),
                           'needed areas: {}'.format(self.operation_parameter.needed_areas),
                           'area: {}'.format(self.operation_parameter.area)])
 

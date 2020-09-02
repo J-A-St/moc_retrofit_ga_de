@@ -4,18 +4,23 @@ import numpy as np
 class OperationParameter:
     """Heat exchanger operation parameter"""
     # TODO: properties need to come from operation parameter matrix!
+    # TODO: temperature calculation due to mixer (Lambert-w) needs to be done in here too!
 
-    def __init__(self, case_study, topology, number):
+    def __init__(self, thermodynamic_parameter, topology, case_study, number):
         self.number_operating_cases = case_study.number_operating_cases
         self.range_operating_cases = case_study.range_operating_cases
         self.film_heat_transfer_coefficients_hot_stream = case_study.hot_streams[topology.hot_stream].film_heat_transfer_coefficients
         self.film_heat_transfer_coefficients_cold_stream = case_study.cold_streams[topology.cold_stream].film_heat_transfer_coefficients
         self.initial_area = case_study.initial_exchanger_address_matrix['A_ex'][number]
-        self.heat_loads = np.zeros([case_study.number_operating_cases])
         self.split_fractions_hot_stream = np.zeros([case_study.number_operating_cases])
         self.split_fractions_cold_stream = np.zeros([case_study.number_operating_cases])
         self.mixer_fractions_hot_stream = np.zeros([case_study.number_operating_cases])
         self.mixer_fractions_cold_stream = np.zeros([case_study.number_operating_cases])
+        self.heat_loads = thermodynamic_parameter.matrix[0]
+        self.temperatures_hot_stream_before_hex = thermodynamic_parameter.matrix[1]
+        self.temperatures_hot_stream_after_hex = thermodynamic_parameter.matrix[2]
+        self.temperatures_cold_stream_before_hex = thermodynamic_parameter.matrix[3]
+        self.temperatures_cold_stream_after_hex = thermodynamic_parameter.matrix[4]
         self.inlet_temperatures_hot_stream = np.zeros([case_study.number_operating_cases])
         self.outlet_temperatures_hot_stream = np.zeros([case_study.number_operating_cases])
         self.inlet_temperatures_cold_stream = np.zeros([case_study.number_operating_cases])

@@ -7,7 +7,6 @@ class ExchangerAddresses:
     def __init__(self, case_study):
         self._matrix = np.array(case_study.initial_exchanger_address_matrix)[:, 1:9].astype(int)
         self._matrix[:, 0:3] -= 1
-        print(self._matrix)
         self._exchangers = list()
 
     @property

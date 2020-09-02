@@ -8,12 +8,12 @@ from src.heat_exchanger_network.heat_exchanger.topology import Topology
 class HeatExchanger:
     """"Heat exchanger object"""
 
-    def __init__(self, exchanger_addresses, case_study, number):
+    def __init__(self, exchanger_addresses, thermodynamic_parameter, case_study, number):
         self.number = number
         # Topology instance variables
         self.topology = Topology(exchanger_addresses, case_study, number)
         # Operation parameter instance variables
-        self.operation_parameter = OperationParameter(case_study, self.topology, number)
+        self.operation_parameter = OperationParameter(thermodynamic_parameter, self.topology, case_study, number)
         # Cost instance variables
         self.costs = Costs(case_study, number)
 

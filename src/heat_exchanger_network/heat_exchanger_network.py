@@ -2,6 +2,7 @@ import numpy as np
 
 from src.heat_exchanger_network.economics import Economics
 from src.heat_exchanger_network.exchanger_addresses import ExchangerAddresses
+from src.heat_exchanger_network.thermodynamic_parameter import ThermodynamicParameter
 from src.heat_exchanger_network.heat_exchanger.heat_exchanger import HeatExchanger
 from src.heat_exchanger_network.heat_exchanger.balance_utility_heat_exchanger import BalanceUtilityHeatExchanger
 from src.heat_exchanger_network.restrictions import Restrictions
@@ -23,6 +24,7 @@ class HeatExchangerNetwork:
         self.hot_streams = case_study.hot_streams
         self.cold_streams = case_study.cold_streams
         self.addresses = ExchangerAddresses(case_study)
+        self.thermodynamic_parameter = ThermodynamicParameter(case_study)
         # TODO: analog to EAM do the same operation parameters
 
         # Utilities
@@ -34,7 +36,7 @@ class HeatExchangerNetwork:
         # Heat exchangers
         self.heat_exchangers = list()
         for exchanger in case_study.range_heat_exchangers:
-            self.heat_exchangers.append(HeatExchanger(self.addresses, case_study, exchanger))
+            self.heat_exchangers.append(HeatExchanger(self.addresses, self.thermodynamic_parameter, case_study, exchanger))
 
         # Balance utility heat exchangers
         self.balance_utility_heat_exchanger = list()

@@ -5,6 +5,7 @@ import numpy as np
 from src.read_data.read_case_study_data import CaseStudy
 from src.heat_exchanger_network.heat_exchanger.heat_exchanger import HeatExchanger
 from src.heat_exchanger_network.exchanger_addresses import ExchangerAddresses
+from src.heat_exchanger_network.thermodynamic_parameter import ThermodynamicParameter
 
 
 def setup_module():
@@ -14,7 +15,8 @@ def setup_module():
     test_case = CaseStudy('Jones_P3_PinCH_2.xlsx')
     os.chdir('unit_tests')
     addresses = ExchangerAddresses(test_case)
-    test_exchanger = HeatExchanger(addresses, test_case, 0)
+    parameter = ThermodynamicParameter(test_case)
+    test_exchanger = HeatExchanger(addresses, parameter, test_case, 0)
     return test_exchanger, test_case, addresses
 
 
@@ -143,6 +145,7 @@ def test_costs_coefficients():
 
 def test_heat_exchanger_costs():
     test_exchanger, test_case, addresses = setup_module()
+    parameter = ThermodynamicParameter(test_case)
     test_exchanger.operation_parameter.area = 2000
     exchanger_costs = test_exchanger.costs.base_costs + test_exchanger.costs.specific_area_costs * (test_exchanger.operation_parameter.area - test_exchanger.operation_parameter.initial_area)**test_exchanger.costs.degression_area
     assert exchanger_costs == test_exchanger.exchanger_costs
@@ -150,7 +153,7 @@ def test_heat_exchanger_costs():
     assert test_exchanger.exchanger_costs == 0
     addresses.matrix[0, 7] = False
     assert test_exchanger.exchanger_costs == test_exchanger.costs.remove_costs
-    test_exchanger_5 = HeatExchanger(addresses, test_case, 5)
+    test_exchanger_5 = HeatExchanger(addresses, parameter, test_case, 5)
     addresses.matrix[5, 7] = True
     test_exchanger_5.operation_parameter.area = 2000
     exchanger_costs_5 = test_exchanger_5.costs.base_costs + test_exchanger_5.costs.specific_area_costs * (test_exchanger_5.operation_parameter.area - test_exchanger_5.operation_parameter.initial_area)**test_exchanger_5.costs.degression_area

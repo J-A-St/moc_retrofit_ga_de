@@ -16,11 +16,11 @@ class OperationParameter:
         self.split_fractions_cold_stream = np.zeros([case_study.number_operating_cases])
         self.mixer_fractions_hot_stream = np.zeros([case_study.number_operating_cases])
         self.mixer_fractions_cold_stream = np.zeros([case_study.number_operating_cases])
-        self.heat_loads = thermodynamic_parameter.matrix[0]
-        self.temperatures_hot_stream_before_hex = thermodynamic_parameter.matrix[1]
-        self.temperatures_hot_stream_after_hex = thermodynamic_parameter.matrix[2]
-        self.temperatures_cold_stream_before_hex = thermodynamic_parameter.matrix[3]
-        self.temperatures_cold_stream_after_hex = thermodynamic_parameter.matrix[4]
+        self.heat_loads = thermodynamic_parameter.matrix[0][:, number]
+        self.temperatures_hot_stream_before_hex = thermodynamic_parameter.matrix[1][:, number]
+        self.temperatures_hot_stream_after_hex = thermodynamic_parameter.matrix[2][:, number]
+        self.temperatures_cold_stream_before_hex = thermodynamic_parameter.matrix[3][:, number]
+        self.temperatures_cold_stream_after_hex = thermodynamic_parameter.matrix[4][:, number]
         self.inlet_temperatures_hot_stream = np.zeros([case_study.number_operating_cases])
         self.outlet_temperatures_hot_stream = np.zeros([case_study.number_operating_cases])
         self.inlet_temperatures_cold_stream = np.zeros([case_study.number_operating_cases])
@@ -34,6 +34,7 @@ class OperationParameter:
     @property
     def logarithmic_mean_temperature_differences(self):
         """Update logarithmic temperature differences in the heat exchanger."""
+        # TODO: use here temperatures before and after HEX to determine the needed area without mixer!
         lograrithmic_mean_temperature_differences = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
             temperature_difference_a = self.inlet_temperatures_hot_stream[operating_case] - self.outlet_temperatures_cold_stream[operating_case]

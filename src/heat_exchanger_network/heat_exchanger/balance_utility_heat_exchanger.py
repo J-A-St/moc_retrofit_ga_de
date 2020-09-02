@@ -69,6 +69,7 @@ class BalanceUtilityHeatExchanger:
             exchanger_costs += self.base_cost + self.specific_area_cost * (self.area - self.initial_area) ** self.degression_area
         elif self.area <= 0:
             exchanger_costs += self.remove_costs
+        return exchanger_costs
 
     def __repr__(self):
         pass

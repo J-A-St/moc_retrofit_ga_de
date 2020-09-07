@@ -1,7 +1,6 @@
 
 class Topology:
     """Heat exchanger topology data"""
-    # TODO: update streams, enthalpy stages, bypasses, admixers, and existence from EAM
 
     def __init__(self, exchanger_addresses, case_study, number):
         self.number = number

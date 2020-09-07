@@ -17,11 +17,11 @@ def setup_module():
     addresses = ExchangerAddresses(test_case)
     parameter = ThermodynamicParameter(test_case)
     test_exchanger = HeatExchanger(addresses, parameter, test_case, 0)
-    return test_exchanger, test_case, addresses
+    return test_exchanger, test_case, addresses, parameter
 
 
 def test_topology():
-    test_exchanger, test_case, exchanger_adresses = setup_module()
+    test_exchanger, test_case, exchanger_adresses, _ = setup_module()
     heat_exchanger_topology = np.array(test_case.initial_exchanger_address_matrix, dtype=int)[0, 1:9]
     heat_exchanger_topology.tolist()
     heat_exchanger_topology[3] = not heat_exchanger_topology[3]
@@ -45,58 +45,58 @@ def test_topology():
 
 
 def test_operation_parameter():
-    test_exchanger, test_case, _ = setup_module()
+    test_exchanger, test_case, _, _ = setup_module()
     initial_area = test_case.initial_exchanger_address_matrix['A_ex'][0] * 1.2
     assert initial_area == test_exchanger.operation_parameter.initial_area * 1.2
 
 
 def test_logarithmic_temperature_differences():
-    test_exchanger, test_case, _ = setup_module()
+    test_exchanger, test_case, _, test_parameter = setup_module()
     logarithmic_mean_temperature_difference = np.zeros([test_case.number_operating_cases])
     for operating_case in test_case.range_operating_cases:
-        test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] = 400
-        test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] = 300
-        test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case] = 250
-        test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case] = 350
+        test_parameter.matrix[1][operating_case, 0] = 400
+        test_parameter.matrix[2][operating_case, 0] = 300
+        test_parameter.matrix[3][operating_case, 0] = 250
+        test_parameter.matrix[4][operating_case, 0] = 350
         logarithmic_mean_temperature_difference[operating_case] = 400 - 350
     for operating_case in test_case.range_operating_cases:
-        assert logarithmic_mean_temperature_difference[operating_case] == test_exchanger.operation_parameter.logarithmic_mean_temperature_differences[operating_case]
+        assert logarithmic_mean_temperature_difference[operating_case] == test_exchanger.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case]
 
     for operating_case in test_case.range_operating_cases:
-        test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] = 400
-        test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] = 300
-        test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case] = 290
-        test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case] = 350
+        test_parameter.matrix[1][operating_case, 0] = 400
+        test_parameter.matrix[2][operating_case, 0] = 300
+        test_parameter.matrix[3][operating_case, 0] = 290
+        test_parameter.matrix[4][operating_case, 0] = 350
         logarithmic_mean_temperature_difference[operating_case] = (10-50) / np.log(10/50)
     for operating_case in test_case.range_operating_cases:
-        assert logarithmic_mean_temperature_difference[operating_case] == test_exchanger.operation_parameter.logarithmic_mean_temperature_differences[operating_case]
+        assert logarithmic_mean_temperature_difference[operating_case] == test_exchanger.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case]
 
 
 def test_needed_areas():
-    test_exchanger, test_case, _ = setup_module()
+    test_exchanger, test_case, _, test_parameter = setup_module()
     hot_streams = test_case.hot_streams
     cold_streams = test_case.cold_streams
     topology = test_exchanger.topology
     logarithmic_mean_temperature_difference = np.zeros([test_case.number_operating_cases])
     areas = np.zeros([test_case.number_operating_cases])
     for operating_case in test_case.range_operating_cases:
-        test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] = 400
-        test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] = 300
-        test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case] = 290
-        test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case] = 350
+        test_parameter.matrix[1][operating_case, 0] = 400
+        test_parameter.matrix[2][operating_case, 0] = 300
+        test_parameter.matrix[3][operating_case, 0] = 290
+        test_parameter.matrix[4][operating_case, 0] = 350
         logarithmic_mean_temperature_difference[operating_case] = (10-50) / np.log(10/50)
 
     for operating_case in test_case.range_operating_cases:
         overall_heat_transfer_coefficient = 1 / (1 / hot_streams[topology.hot_stream].film_heat_transfer_coefficients[operating_case] +
                                                  1 / cold_streams[topology.cold_stream].film_heat_transfer_coefficients[operating_case])
         areas[operating_case] = test_exchanger.operation_parameter.heat_loads[operating_case] / \
-            (overall_heat_transfer_coefficient * test_exchanger.operation_parameter.logarithmic_mean_temperature_differences[operating_case])
+            (overall_heat_transfer_coefficient * test_exchanger.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case])
     for operating_case in test_case.range_operating_cases:
         assert areas[operating_case] == test_exchanger.operation_parameter.needed_areas[operating_case]
 
 
 def test_costs_coefficients():
-    test_exchanger, test_case, _ = setup_module()
+    test_exchanger, test_case, _, _ = setup_module()
     base_costs = test_case.initial_exchanger_address_matrix['c_0_HEX'][0]
     assert base_costs == test_exchanger.costs.base_costs
     specific_area_costs = test_case.initial_exchanger_address_matrix['c_A_HEX'][0]
@@ -144,18 +144,29 @@ def test_costs_coefficients():
 
 
 def test_heat_exchanger_costs():
-    test_exchanger, test_case, addresses = setup_module()
-    parameter = ThermodynamicParameter(test_case)
-    test_exchanger.operation_parameter.area = 2000
+    test_exchanger, test_case, addresses, test_parameter = setup_module()
+    for operating_case in test_case.range_operating_cases:
+        test_parameter.matrix[0][operating_case, 0] = 5000
+        test_parameter.matrix[1][operating_case, 0] = 400
+        test_parameter.matrix[2][operating_case, 0] = 300
+        test_parameter.matrix[3][operating_case, 0] = 290
+        test_parameter.matrix[4][operating_case, 0] = 350
+        x = 1
     exchanger_costs = test_exchanger.costs.base_costs + test_exchanger.costs.specific_area_costs * (test_exchanger.operation_parameter.area - test_exchanger.operation_parameter.initial_area)**test_exchanger.costs.degression_area
     assert exchanger_costs == test_exchanger.exchanger_costs
-    test_exchanger.operation_parameter.area = 1000
+    for operating_case in test_case.range_operating_cases:
+        test_parameter.matrix[0][operating_case, 0] *= 10e-2
     assert test_exchanger.exchanger_costs == 0
     addresses.matrix[0, 7] = False
     assert test_exchanger.exchanger_costs == test_exchanger.costs.remove_costs
-    test_exchanger_5 = HeatExchanger(addresses, parameter, test_case, 5)
+    test_exchanger_5 = HeatExchanger(addresses, test_parameter, test_case, 5)
     addresses.matrix[5, 7] = True
-    test_exchanger_5.operation_parameter.area = 2000
+    for operating_case in test_case.range_operating_cases:
+        test_parameter.matrix[0][operating_case, 5] = 5000
+        test_parameter.matrix[1][operating_case, 5] = 400
+        test_parameter.matrix[2][operating_case, 5] = 300
+        test_parameter.matrix[3][operating_case, 5] = 290
+        test_parameter.matrix[4][operating_case, 5] = 350
     exchanger_costs_5 = test_exchanger_5.costs.base_costs + test_exchanger_5.costs.specific_area_costs * (test_exchanger_5.operation_parameter.area - test_exchanger_5.operation_parameter.initial_area)**test_exchanger_5.costs.degression_area
     assert exchanger_costs_5 == test_exchanger_5.exchanger_costs
     addresses.matrix[5, 7] = False
@@ -163,7 +174,7 @@ def test_heat_exchanger_costs():
 
 
 def test_admixer_costs():
-    test_exchanger, _, addresses = setup_module()
+    test_exchanger, _, addresses, _ = setup_module()
     addresses.matrix[0, 4] = True
     addresses.matrix[0, 6] = True
     assert test_exchanger.admixer_costs == test_exchanger.costs.base_admixer_costs * 2
@@ -179,7 +190,7 @@ def test_admixer_costs():
 
 
 def test_bypass_costs():
-    test_exchanger, _, addresses = setup_module()
+    test_exchanger, _, addresses, _ = setup_module()
     addresses.matrix[0, 3] = True
     addresses.matrix[0, 5] = False
     assert test_exchanger.bypass_costs == 0
@@ -195,25 +206,25 @@ def test_bypass_costs():
 
 
 def test_feasible():
-    test_exchanger, test_case, _ = setup_module()
+    test_exchanger, test_case, _, test_parameter = setup_module()
     for operating_case in test_case.range_operating_cases:
-        test_exchanger.operation_parameter.heat_loads[operating_case] = 2000
-        test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] = 400
-        test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] = 300
-        test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case] = 290
-        test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case] = 350
+        test_parameter.matrix[0][operating_case, 0] = 2000
+        test_parameter.matrix[1][operating_case, 0] = 400
+        test_parameter.matrix[2][operating_case, 0] = 300
+        test_parameter.matrix[3][operating_case, 0] = 290
+        test_parameter.matrix[4][operating_case, 0] = 350
     assert test_exchanger.is_feasible
     for operating_case in test_case.range_operating_cases:
-        test_exchanger.operation_parameter.heat_loads[operating_case] = 2000
-        test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] = 200
-        test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] = 300
-        test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case] = 400
-        test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case] = 350
+        test_parameter.matrix[0][operating_case, 0] = 2000
+        test_parameter.matrix[1][operating_case, 0] = 200
+        test_parameter.matrix[2][operating_case, 0] = 300
+        test_parameter.matrix[3][operating_case, 0] = 400
+        test_parameter.matrix[4][operating_case, 0] = 350
     assert not test_exchanger.is_feasible
     for operating_case in test_case.range_operating_cases:
-        test_exchanger.operation_parameter.heat_loads[operating_case] = 2000
-        test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] = 400
-        test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] = 300
-        test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case] = 400
-        test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case] = 350
+        test_parameter.matrix[0][operating_case, 0] = 2000
+        test_parameter.matrix[1][operating_case, 0] = 400
+        test_parameter.matrix[2][operating_case, 0] = 300
+        test_parameter.matrix[3][operating_case, 0] = 400
+        test_parameter.matrix[4][operating_case, 0] = 350
     assert not test_exchanger.is_feasible

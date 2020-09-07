@@ -63,9 +63,10 @@ class HeatExchanger:
 
     @property
     def is_feasible(self):
+        # TODO: This considers only feasibility without mixer!
         is_feasible = [False] * self.operation_parameter.number_operating_cases
         for operating_case in self.operation_parameter.range_operating_cases:
-            if np.isnan(self.operation_parameter.logarithmic_mean_temperature_differences[operating_case]) or self.operation_parameter.logarithmic_mean_temperature_differences[operating_case] <= 0:
+            if np.isnan(self.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case]) or self.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case] <= 0:
                 is_feasible[operating_case] = False
             else:
                 is_feasible[operating_case] = True
@@ -81,7 +82,7 @@ class HeatExchanger:
                           'outlet temperatures hot stream: {}'.format(self.operation_parameter.outlet_temperatures_hot_stream),
                           'inlet temperatures cold stream: {}'.format(self.operation_parameter.inlet_temperatures_cold_stream),
                           'outlet temperatures cold stream: {}'.format(self.operation_parameter.outlet_temperatures_cold_stream),
-                          'logarithmic temperature difference: {}'.format(self.operation_parameter.logarithmic_mean_temperature_differences),
+                          'logarithmic temperature difference: {}'.format(self.operation_parameter.logarithmic_mean_temperature_differences_no_mixer),
                           'needed areas: {}'.format(self.operation_parameter.needed_areas),
                           'area: {}'.format(self.operation_parameter.area)])
 

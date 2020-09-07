@@ -2,7 +2,7 @@ import numpy as np
 
 
 class ExchangerAddresses:
-    """Observer to update HEX by changes on the EAM"""
+    """Observer to update HEX by changes of the EAM"""
 
     def __init__(self, case_study):
         self._matrix = np.array(case_study.initial_exchanger_address_matrix)[:, 1:9].astype(int)

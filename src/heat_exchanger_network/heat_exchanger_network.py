@@ -25,7 +25,6 @@ class HeatExchangerNetwork:
         self.cold_streams = case_study.cold_streams
         self.addresses = ExchangerAddresses(case_study)
         self.thermodynamic_parameter = ThermodynamicParameter(case_study)
-        # TODO: analog to EAM do the same operation parameters
 
         # Utilities
         self.hot_utilities_indices = case_study.hot_utilities_indices

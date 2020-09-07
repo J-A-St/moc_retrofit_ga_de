@@ -3,7 +3,6 @@ import numpy as np
 
 class OperationParameter:
     """Heat exchanger operation parameter"""
-    # TODO: properties need to come from operation parameter matrix!
     # TODO: temperature calculation due to mixer (Lambert-w) needs to be done in here too!
 
     def __init__(self, thermodynamic_parameter, topology, case_study, number):
@@ -25,20 +24,18 @@ class OperationParameter:
         self.outlet_temperatures_hot_stream = np.zeros([case_study.number_operating_cases])
         self.inlet_temperatures_cold_stream = np.zeros([case_study.number_operating_cases])
         self.outlet_temperatures_cold_stream = np.zeros([case_study.number_operating_cases])
-        self.area = 0
 
     @property
     def matrix(self):
         return np.array([self.heat_loads, self.split_fractions_hot_stream, self.split_fractions_cold_stream, self.mixer_fractions_hot_stream, self.mixer_fractions_cold_stream])
 
     @property
-    def logarithmic_mean_temperature_differences(self):
+    def logarithmic_mean_temperature_differences_no_mixer(self):
         """Update logarithmic temperature differences in the heat exchanger."""
-        # TODO: use here temperatures before and after HEX to determine the needed area without mixer!
         lograrithmic_mean_temperature_differences = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
-            temperature_difference_a = self.inlet_temperatures_hot_stream[operating_case] - self.outlet_temperatures_cold_stream[operating_case]
-            temperature_difference_b = self.outlet_temperatures_hot_stream[operating_case] - self.inlet_temperatures_cold_stream[operating_case]
+            temperature_difference_a = self.temperatures_hot_stream_after_hex[operating_case] - self.temperatures_cold_stream_before_hex[operating_case]
+            temperature_difference_b = self.temperatures_hot_stream_before_hex[operating_case] - self.temperatures_cold_stream_after_hex[operating_case]
             if temperature_difference_a == temperature_difference_b:
                 lograrithmic_mean_temperature_differences[operating_case] = temperature_difference_a
             else:
@@ -54,11 +51,18 @@ class OperationParameter:
         """Update area of the heat exchanger."""
         needed_areas = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
-            if np.isnan(self.logarithmic_mean_temperature_differences[operating_case]) or self.logarithmic_mean_temperature_differences[operating_case] <= 0:
+            if np.isnan(self.logarithmic_mean_temperature_differences_no_mixer[operating_case]) or self.logarithmic_mean_temperature_differences_no_mixer[operating_case] <= 0:
                 needed_areas[operating_case] = 0
             else:
-                needed_areas[operating_case] = self.heat_loads[operating_case] / (self.overall_heat_transfer_coefficients[operating_case] * self.logarithmic_mean_temperature_differences[operating_case])
+                needed_areas[operating_case] = self.heat_loads[operating_case] / (self.overall_heat_transfer_coefficients[operating_case] * self.logarithmic_mean_temperature_differences_no_mixer[operating_case])
         return needed_areas
+
+    @property
+    def area(self):
+        """Maximal possible area for feasible heat transfer"""
+        return np.max(self.needed_areas)
+        # TODO: random decision for every OC if bypass, admixer or no mixer (only if needed_area_oc==max_area resp. area)
+        # TODO: calculate outlet respectively inlet temperatures (Lambert W-function) and check with constraints if possible, if not possible check the other options, if non possible reject the solution!
 
     def __repr__(self):
         pass

@@ -1,11 +1,13 @@
-import os
-
 import numpy as np
-
 from src.read_data.read_case_study_data import CaseStudy
 from src.heat_exchanger_network.heat_exchanger.heat_exchanger import HeatExchanger
 from src.heat_exchanger_network.exchanger_addresses import ExchangerAddresses
 from src.heat_exchanger_network.thermodynamic_parameter import ThermodynamicParameter
+
+import os
+import pytest
+import mock
+from mock import patch
 
 
 def setup_module():
@@ -50,7 +52,7 @@ def test_operation_parameter():
     assert initial_area == test_exchanger.operation_parameter.initial_area * 1.2
 
 
-def test_logarithmic_temperature_differences():
+def test_logarithmic_temperature_differences_no_mixer():
     test_exchanger, test_case, _, test_parameter = setup_module()
     logarithmic_mean_temperature_difference = np.zeros([test_case.number_operating_cases])
     for operating_case in test_case.range_operating_cases:
@@ -72,7 +74,7 @@ def test_logarithmic_temperature_differences():
         assert logarithmic_mean_temperature_difference[operating_case] == test_exchanger.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case]
 
 
-def test_needed_areas():
+def test_area():
     test_exchanger, test_case, _, test_parameter = setup_module()
     hot_streams = test_case.hot_streams
     cold_streams = test_case.cold_streams
@@ -80,11 +82,14 @@ def test_needed_areas():
     logarithmic_mean_temperature_difference = np.zeros([test_case.number_operating_cases])
     areas = np.zeros([test_case.number_operating_cases])
     for operating_case in test_case.range_operating_cases:
-        test_parameter.matrix[1][operating_case, 0] = 400
-        test_parameter.matrix[2][operating_case, 0] = 300
-        test_parameter.matrix[3][operating_case, 0] = 290
-        test_parameter.matrix[4][operating_case, 0] = 350
-        logarithmic_mean_temperature_difference[operating_case] = (10-50) / np.log(10/50)
+        test_parameter.matrix[0][operating_case, 0] = 2000
+        test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
+        test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
+        test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
+        test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
+        temperature_difference_1 = test_parameter.matrix[2][operating_case, 0] - test_parameter.matrix[3][operating_case, 0]
+        temperature_difference_2 = test_parameter.matrix[1][operating_case, 0] - test_parameter.matrix[4][operating_case, 0]
+        logarithmic_mean_temperature_difference[operating_case] = (temperature_difference_1 - temperature_difference_2) / np.log(temperature_difference_1 / temperature_difference_2)
 
     for operating_case in test_case.range_operating_cases:
         overall_heat_transfer_coefficient = 1 / (1 / hot_streams[topology.hot_stream].film_heat_transfer_coefficients[operating_case] +
@@ -93,6 +98,68 @@ def test_needed_areas():
             (overall_heat_transfer_coefficient * test_exchanger.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case])
     for operating_case in test_case.range_operating_cases:
         assert areas[operating_case] == test_exchanger.operation_parameter.needed_areas[operating_case]
+    assert np.max(areas) == test_exchanger.operation_parameter.area
+
+
+def test_logarithmic_temperature_differences():
+    test_exchanger, test_case, _, test_parameter = setup_module()
+    for operating_case in test_case.range_operating_cases:
+        test_parameter.matrix[0][operating_case, 0] = 2000
+        test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
+        test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
+        test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
+        test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
+        logarithmic_mean_temperature_difference = test_parameter.matrix[0][operating_case, 0] / (test_exchanger.operation_parameter.overall_heat_transfer_coefficients[operating_case] * test_exchanger.operation_parameter.area)
+        assert logarithmic_mean_temperature_difference == test_exchanger.operation_parameter.logarithmic_mean_temperature_differences[operating_case]
+
+
+def test_mixer_type(monkeypatch):
+    _, test_case, test_addresses, test_parameter = setup_module()
+    test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
+    monkeypatch.setattr('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.random_choice.__defaults__', (0,))
+    for operating_case in test_case.range_operating_cases:
+        test_parameter.matrix[0][operating_case, 0] = 2000
+        test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
+        test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
+        test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
+        test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
+    test_exchanger.operation_parameter.one_mixer_per_hex = True
+    for operating_case in test_case.range_operating_cases:
+        assert test_exchanger.operation_parameter.mixer_types[operating_case] == 'admixer_cold'
+    monkeypatch.setattr('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.random_choice.__defaults__', (None,))
+    test_exchanger.operation_parameter.one_mixer_per_hex = False
+    base_case = np.squeeze(np.argwhere(test_exchanger.operation_parameter.needed_areas == test_exchanger.operation_parameter.area))
+    for operating_case in test_case.range_operating_cases:
+        if operating_case != base_case:
+            assert test_exchanger.operation_parameter.mixer_types[operating_case] != test_exchanger.operation_parameter.mixer_types[base_case]
+
+
+def test_bypass_hot_stream():
+    _, test_case, test_addresses, test_parameter = setup_module()
+    test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
+    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property:
+        mock_property.return_value = ['none', 'bypass_hot']
+        for operating_case in test_case.range_operating_cases:
+            test_parameter.matrix[0][operating_case, 0] = 2000
+            test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
+            test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
+            test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
+            test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
+        for operating_case in test_case.range_operating_cases:
+            assert test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] == test_exchanger.operation_parameter.temperatures_hot_stream_before_hex[operating_case]
+            assert test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case] == test_exchanger.operation_parameter.temperatures_cold_stream_before_hex[operating_case]
+            assert test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case] == test_exchanger.operation_parameter.temperatures_cold_stream_after_hex[operating_case]
+            if operating_case == 0:
+                assert test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] == test_exchanger.operation_parameter.temperatures_hot_stream_after_hex[operating_case]
+            elif operating_case == 1:
+                assert test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] == (test_exchanger.operation_parameter.temperatures_hot_stream_after_hex[operating_case] - test_exchanger.operation_parameter.temperatures_hot_stream_before_hex[operating_case] * test_exchanger.operation_parameter.mixer_fractions_hot_stream[operating_case]) / (1-test_exchanger.operation_parameter.mixer_fractions_hot_stream[operating_case])
+            temperature_difference_1 = test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] - test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case]
+            temperature_difference_2 = test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] - test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case]
+            if temperature_difference_1 == temperature_difference_2:
+                logarithmic_mean_temperature_difference = temperature_difference_1
+            else:
+                logarithmic_mean_temperature_difference = (temperature_difference_1 - temperature_difference_2) / np.log(temperature_difference_1 / temperature_difference_2)
+            assert logarithmic_mean_temperature_difference - test_exchanger.operation_parameter.logarithmic_mean_temperature_differences[operating_case] <= 10e-3
 
 
 def test_costs_coefficients():
@@ -151,7 +218,6 @@ def test_heat_exchanger_costs():
         test_parameter.matrix[2][operating_case, 0] = 300
         test_parameter.matrix[3][operating_case, 0] = 290
         test_parameter.matrix[4][operating_case, 0] = 350
-        x = 1
     exchanger_costs = test_exchanger.costs.base_costs + test_exchanger.costs.specific_area_costs * (test_exchanger.operation_parameter.area - test_exchanger.operation_parameter.initial_area)**test_exchanger.costs.degression_area
     assert exchanger_costs == test_exchanger.exchanger_costs
     for operating_case in test_case.range_operating_cases:

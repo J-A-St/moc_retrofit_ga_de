@@ -11,6 +11,9 @@ from src.heat_exchanger_network.restrictions import Restrictions
 class HeatExchangerNetwork:
     """Heat exchanger network object"""
     # TODO: include HEN (sum of all HEX costs) utility balance HEX, split, re-piping, re-sequencing, match costs, and operation costs
+    # TODO: calculate enthalpy stage temperatures
+    # TODO: random function for heat loads
+    # TODO: random function for EAM (only hex stuff; mixer stuff needs to be updated from hex.operation_parameter)
 
     def __init__(self, case_study):
         self.number_heat_exchangers = case_study.number_heat_exchangers
@@ -37,6 +40,10 @@ class HeatExchangerNetwork:
         for exchanger in case_study.range_heat_exchangers:
             self.heat_exchangers.append(HeatExchanger(self.addresses, self.thermodynamic_parameter, case_study, exchanger))
 
+        # TODO: Initialize random EAM!
+        # TODO: Initialize random heat loads!
+        # TODO: if there is a split, update split fractions in operation parameter of hex!
+
         # Balance utility heat exchangers
         self.balance_utility_heat_exchanger = list()
         for exchanger in case_study.range_balance_utility_heat_exchangers:
@@ -47,23 +54,6 @@ class HeatExchangerNetwork:
 
         # Economics
         self.economics = Economics(case_study)
-
-    # @property
-    # def address_matrix(self):
-    #     # TODO: replace this with initialized address matrix and create exchangers based on this!
-    #     heat_exchanger_address_matrix = np.zeros([self.number_heat_exchangers, len(self.heat_exchangers[0].topology.address_vector)], dtype=int)
-    #     for exchanger in self.range_heat_exchangers:
-    #         heat_exchanger_address_matrix[exchanger] = self.heat_exchangers[exchanger].topology.address_vector
-    #     return heat_exchanger_address_matrix
-
-    @property
-    def operation_parameter_matrix(self):
-        # TODO: create random EAM here with boundaries from caste study and initialize exchangers based on this!
-        operation_parameter_matrix = np.zeros([len(self.heat_exchangers[0].operation_parameter.matrix), self.number_heat_exchangers, self.number_operating_cases])
-        for exchanger in self.range_heat_exchangers:
-            for parameter in range(len(self.heat_exchangers[0].operation_parameter.matrix)):
-                operation_parameter_matrix[parameter, exchanger] = self.heat_exchangers[exchanger].operation_parameter.matrix[parameter]
-        return operation_parameter_matrix
 
     def get_utility_heat_exchangers(self, stream_type):
         utility_heat_exchanger = []
@@ -89,7 +79,7 @@ class HeatExchangerNetwork:
         self.cold_utility_demand = cold_utility_demand
 
     def is_feasible(self):
-        # TODO: function from evaluation
+        # TODO: check is every heat exchanger is feasible and check is energy balance is fulfilled!
         pass
 
     def __repr__(self):

@@ -63,7 +63,7 @@ class HeatExchanger:
 
     @property
     def is_feasible(self):
-        # TODO: This considers only feasibility without mixer!
+        # TODO: This considers only feasibility without mixer! --> check inlet and outlet temperatures and further new constraints for mixers! --> check with inlet and outlet temperatures all equations in section 17.2
         is_feasible = [False] * self.operation_parameter.number_operating_cases
         for operating_case in self.operation_parameter.range_operating_cases:
             if np.isnan(self.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case]) or self.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case] <= 0:

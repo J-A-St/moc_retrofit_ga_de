@@ -135,6 +135,7 @@ def test_mixer_type(monkeypatch):
 
 
 def test_bypass_hot_stream():
+    # TODO: test both Lambert W branches (W-1 and W0)!
     _, test_case, test_addresses, test_parameter = setup_module()
     test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
     with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property:

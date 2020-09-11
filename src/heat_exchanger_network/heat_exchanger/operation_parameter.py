@@ -99,12 +99,17 @@ class OperationParameter:
                 temperature_difference_2 = self.temperatures_hot_stream_after_hex[operating_case] - self.temperatures_cold_stream_before_hex[operating_case]
                 if temperature_difference_2 == self.logarithmic_mean_temperature_differences[operating_case]:
                     temperature_difference_1 = temperature_difference_2
-                else:
-                    # logarithmic_mean_temperature_difference = self.logarithmic_mean_temperature_differences[operating_case]
-                    # temperature_difference_2_ratio = temperature_difference_2 / logarithmic_mean_temperature_difference
-                    # temperature_difference_1_ratio = - lambertw(-temperature_difference_2_ratio * np.exp(-temperature_difference_2_ratio), -1).real / temperature_difference_2_ratio
-                    # temperature_difference_1 = temperature_difference_1_ratio * temperature_difference_2
-                    temperature_difference_1 = (2 * self.logarithmic_mean_temperature_differences[operating_case]**0.3275-temperature_difference_2**0.3275)**(1/0.3275)
+                elif temperature_difference_2 > self.logarithmic_mean_temperature_differences[operating_case]:
+                    logarithmic_mean_temperature_difference = self.logarithmic_mean_temperature_differences[operating_case]
+                    temperature_difference_2_ratio = temperature_difference_2 / logarithmic_mean_temperature_difference
+                    temperature_difference_1_ratio = - lambertw(-temperature_difference_2_ratio * np.exp(-temperature_difference_2_ratio), 0).real / temperature_difference_2_ratio
+                    temperature_difference_1 = temperature_difference_1_ratio * temperature_difference_2
+                elif temperature_difference_2 < self.logarithmic_mean_temperature_differences[operating_case]:
+                    logarithmic_mean_temperature_difference = self.logarithmic_mean_temperature_differences[operating_case]
+                    temperature_difference_2_ratio = temperature_difference_2 / logarithmic_mean_temperature_difference
+                    temperature_difference_1_ratio = - lambertw(-temperature_difference_2_ratio * np.exp(-temperature_difference_2_ratio), -1).real / temperature_difference_2_ratio
+                    temperature_difference_1 = temperature_difference_1_ratio * temperature_difference_2
+                    # temperature_difference_1 = (2 * self.logarithmic_mean_temperature_differences[operating_case]**0.3275-temperature_difference_2**0.3275)**(1/0.3275)
 
                 inlet_temperatures_hot_stream[operating_case] = self.temperatures_cold_stream_after_hex[operating_case] + temperature_difference_1
             else:
@@ -121,12 +126,17 @@ class OperationParameter:
                 temperature_difference_2 = self.temperatures_hot_stream_before_hex[operating_case] - self.temperatures_cold_stream_after_hex[operating_case]
                 if temperature_difference_2 == self.logarithmic_mean_temperature_differences[operating_case]:
                     temperature_difference_1 = temperature_difference_2
-                else:
-                    # logarithmic_mean_temperature_difference = self.logarithmic_mean_temperature_differences[operating_case]
-                    # temperature_difference_2_ratio = temperature_difference_2 / logarithmic_mean_temperature_difference
-                    # temperature_difference_1_ratio = - lambertw(-temperature_difference_2_ratio * np.exp(-temperature_difference_2_ratio), -1).real / temperature_difference_2_ratio
-                    # temperature_difference_1 = temperature_difference_1_ratio * temperature_difference_2
-                    temperature_difference_1 = (2 * self.logarithmic_mean_temperature_differences[operating_case]**0.3275-temperature_difference_2**0.3275)**(1/0.3275)
+                elif temperature_difference_2 > self.logarithmic_mean_temperature_differences[operating_case]:
+                    logarithmic_mean_temperature_difference = self.logarithmic_mean_temperature_differences[operating_case]
+                    temperature_difference_2_ratio = temperature_difference_2 / logarithmic_mean_temperature_difference
+                    temperature_difference_1_ratio = - lambertw(-temperature_difference_2_ratio * np.exp(-temperature_difference_2_ratio), 0).real / temperature_difference_2_ratio
+                    temperature_difference_1 = temperature_difference_1_ratio * temperature_difference_2
+                elif temperature_difference_2 < self.logarithmic_mean_temperature_differences[operating_case]:
+                    logarithmic_mean_temperature_difference = self.logarithmic_mean_temperature_differences[operating_case]
+                    temperature_difference_2_ratio = temperature_difference_2 / logarithmic_mean_temperature_difference
+                    temperature_difference_1_ratio = - lambertw(-temperature_difference_2_ratio * np.exp(-temperature_difference_2_ratio), -1).real / temperature_difference_2_ratio
+                    temperature_difference_1 = temperature_difference_1_ratio * temperature_difference_2
+                    # temperature_difference_1 = (2 * self.logarithmic_mean_temperature_differences[operating_case]**0.3275-temperature_difference_2**0.3275)**(1/0.3275)
 
                 outlet_temperatures_hot_stream[operating_case] = self.temperatures_cold_stream_before_hex[operating_case] + temperature_difference_1
             else:
@@ -142,12 +152,17 @@ class OperationParameter:
                 temperature_difference_2 = self.temperatures_hot_stream_before_hex[operating_case] - self.temperatures_cold_stream_after_hex[operating_case]
                 if temperature_difference_2 == self.logarithmic_mean_temperature_differences[operating_case]:
                     temperature_difference_1 = temperature_difference_2
-                else:
-                    # logarithmic_mean_temperature_difference = self.logarithmic_mean_temperature_differences[operating_case]
-                    # temperature_difference_2_ratio = temperature_difference_2 / logarithmic_mean_temperature_difference
-                    # temperature_difference_1_ratio = - lambertw(-temperature_difference_2_ratio * np.exp(-temperature_difference_2_ratio), -1).real / temperature_difference_2_ratio
-                    # temperature_difference_1 = temperature_difference_1_ratio * temperature_difference_2
-                    temperature_difference_1 = (2 * self.logarithmic_mean_temperature_differences[operating_case]**0.3275-temperature_difference_2**0.3275)**(1/0.3275)
+                elif temperature_difference_2 > self.logarithmic_mean_temperature_differences[operating_case]:
+                    logarithmic_mean_temperature_difference = self.logarithmic_mean_temperature_differences[operating_case]
+                    temperature_difference_2_ratio = temperature_difference_2 / logarithmic_mean_temperature_difference
+                    temperature_difference_1_ratio = - lambertw(-temperature_difference_2_ratio * np.exp(-temperature_difference_2_ratio), 0).real / temperature_difference_2_ratio
+                    temperature_difference_1 = temperature_difference_1_ratio * temperature_difference_2
+                elif temperature_difference_2 < self.logarithmic_mean_temperature_differences[operating_case]:
+                    logarithmic_mean_temperature_difference = self.logarithmic_mean_temperature_differences[operating_case]
+                    temperature_difference_2_ratio = temperature_difference_2 / logarithmic_mean_temperature_difference
+                    temperature_difference_1_ratio = - lambertw(-temperature_difference_2_ratio * np.exp(-temperature_difference_2_ratio), -1).real / temperature_difference_2_ratio
+                    temperature_difference_1 = temperature_difference_1_ratio * temperature_difference_2
+                    # temperature_difference_1 = (2 * self.logarithmic_mean_temperature_differences[operating_case]**0.3275-temperature_difference_2**0.3275)**(1/0.3275)
 
                 inlet_temperatures_cold_stream[operating_case] = self.temperatures_hot_stream_after_hex[operating_case] - temperature_difference_1
             else:
@@ -163,12 +178,17 @@ class OperationParameter:
                 temperature_difference_2 = self.temperatures_hot_stream_after_hex[operating_case] - self.temperatures_cold_stream_before_hex[operating_case]
                 if temperature_difference_2 == self.logarithmic_mean_temperature_differences[operating_case]:
                     temperature_difference_1 = temperature_difference_2
-                else:
-                    # logarithmic_mean_temperature_difference = self.logarithmic_mean_temperature_differences[operating_case]
-                    # temperature_difference_2_ratio = temperature_difference_2 / logarithmic_mean_temperature_difference
-                    # temperature_difference_1_ratio = - lambertw(-temperature_difference_2_ratio * np.exp(-temperature_difference_2_ratio), -1).real / temperature_difference_2_ratio
-                    # temperature_difference_1 = temperature_difference_1_ratio * temperature_difference_1
-                    temperature_difference_1 = (2 * self.logarithmic_mean_temperature_differences[operating_case]**0.3275-temperature_difference_2**0.3275)**(1/0.3275)
+                elif temperature_difference_2 > self.logarithmic_mean_temperature_differences[operating_case]:
+                    logarithmic_mean_temperature_difference = self.logarithmic_mean_temperature_differences[operating_case]
+                    temperature_difference_2_ratio = temperature_difference_2 / logarithmic_mean_temperature_difference
+                    temperature_difference_1_ratio = - lambertw(-temperature_difference_2_ratio * np.exp(-temperature_difference_2_ratio), 0).real / temperature_difference_2_ratio
+                    temperature_difference_1 = temperature_difference_1_ratio * temperature_difference_2
+                elif temperature_difference_2 < self.logarithmic_mean_temperature_differences[operating_case]:
+                    logarithmic_mean_temperature_difference = self.logarithmic_mean_temperature_differences[operating_case]
+                    temperature_difference_2_ratio = temperature_difference_2 / logarithmic_mean_temperature_difference
+                    temperature_difference_1_ratio = - lambertw(-temperature_difference_2_ratio * np.exp(-temperature_difference_2_ratio), -1).real / temperature_difference_2_ratio
+                    temperature_difference_1 = temperature_difference_1_ratio * temperature_difference_2
+                    # temperature_difference_1 = (2 * self.logarithmic_mean_temperature_differences[operating_case]**0.3275-temperature_difference_2**0.3275)**(1/0.3275)
 
                 outlet_temperatures_cold_stream[operating_case] = self.temperatures_hot_stream_before_hex[operating_case] - temperature_difference_1
             else:

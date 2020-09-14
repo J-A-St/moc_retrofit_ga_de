@@ -141,7 +141,6 @@ class OperationParameter:
 
     @property
     def inlet_temperatures_cold_stream(self):
-        # TODO: needs test function
         inlet_temperatures_cold_stream = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
             if self.mixer_types[operating_case] == 'admixer_cold':
@@ -167,7 +166,6 @@ class OperationParameter:
 
     @property
     def outlet_temperatures_cold_stream(self):
-        # TODO: needs test function
         outlet_temperatures_cold_stream = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
             if self.mixer_types[operating_case] == 'bypass_cold':
@@ -193,7 +191,6 @@ class OperationParameter:
 
     @property
     def mixer_fractions_hot_stream(self):
-        # TODO: needs test function
         mixer_fractions_hot_stream = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
             if self.mixer_types[operating_case] == 'admixer_hot':
@@ -206,7 +203,6 @@ class OperationParameter:
 
     @property
     def mixer_fractions_cold_stream(self):
-        # TODO: needs test function
         mixer_fractions_cold_stream = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
             if self.mixer_types[operating_case] == 'admixer_cold':

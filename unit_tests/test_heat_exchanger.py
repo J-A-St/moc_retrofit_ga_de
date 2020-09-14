@@ -99,6 +99,14 @@ def test_area():
     for operating_case in test_case.range_operating_cases:
         assert areas[operating_case] == test_exchanger.operation_parameter.needed_areas[operating_case]
     assert np.max(areas) == test_exchanger.operation_parameter.area
+    for operating_case in test_case.range_operating_cases:
+        test_parameter.matrix[0][operating_case, 0] = 2000
+        test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
+        test_parameter.matrix[2][operating_case, 0] = 100 * (operating_case + 1)
+        test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
+        test_parameter.matrix[4][operating_case, 0] = 450 * (operating_case + 1)
+    for operating_case in test_case.range_operating_cases:
+        assert test_exchanger.operation_parameter.needed_areas[operating_case] == 0.0
 
 
 def test_logarithmic_temperature_differences():

@@ -29,15 +29,17 @@ class OperationParameter:
     @property
     def logarithmic_mean_temperature_differences_no_mixer(self):
         """Update logarithmic temperature differences in the heat exchanger."""
-        lograrithmic_mean_temperature_differences = np.zeros([self.number_operating_cases])
+        logarithmic_mean_temperature_differences = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
             temperature_difference_a = self.temperatures_hot_stream_after_hex[operating_case] - self.temperatures_cold_stream_before_hex[operating_case]
             temperature_difference_b = self.temperatures_hot_stream_before_hex[operating_case] - self.temperatures_cold_stream_after_hex[operating_case]
             if temperature_difference_a == temperature_difference_b:
-                lograrithmic_mean_temperature_differences[operating_case] = temperature_difference_a
+                logarithmic_mean_temperature_differences[operating_case] = temperature_difference_a
+            elif temperature_difference_a < 0 or temperature_difference_a < 0:
+                logarithmic_mean_temperature_differences[operating_case] = np.nan
             else:
-                lograrithmic_mean_temperature_differences[operating_case] = (temperature_difference_a - temperature_difference_b) / np.log(temperature_difference_a / temperature_difference_b)
-        return lograrithmic_mean_temperature_differences
+                logarithmic_mean_temperature_differences[operating_case] = (temperature_difference_a - temperature_difference_b) / np.log(temperature_difference_a / temperature_difference_b)
+        return logarithmic_mean_temperature_differences
 
     @property
     def overall_heat_transfer_coefficients(self):
@@ -49,7 +51,7 @@ class OperationParameter:
         needed_areas = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
             if np.isnan(self.logarithmic_mean_temperature_differences_no_mixer[operating_case]) or self.logarithmic_mean_temperature_differences_no_mixer[operating_case] <= 0:
-                needed_areas[operating_case] = 0
+                needed_areas[operating_case] = 0.0
             else:
                 needed_areas[operating_case] = self.heat_loads[operating_case] / (self.overall_heat_transfer_coefficients[operating_case] * self.logarithmic_mean_temperature_differences_no_mixer[operating_case])
         return needed_areas
@@ -57,6 +59,8 @@ class OperationParameter:
     @property
     def area(self):
         """Maximal possible area for feasible heat transfer"""
+        if any(np.isnan(self.needed_areas) == np.nan):
+            return np.nan
         return np.max(self.needed_areas)
 
     @property

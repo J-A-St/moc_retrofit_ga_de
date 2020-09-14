@@ -50,6 +50,7 @@ def test_areas():
         logarithmic_mean_temperature_difference[operating_case] = (10-50) / np.log(10/50)
         test_balance_exchanger.heat_loads[operating_case] = 2000
         needed_areas[operating_case] = 2000 / (test_balance_exchanger.overall_heat_transfer_coefficient[operating_case] * logarithmic_mean_temperature_difference[operating_case])
+    for operating_case in test_case.range_operating_cases:
         assert test_balance_exchanger.needed_areas[operating_case] == needed_areas[operating_case]
     assert max(needed_areas) == test_balance_exchanger.area
 

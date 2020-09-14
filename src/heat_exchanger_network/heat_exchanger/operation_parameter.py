@@ -69,7 +69,6 @@ class OperationParameter:
 
     @property
     def mixer_types(self):
-        # TODO: How to test (random seeding?)
         # TODO: should not occur for gaseous streams! (practicability) --> argument for SA algorithm!
         possible_mixer_types = ['bypass_hot', 'bypass_cold', 'admixer_hot', 'admixer_cold']
         mixer_types = []
@@ -92,7 +91,6 @@ class OperationParameter:
 
     @property
     def inlet_temperatures_hot_stream(self):
-        # TODO: needs test function
         inlet_temperatures_hot_stream = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
             if self.mixer_types[operating_case] == 'admixer_hot':
@@ -118,8 +116,6 @@ class OperationParameter:
 
     @property
     def outlet_temperatures_hot_stream(self):
-        # TODO: needs test function
-        # TODO: beta = 1 ? this should not happen! what's wrong here? --> only works if dT<LMTD: use eq 11 from 1987 paper: dT1 = (2* (Q/(UA))**0.3275-dT2**0.3275)**(1/0.3275)
         outlet_temperatures_hot_stream = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
             if self.mixer_types[operating_case] == 'bypass_hot':

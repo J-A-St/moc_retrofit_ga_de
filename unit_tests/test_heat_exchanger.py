@@ -135,7 +135,7 @@ def test_mixer_type(monkeypatch):
 
 
 def test_bypass_hot_stream():
-    # TODO: test both Lambert W branches (W-1 and W0)!
+    # TODO: test also dT1<LMTD
     _, test_case, test_addresses, test_parameter = setup_module()
     test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
     with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property:
@@ -153,7 +153,92 @@ def test_bypass_hot_stream():
             if operating_case == 0:
                 assert test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] == test_exchanger.operation_parameter.temperatures_hot_stream_after_hex[operating_case]
             elif operating_case == 1:
-                assert test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] == (test_exchanger.operation_parameter.temperatures_hot_stream_after_hex[operating_case] - test_exchanger.operation_parameter.temperatures_hot_stream_before_hex[operating_case] * test_exchanger.operation_parameter.mixer_fractions_hot_stream[operating_case]) / (1-test_exchanger.operation_parameter.mixer_fractions_hot_stream[operating_case])
+                assert abs(test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] - (test_exchanger.operation_parameter.temperatures_hot_stream_after_hex[operating_case] - test_exchanger.operation_parameter.temperatures_hot_stream_before_hex[operating_case] * test_exchanger.operation_parameter.mixer_fractions_hot_stream[operating_case]) / (1 - test_exchanger.operation_parameter.mixer_fractions_hot_stream[operating_case])) <= 10e-3
+            temperature_difference_1 = test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] - test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case]
+            temperature_difference_2 = test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] - test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case]
+            if temperature_difference_1 == temperature_difference_2:
+                logarithmic_mean_temperature_difference = temperature_difference_1
+            else:
+                logarithmic_mean_temperature_difference = (temperature_difference_1 - temperature_difference_2) / np.log(temperature_difference_1 / temperature_difference_2)
+            assert logarithmic_mean_temperature_difference - test_exchanger.operation_parameter.logarithmic_mean_temperature_differences[operating_case] <= 10e-3
+
+
+def test_admixer_hot_stream():
+    # TODO: test also dT1>LMTD
+    _, test_case, test_addresses, test_parameter = setup_module()
+    test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
+    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property:
+        mock_property.return_value = ['none', 'admixer_hot']
+        for operating_case in test_case.range_operating_cases:
+            test_parameter.matrix[0][operating_case, 0] = 2000
+            test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
+            test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
+            test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
+            test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
+        for operating_case in test_case.range_operating_cases:
+            assert test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] == test_exchanger.operation_parameter.temperatures_hot_stream_after_hex[operating_case]
+            assert test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case] == test_exchanger.operation_parameter.temperatures_cold_stream_before_hex[operating_case]
+            assert test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case] == test_exchanger.operation_parameter.temperatures_cold_stream_after_hex[operating_case]
+            if operating_case == 0:
+                assert test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] == test_exchanger.operation_parameter.temperatures_hot_stream_before_hex[operating_case]
+            elif operating_case == 1:
+                assert abs(test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] - (test_exchanger.operation_parameter.temperatures_hot_stream_before_hex[operating_case] + test_exchanger.operation_parameter.temperatures_hot_stream_after_hex[operating_case] * test_exchanger.operation_parameter.mixer_fractions_hot_stream[operating_case]) / (1 + test_exchanger.operation_parameter.mixer_fractions_hot_stream[operating_case])) <= 10e-3
+            temperature_difference_1 = test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] - test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case]
+            temperature_difference_2 = test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] - test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case]
+            if temperature_difference_1 == temperature_difference_2:
+                logarithmic_mean_temperature_difference = temperature_difference_1
+            else:
+                logarithmic_mean_temperature_difference = (temperature_difference_1 - temperature_difference_2) / np.log(temperature_difference_1 / temperature_difference_2)
+            assert logarithmic_mean_temperature_difference - test_exchanger.operation_parameter.logarithmic_mean_temperature_differences[operating_case] <= 10e-3
+
+
+def test_bypass_cold_stream():
+    _, test_case, test_addresses, test_parameter = setup_module()
+    test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
+    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property:
+        mock_property.return_value = ['none', 'bypass_cold']
+        for operating_case in test_case.range_operating_cases:
+            test_parameter.matrix[0][operating_case, 0] = 2000
+            test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
+            test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
+            test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
+            test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
+        for operating_case in test_case.range_operating_cases:
+            assert test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] == test_exchanger.operation_parameter.temperatures_hot_stream_before_hex[operating_case]
+            assert test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] == test_exchanger.operation_parameter.temperatures_hot_stream_after_hex[operating_case]
+            assert test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case] == test_exchanger.operation_parameter.temperatures_cold_stream_before_hex[operating_case]
+            if operating_case == 0:
+                assert test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case] == test_exchanger.operation_parameter.temperatures_cold_stream_after_hex[operating_case]
+            elif operating_case == 1:
+                assert abs(test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case] - (test_exchanger.operation_parameter.temperatures_cold_stream_after_hex[operating_case] - test_exchanger.operation_parameter.temperatures_cold_stream_before_hex[operating_case] * test_exchanger.operation_parameter.mixer_fractions_cold_stream[operating_case]) / (1 - test_exchanger.operation_parameter.mixer_fractions_cold_stream[operating_case])) <= 10e-3
+            temperature_difference_1 = test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] - test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case]
+            temperature_difference_2 = test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] - test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case]
+            if temperature_difference_1 == temperature_difference_2:
+                logarithmic_mean_temperature_difference = temperature_difference_1
+            else:
+                logarithmic_mean_temperature_difference = (temperature_difference_1 - temperature_difference_2) / np.log(temperature_difference_1 / temperature_difference_2)
+            assert logarithmic_mean_temperature_difference - test_exchanger.operation_parameter.logarithmic_mean_temperature_differences[operating_case] <= 10e-3
+
+
+def test_admixer_cold_stream():
+    _, test_case, test_addresses, test_parameter = setup_module()
+    test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
+    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property:
+        mock_property.return_value = ['none', 'admixer_cold']
+        for operating_case in test_case.range_operating_cases:
+            test_parameter.matrix[0][operating_case, 0] = 2000
+            test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
+            test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
+            test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
+            test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
+        for operating_case in test_case.range_operating_cases:
+            assert test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] == test_exchanger.operation_parameter.temperatures_hot_stream_before_hex[operating_case]
+            assert test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] == test_exchanger.operation_parameter.temperatures_hot_stream_after_hex[operating_case]
+            assert test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case] == test_exchanger.operation_parameter.temperatures_cold_stream_after_hex[operating_case]
+            if operating_case == 0:
+                assert test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case] == test_exchanger.operation_parameter.temperatures_cold_stream_before_hex[operating_case]
+            elif operating_case == 1:
+                assert abs(test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case] - (test_exchanger.operation_parameter.temperatures_cold_stream_before_hex[operating_case] + test_exchanger.operation_parameter.temperatures_cold_stream_after_hex[operating_case] * test_exchanger.operation_parameter.mixer_fractions_cold_stream[operating_case]) / (1 + test_exchanger.operation_parameter.mixer_fractions_cold_stream[operating_case])) <= 10e-3
             temperature_difference_1 = test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] - test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case]
             temperature_difference_2 = test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] - test_exchanger.operation_parameter.outlet_temperatures_cold_stream[operating_case]
             if temperature_difference_1 == temperature_difference_2:

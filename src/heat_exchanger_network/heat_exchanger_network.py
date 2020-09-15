@@ -12,8 +12,7 @@ class HeatExchangerNetwork:
     """Heat exchanger network object"""
     # TODO: include HEN (sum of all HEX costs) utility balance HEX, split, re-piping, re-sequencing, match costs, and operation costs
     # TODO: calculate enthalpy stage temperatures
-    # TODO: random function for heat loads
-    # TODO: random function for EAM (only hex stuff; mixer stuff needs to be updated from hex.operation_parameter)
+    # TODO: if there is a split, update split fractions in operation parameter of hex!
 
     def __init__(self, case_study):
         self.number_heat_exchangers = case_study.number_heat_exchangers
@@ -40,10 +39,6 @@ class HeatExchangerNetwork:
         for exchanger in case_study.range_heat_exchangers:
             self.heat_exchangers.append(HeatExchanger(self.addresses, self.thermodynamic_parameter, case_study, exchanger))
 
-        # TODO: Initialize random EAM!
-        # TODO: Initialize random heat loads!
-        # TODO: if there is a split, update split fractions in operation parameter of hex!
-
         # Balance utility heat exchangers
         self.balance_utility_heat_exchanger = list()
         for exchanger in case_study.range_balance_utility_heat_exchangers:
@@ -56,6 +51,7 @@ class HeatExchangerNetwork:
         self.economics = Economics(case_study)
 
     def get_utility_heat_exchangers(self, stream_type):
+        # TODO: reformulate to property
         utility_heat_exchanger = []
         for exchanger in self.range_heat_exchangers:
             if self.heat_exchangers[exchanger].topology.existent and \
@@ -66,6 +62,7 @@ class HeatExchangerNetwork:
 
     def update_utility_demand(self, operating_cases):
         # TODO: utility demand of balance utility exchanger is not jet included!
+        # TODO: reformulate to property
         hot_utility_exchangers = self.get_utility_heat_exchangers('hot')
         cold_utility_exchangers = self.get_utility_heat_exchangers('cold')
         hot_utility_demand = np.zeros([self.number_operating_cases])
@@ -80,6 +77,7 @@ class HeatExchangerNetwork:
 
     def is_feasible(self):
         # TODO: check is every heat exchanger is feasible and check is energy balance is fulfilled!
+        # TODO: reformulate to property
         pass
 
     def __repr__(self):

@@ -21,13 +21,6 @@ def test_heat_exchanger_address_matrix():
         assert all(test_network.addresses.matrix[exchanger] == test_network.heat_exchangers[exchanger].topology.address_vector)
 
 
-def test_operation_parameter_matrix():
-    test_network, test_case = setup_model()
-    for exchanger in test_case.range_heat_exchangers:
-        for parameter in range(len(test_network.heat_exchangers[0].operation_parameter.matrix)):
-            assert all(test_network.thermodynamic_parameter.matrix[parameter][:, exchanger] == test_network.heat_exchangers[exchanger].operation_parameter.matrix[parameter])
-
-
 def test_balance_utility_heat_exchangers():
     test_network, test_case = setup_model()
     for exchanger in test_case.range_balance_utility_heat_exchangers:

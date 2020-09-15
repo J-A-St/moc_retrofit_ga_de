@@ -5,9 +5,9 @@ rng = np.random.default_rng()
 
 class OperationParameter:
     """Heat exchanger operation parameter"""
-    # TODO: temperature calculation due to mixer (Lambert-w) needs to be done in here too!
 
     def __init__(self, thermodynamic_parameter, topology, case_study, number):
+        self.number = number
         self.number_operating_cases = case_study.number_operating_cases
         self.range_operating_cases = case_study.range_operating_cases
         self.film_heat_transfer_coefficients_hot_stream = case_study.hot_streams[topology.hot_stream].film_heat_transfer_coefficients
@@ -15,16 +15,34 @@ class OperationParameter:
         self.initial_area = case_study.initial_exchanger_address_matrix['A_ex'][number]
         self.split_fractions_hot_stream = np.zeros([case_study.number_operating_cases])
         self.split_fractions_cold_stream = np.zeros([case_study.number_operating_cases])
-        self.heat_loads = thermodynamic_parameter.matrix[0][:, number]
-        self.temperatures_hot_stream_before_hex = thermodynamic_parameter.matrix[1][:, number]
-        self.temperatures_hot_stream_after_hex = thermodynamic_parameter.matrix[2][:, number]
-        self.temperatures_cold_stream_before_hex = thermodynamic_parameter.matrix[3][:, number]
-        self.temperatures_cold_stream_after_hex = thermodynamic_parameter.matrix[4][:, number]
         self.one_mixer_per_hex = case_study.manual_parameter['OneMixerBool'].iloc[0]
 
+        self.thermodynamic_parameter = thermodynamic_parameter
+        self.thermodynamic_parameter.bind_to(self.update_operation_parameter)
+        self.operation_parameter = thermodynamic_parameter._matrix
+
+    def update_operation_parameter(self, parameter):
+        self.operation_parameter = parameter
+
     @property
-    def matrix(self):
-        return np.array([self.heat_loads, self.split_fractions_hot_stream, self.split_fractions_cold_stream, self.mixer_fractions_hot_stream, self.mixer_fractions_cold_stream])
+    def heat_loads(self):
+        return self.operation_parameter[0][:, self.number]
+
+    @property
+    def temperatures_hot_stream_before_hex(self):
+        return self.operation_parameter[1][:, self.number]
+
+    @property
+    def temperatures_hot_stream_after_hex(self):
+        return self.operation_parameter[2][:, self.number]
+
+    @property
+    def temperatures_cold_stream_before_hex(self):
+        return self.operation_parameter[3][:, self.number]
+
+    @property
+    def temperatures_cold_stream_after_hex(self):
+        return self.operation_parameter[4][:, self.number]
 
     @property
     def logarithmic_mean_temperature_differences_no_mixer(self):

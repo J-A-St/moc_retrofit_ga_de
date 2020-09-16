@@ -102,6 +102,71 @@ def test_enthalpy_stage_temperatures():
     assert test_temperatures_enthalpy_stages_cold_streams[1, 3, 1] - 130 <= 10e-3
     assert test_temperatures_enthalpy_stages_cold_streams[1, 4, 1] - 130 <= 10e-3
 
+    test_network.addresses.matrix = np.array(
+        [
+            [0, 1, 3, 1, 0, 0, 0, 1],
+            [0, 0, 2, 1, 0, 0, 0, 1],
+            [0, 1, 1, 1, 0, 0, 0, 1],
+            [0, 0, 3, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    test_temperatures_enthalpy_stages_hot_streams = test_network.enthalpy_stage_temperatures_hot_streams - 273.15
+    assert test_temperatures_enthalpy_stages_hot_streams[0, 0, 0] - 94 <= 10e-3
+    assert test_temperatures_enthalpy_stages_hot_streams[0, 1, 0] - 94 <= 10e-3
+    assert test_temperatures_enthalpy_stages_hot_streams[0, 2, 0] - 94 <= 10e-3
+    assert test_temperatures_enthalpy_stages_hot_streams[0, 3, 0] - 94 <= 10e-3
+    assert test_temperatures_enthalpy_stages_hot_streams[0, 4, 0] - 280 <= 10e-3
+    assert test_temperatures_enthalpy_stages_hot_streams[0, 0, 1] - 225 <= 10e-3
+    assert test_temperatures_enthalpy_stages_hot_streams[0, 1, 1] - 225 <= 10e-3
+    assert test_temperatures_enthalpy_stages_hot_streams[0, 2, 1] - 226.67 <= 10e-3
+    assert test_temperatures_enthalpy_stages_hot_streams[0, 3, 1] - 290 <= 10e-3
+    assert test_temperatures_enthalpy_stages_hot_streams[0, 4, 1] - 290 <= 10e-3
+    assert test_temperatures_enthalpy_stages_hot_streams[1, 0, 0] - 188.57 <= 10e-3
+    assert test_temperatures_enthalpy_stages_hot_streams[1, 1, 0] - 188.57 <= 10e-3
+    assert test_temperatures_enthalpy_stages_hot_streams[1, 2, 0] - 188.57 <= 10e-3
+    assert test_temperatures_enthalpy_stages_hot_streams[1, 3, 0] - 210 <= 10e-3
+    assert test_temperatures_enthalpy_stages_hot_streams[1, 4, 0] - 210 <= 10e-3
+    assert test_temperatures_enthalpy_stages_hot_streams[1, 0, 1] - 110 <= 10e-3
+    assert test_temperatures_enthalpy_stages_hot_streams[1, 1, 1] - 110 <= 10e-3
+    assert test_temperatures_enthalpy_stages_hot_streams[1, 2, 1] - 110 <= 10e-3
+    assert test_temperatures_enthalpy_stages_hot_streams[1, 3, 1] - 180 <= 10e-3
+    assert test_temperatures_enthalpy_stages_hot_streams[1, 4, 1] - 180 <= 10e-3
+    test_network.addresses.matrix = np.array(
+        [
+            [0, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 2, 1, 0, 0, 0, 1],
+            [0, 1, 1, 1, 0, 0, 0, 1],
+            [0, 0, 0, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    test_temperatures_enthalpy_stages_cold_streams = test_network.enthalpy_stage_temperatures_cold_streams - 273.15
+    assert test_temperatures_enthalpy_stages_cold_streams[0, 0, 0] - 30 <= 10e-3
+    assert test_temperatures_enthalpy_stages_cold_streams[0, 1, 0] - 175 <= 10e-3
+    assert test_temperatures_enthalpy_stages_cold_streams[0, 2, 0] - 175 <= 10e-3
+    assert test_temperatures_enthalpy_stages_cold_streams[0, 3, 0] - 175 <= 10e-3
+    assert test_temperatures_enthalpy_stages_cold_streams[0, 4, 0] - 175 <= 10e-3
+    assert test_temperatures_enthalpy_stages_cold_streams[0, 0, 1] - 160 <= 10e-3
+    assert test_temperatures_enthalpy_stages_cold_streams[0, 1, 1] - 160 <= 10e-3
+    assert test_temperatures_enthalpy_stages_cold_streams[0, 2, 1] - 160 <= 10e-3
+    assert test_temperatures_enthalpy_stages_cold_streams[0, 3, 1] - 255 <= 10e-3
+    assert test_temperatures_enthalpy_stages_cold_streams[0, 4, 1] - 255 <= 10e-3
+    assert test_temperatures_enthalpy_stages_cold_streams[1, 0, 0] - 150 <= 10e-3
+    assert test_temperatures_enthalpy_stages_cold_streams[1, 1, 0] - 150 <= 10e-3
+    assert test_temperatures_enthalpy_stages_cold_streams[1, 2, 0] - 150 <= 10e-3
+    assert test_temperatures_enthalpy_stages_cold_streams[1, 3, 0] - 233.33 <= 10e-3
+    assert test_temperatures_enthalpy_stages_cold_streams[1, 4, 0] - 233.33 <= 10e-3
+    assert test_temperatures_enthalpy_stages_cold_streams[1, 0, 1] - 70 <= 10e-3
+    assert test_temperatures_enthalpy_stages_cold_streams[1, 1, 1] - 70 <= 10e-3
+    assert test_temperatures_enthalpy_stages_cold_streams[1, 2, 1] - 71.67 <= 10e-3
+    assert test_temperatures_enthalpy_stages_cold_streams[1, 3, 1] - 130 <= 10e-3
+    assert test_temperatures_enthalpy_stages_cold_streams[1, 4, 1] - 130 <= 10e-3
+
 
 def test_economics():
     pass

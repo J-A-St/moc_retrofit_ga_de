@@ -13,8 +13,6 @@ class OperationParameter:
         self.film_heat_transfer_coefficients_hot_stream = case_study.hot_streams[topology.hot_stream].film_heat_transfer_coefficients
         self.film_heat_transfer_coefficients_cold_stream = case_study.cold_streams[topology.cold_stream].film_heat_transfer_coefficients
         self.initial_area = case_study.initial_exchanger_address_matrix['A_ex'][number]
-        self.split_fractions_hot_stream = np.zeros([case_study.number_operating_cases])
-        self.split_fractions_cold_stream = np.zeros([case_study.number_operating_cases])
         self.one_mixer_per_hex = case_study.manual_parameter['OneMixerBool'].iloc[0]
 
         self.thermodynamic_parameter = thermodynamic_parameter

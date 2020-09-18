@@ -168,5 +168,15 @@ def test_enthalpy_stage_temperatures():
     assert test_temperatures_enthalpy_stages_cold_streams[1, 4, 1] - 130 <= 10e-3
 
 
+def test_update_heat_exchanger_temperatures():
+    test_network, test_case = setup_model()
+    for exchanger in test_case.range_heat_exchangers:
+        for operating_case in test_case.range_operating_cases:
+            assert test_network.heat_exchangers[exchanger].operation_parameter.temperatures_hot_stream_before_hex[operating_case] == test_network.enthalpy_stage_temperatures_hot_streams[test_network.heat_exchangers[exchanger].topology.hot_stream, test_network.heat_exchangers[exchanger].topology.enthalpy_stage + 1, operating_case]
+            assert test_network.heat_exchangers[exchanger].operation_parameter.temperatures_hot_stream_after_hex[operating_case] == test_network.enthalpy_stage_temperatures_hot_streams[test_network.heat_exchangers[exchanger].topology.hot_stream, test_network.heat_exchangers[exchanger].topology.enthalpy_stage, operating_case]
+            assert test_network.heat_exchangers[exchanger].operation_parameter.temperatures_cold_stream_before_hex[operating_case] == test_network.enthalpy_stage_temperatures_cold_streams[test_network.heat_exchangers[exchanger].topology.cold_stream, test_network.heat_exchangers[exchanger].topology.enthalpy_stage, operating_case]
+            assert test_network.heat_exchangers[exchanger].operation_parameter.temperatures_cold_stream_after_hex[operating_case] == test_network.enthalpy_stage_temperatures_cold_streams[test_network.heat_exchangers[exchanger].topology.cold_stream, test_network.heat_exchangers[exchanger].topology.enthalpy_stage + 1, operating_case]
+
+
 def test_economics():
     pass

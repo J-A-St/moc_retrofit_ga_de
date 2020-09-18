@@ -48,6 +48,9 @@ class HeatExchangerNetwork:
         # Economics
         self.economics = Economics(case_study)
 
+        # Assign enthalpy stage temperatures to heat exchanger
+        self.update_heat_exchanger_temperatures()
+
     @property
     def enthalpy_stage_temperatures_hot_streams(self):
         enthalpy_stage_temperatures_hot_streams = np.zeros([self.number_hot_streams, self.number_enthalpy_stages + 1, self.number_operating_cases])
@@ -82,6 +85,14 @@ class HeatExchangerNetwork:
                         enthalpy_stage_temperatures_cold_streams[stream, stage, operating_case] = enthalpy_stage_temperatures_cold_streams[stream, stage - 1, operating_case] + enthalpy_difference[operating_case] / (self.cold_streams[stream].heat_capacity_flows[operating_case])
         return enthalpy_stage_temperatures_cold_streams
 
+    def update_heat_exchanger_temperatures(self):
+        for exchanger in self.range_heat_exchangers:
+            for operating_case in self.range_operating_cases:
+                self.thermodynamic_parameter.matrix[1][operating_case, exchanger] = self.enthalpy_stage_temperatures_hot_streams[self.heat_exchangers[exchanger].topology.hot_stream, self.heat_exchangers[exchanger].topology.enthalpy_stage + 1, operating_case]
+                self.thermodynamic_parameter.matrix[2][operating_case, exchanger] = self.enthalpy_stage_temperatures_hot_streams[self.heat_exchangers[exchanger].topology.hot_stream, self.heat_exchangers[exchanger].topology.enthalpy_stage, operating_case]
+                self.thermodynamic_parameter.matrix[3][operating_case, exchanger] = self.enthalpy_stage_temperatures_cold_streams[self.heat_exchangers[exchanger].topology.cold_stream, self.heat_exchangers[exchanger].topology.enthalpy_stage, operating_case]
+                self.thermodynamic_parameter.matrix[4][operating_case, exchanger] = self.enthalpy_stage_temperatures_cold_streams[self.heat_exchangers[exchanger].topology.cold_stream, self.heat_exchangers[exchanger].topology.enthalpy_stage + 1, operating_case]
+
     def get_utility_heat_exchangers(self, stream_type):
         utility_heat_exchanger = []
         for exchanger in self.range_heat_exchangers:
@@ -92,7 +103,7 @@ class HeatExchangerNetwork:
         return np.array(utility_heat_exchanger)
 
     @property
-    def hot_utility_demand(self):
+    def hot_utility_demand(self, operating_cases):
         # TODO: utility demand of balance utility exchanger is not jet included! (balance utility needs to be calculated first and needs to be 0 <= demand)
         hot_utility_exchangers = self.get_utility_heat_exchangers('hot')
         hot_utility_demand = np.zeros([self.number_operating_cases])

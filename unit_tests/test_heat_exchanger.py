@@ -1,13 +1,11 @@
+import os
+import mock
 import numpy as np
+
 from src.read_data.read_case_study_data import CaseStudy
 from src.heat_exchanger_network.heat_exchanger.heat_exchanger import HeatExchanger
 from src.heat_exchanger_network.exchanger_addresses import ExchangerAddresses
 from src.heat_exchanger_network.thermodynamic_parameter import ThermodynamicParameter
-
-import os
-import pytest
-import mock
-from mock import patch
 
 
 def setup_module():

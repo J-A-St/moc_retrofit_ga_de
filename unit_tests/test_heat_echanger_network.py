@@ -9,10 +9,10 @@ def setup_model():
     """Setup testing model"""
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     os.chdir('..')
-    test_test_case = CaseStudy('Jones_P3_PinCH_2.xlsx')
+    test_case = CaseStudy('Jones_P3_PinCH_2.xlsx')
     os.chdir('unit_tests')
-    test_network = HeatExchangerNetwork(test_test_case)
-    return test_network, test_test_case
+    test_network = HeatExchangerNetwork(test_case)
+    return test_network, test_case
 
 
 def test_heat_exchanger_address_matrix():
@@ -25,24 +25,24 @@ def test_balance_utility_heat_exchangers():
     test_network, test_case = setup_model()
     for exchanger in test_case.range_balance_utility_heat_exchangers:
         utility_type = 'H'
-        connected_stream = test_network.balance_utility_heat_exchanger[exchanger].connected_stream + 1
-        initial_area = test_network.balance_utility_heat_exchanger[exchanger].initial_area * 1.2
+        connected_stream = test_network.balance_utility_heat_exchangers[exchanger].connected_stream + 1
+        initial_area = test_network.balance_utility_heat_exchangers[exchanger].initial_area * 1.2
         for operating_case in test_case.range_operating_cases:
-            initial_heat_load = test_network.balance_utility_heat_exchanger[exchanger].initial_heat_loads[operating_case] * 1.2
-            test_network.balance_utility_heat_exchanger[exchanger].initial_heat_loads[operating_case] *= 1.2
-            assert initial_heat_load == test_network.balance_utility_heat_exchanger[exchanger].initial_heat_loads[operating_case]
-        base_cost = test_network.balance_utility_heat_exchanger[exchanger].base_cost * 1.2
-        specific_area_cost = test_network.balance_utility_heat_exchanger[exchanger].specific_area_cost * 1.2
-        degression_area = test_network.balance_utility_heat_exchanger[exchanger].degression_area * 1.2
+            initial_heat_load = test_network.balance_utility_heat_exchangers[exchanger].initial_heat_loads[operating_case] * 1.2
+            test_network.balance_utility_heat_exchangers[exchanger].initial_heat_loads[operating_case] *= 1.2
+            assert initial_heat_load == test_network.balance_utility_heat_exchangers[exchanger].initial_heat_loads[operating_case]
+        base_cost = test_network.balance_utility_heat_exchangers[exchanger].base_cost * 1.2
+        specific_area_cost = test_network.balance_utility_heat_exchangers[exchanger].specific_area_cost * 1.2
+        degression_area = test_network.balance_utility_heat_exchangers[exchanger].degression_area * 1.2
         address_vector = [utility_type, connected_stream, initial_area, base_cost, specific_area_cost, degression_area]
-        test_network.balance_utility_heat_exchanger[exchanger].utility_type = 'H'
-        test_network.balance_utility_heat_exchanger[exchanger].connected_stream += 1
-        test_network.balance_utility_heat_exchanger[exchanger].initial_area *= 1.2
-        test_network.balance_utility_heat_exchanger[exchanger].base_cost *= 1.2
-        test_network.balance_utility_heat_exchanger[exchanger].specific_area_cost *= 1.2
-        test_network.balance_utility_heat_exchanger[exchanger].degression_area *= 1.2
-        for i, _ in enumerate(test_network.balance_utility_heat_exchanger[exchanger].address_vector):
-            assert test_network.balance_utility_heat_exchanger[exchanger].address_vector[i] == address_vector[i]
+        test_network.balance_utility_heat_exchangers[exchanger].utility_type = 'H'
+        test_network.balance_utility_heat_exchangers[exchanger].connected_stream += 1
+        test_network.balance_utility_heat_exchangers[exchanger].initial_area *= 1.2
+        test_network.balance_utility_heat_exchangers[exchanger].base_cost *= 1.2
+        test_network.balance_utility_heat_exchangers[exchanger].specific_area_cost *= 1.2
+        test_network.balance_utility_heat_exchangers[exchanger].degression_area *= 1.2
+        for i, _ in enumerate(test_network.balance_utility_heat_exchangers[exchanger].address_vector):
+            assert test_network.balance_utility_heat_exchangers[exchanger].address_vector[i] == address_vector[i]
 
 
 def test_restrictions():
@@ -176,6 +176,13 @@ def test_update_heat_exchanger_temperatures():
             assert test_network.heat_exchangers[exchanger].operation_parameter.temperatures_hot_stream_after_hex[operating_case] == test_network.enthalpy_stage_temperatures_hot_streams[test_network.heat_exchangers[exchanger].topology.hot_stream, test_network.heat_exchangers[exchanger].topology.enthalpy_stage, operating_case]
             assert test_network.heat_exchangers[exchanger].operation_parameter.temperatures_cold_stream_before_hex[operating_case] == test_network.enthalpy_stage_temperatures_cold_streams[test_network.heat_exchangers[exchanger].topology.cold_stream, test_network.heat_exchangers[exchanger].topology.enthalpy_stage, operating_case]
             assert test_network.heat_exchangers[exchanger].operation_parameter.temperatures_cold_stream_after_hex[operating_case] == test_network.enthalpy_stage_temperatures_cold_streams[test_network.heat_exchangers[exchanger].topology.cold_stream, test_network.heat_exchangers[exchanger].topology.enthalpy_stage + 1, operating_case]
+
+
+def test_utility_demands():
+    test_network, _ = setup_model()
+    test_network.thermodynamic_parameter.matrix[0] = np.array([[3500, 0, 0, 5800, 1500, 0, 0], [0, 3800, 100, 0, 3500, 0, 0]])
+    # TODO: enthaply temperatures which go into balance utility are wrong!
+    assert test_network.balance_utility_heat_exchangers[0].heat_loads[0] == 1
 
 
 def test_economics():

@@ -58,49 +58,49 @@ def test_restrictions():
 def test_enthalpy_stage_temperatures():
     test_network, _ = setup_model()
     test_network.thermodynamic_parameter.matrix[0] = np.array([[3500, 0, 0, 5800, 1500, 0, 0], [0, 3800, 100, 0, 3500, 0, 0]])
-    test_temperatures_enthalpy_stages_hot_streams = test_network.enthalpy_stage_temperatures_hot_streams - 273.15
-    test_temperatures_enthalpy_stages_cold_streams = test_network.enthalpy_stage_temperatures_cold_streams - 273.15
-    assert test_temperatures_enthalpy_stages_hot_streams[0, 0, 0] - 94 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[0, 1, 0] - 210 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[0, 2, 0] - 210 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[0, 3, 0] - 210 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[0, 4, 0] - 280 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[0, 0, 1] - 225 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[0, 1, 1] - 225 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[0, 2, 1] - 226.67 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[0, 3, 1] - 290 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[0, 4, 1] - 290 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[1, 0, 0] - 188.57 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[1, 1, 0] - 188.57 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[1, 2, 0] - 188.57 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[1, 3, 0] - 210 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[1, 4, 0] - 210 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[1, 0, 1] - 110 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[1, 1, 1] - 110 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[1, 2, 1] - 110 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[1, 3, 1] - 180 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[1, 4, 1] - 180 <= 10e-3
+    test_temperatures_enthalpy_stages_hot_streams = test_network.thermodynamic_parameter.enthalpy_stage_temperatures_hot_streams - 273.15
+    test_temperatures_enthalpy_stages_cold_streams = test_network.thermodynamic_parameter.enthalpy_stage_temperatures_cold_streams - 273.15
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 0, 0] - 94) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 1, 0] - 210) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 2, 0] - 210) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 3, 0] - 210) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 4, 0] - 280) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 0, 1] - 225) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 1, 1] - 225) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 2, 1] - 226.67) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 3, 1] - 290) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 4, 1] - 290) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 0, 0] - 188.57) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 1, 0] - 188.57) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 2, 0] - 188.57) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 3, 0] - 210) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 4, 0] - 210) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 0, 1] - 110) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 1, 1] - 110) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 2, 1] - 110) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 3, 1] - 180) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 4, 1] - 180) <= 10e-3
 
-    assert test_temperatures_enthalpy_stages_cold_streams[0, 0, 0] - 30 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[0, 1, 0] - 175 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[0, 2, 0] - 175 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[0, 3, 0] - 175 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[0, 4, 0] - 175 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[0, 0, 1] - 160 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[0, 1, 1] - 160 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[0, 2, 1] - 160 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[0, 3, 1] - 255 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[0, 4, 1] - 255 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[1, 0, 0] - 150 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[1, 1, 0] - 150 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[1, 2, 0] - 150 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[1, 3, 0] - 175 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[1, 4, 0] - 233.33 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[1, 0, 1] - 70 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[1, 1, 1] - 70 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[1, 2, 1] - 71.67 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[1, 3, 1] - 130 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[1, 4, 1] - 130 <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[0, 0, 0] - 30) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[0, 1, 0] - 175) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[0, 2, 0] - 175) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[0, 3, 0] - 175) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[0, 4, 0] - 175) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[0, 0, 1] - 160) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[0, 1, 1] - 160) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[0, 2, 1] - 160) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[0, 3, 1] - 255) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[0, 4, 1] - 255) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 0, 0] - 150) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 1, 0] - 150) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 2, 0] - 150) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 3, 0] - 175) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 4, 0] - 233.33) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 0, 1] - 70) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 1, 1] - 70) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 2, 1] - 71.67) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 3, 1] - 130) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 4, 1] - 130) <= 10e-3
 
     test_network.addresses.matrix = np.array(
         [
@@ -113,27 +113,27 @@ def test_enthalpy_stage_temperatures():
             [0, 0, 0, 0, 0, 0, 0, 0]
         ]
     )
-    test_temperatures_enthalpy_stages_hot_streams = test_network.enthalpy_stage_temperatures_hot_streams - 273.15
-    assert test_temperatures_enthalpy_stages_hot_streams[0, 0, 0] - 94 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[0, 1, 0] - 94 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[0, 2, 0] - 94 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[0, 3, 0] - 94 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[0, 4, 0] - 280 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[0, 0, 1] - 225 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[0, 1, 1] - 225 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[0, 2, 1] - 226.67 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[0, 3, 1] - 290 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[0, 4, 1] - 290 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[1, 0, 0] - 188.57 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[1, 1, 0] - 188.57 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[1, 2, 0] - 188.57 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[1, 3, 0] - 210 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[1, 4, 0] - 210 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[1, 0, 1] - 110 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[1, 1, 1] - 110 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[1, 2, 1] - 110 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[1, 3, 1] - 180 <= 10e-3
-    assert test_temperatures_enthalpy_stages_hot_streams[1, 4, 1] - 180 <= 10e-3
+    test_temperatures_enthalpy_stages_hot_streams = test_network.thermodynamic_parameter.enthalpy_stage_temperatures_hot_streams - 273.15
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 0, 0] - 94) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 1, 0] - 94) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 2, 0] - 94) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 3, 0] - 94) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 4, 0] - 280) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 0, 1] - 225) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 1, 1] - 225) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 2, 1] - 226.67) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 3, 1] - 290) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 4, 1] - 290) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 0, 0] - 188.57) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 1, 0] - 188.57) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 2, 0] - 188.57) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 3, 0] - 210) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 4, 0] - 210) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 0, 1] - 110) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 1, 1] - 110) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 2, 1] - 110) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 3, 1] - 180) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 4, 1] - 180) <= 10e-3
     test_network.addresses.matrix = np.array(
         [
             [0, 1, 2, 1, 0, 0, 0, 1],
@@ -145,44 +145,40 @@ def test_enthalpy_stage_temperatures():
             [0, 0, 0, 0, 0, 0, 0, 0]
         ]
     )
-    test_temperatures_enthalpy_stages_cold_streams = test_network.enthalpy_stage_temperatures_cold_streams - 273.15
-    assert test_temperatures_enthalpy_stages_cold_streams[0, 0, 0] - 30 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[0, 1, 0] - 175 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[0, 2, 0] - 175 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[0, 3, 0] - 175 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[0, 4, 0] - 175 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[0, 0, 1] - 160 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[0, 1, 1] - 160 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[0, 2, 1] - 160 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[0, 3, 1] - 255 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[0, 4, 1] - 255 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[1, 0, 0] - 150 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[1, 1, 0] - 150 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[1, 2, 0] - 150 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[1, 3, 0] - 233.33 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[1, 4, 0] - 233.33 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[1, 0, 1] - 70 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[1, 1, 1] - 70 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[1, 2, 1] - 71.67 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[1, 3, 1] - 130 <= 10e-3
-    assert test_temperatures_enthalpy_stages_cold_streams[1, 4, 1] - 130 <= 10e-3
-
-
-def test_update_heat_exchanger_temperatures():
-    test_network, test_case = setup_model()
-    for exchanger in test_case.range_heat_exchangers:
-        for operating_case in test_case.range_operating_cases:
-            assert test_network.heat_exchangers[exchanger].operation_parameter.temperatures_hot_stream_before_hex[operating_case] == test_network.enthalpy_stage_temperatures_hot_streams[test_network.heat_exchangers[exchanger].topology.hot_stream, test_network.heat_exchangers[exchanger].topology.enthalpy_stage + 1, operating_case]
-            assert test_network.heat_exchangers[exchanger].operation_parameter.temperatures_hot_stream_after_hex[operating_case] == test_network.enthalpy_stage_temperatures_hot_streams[test_network.heat_exchangers[exchanger].topology.hot_stream, test_network.heat_exchangers[exchanger].topology.enthalpy_stage, operating_case]
-            assert test_network.heat_exchangers[exchanger].operation_parameter.temperatures_cold_stream_before_hex[operating_case] == test_network.enthalpy_stage_temperatures_cold_streams[test_network.heat_exchangers[exchanger].topology.cold_stream, test_network.heat_exchangers[exchanger].topology.enthalpy_stage, operating_case]
-            assert test_network.heat_exchangers[exchanger].operation_parameter.temperatures_cold_stream_after_hex[operating_case] == test_network.enthalpy_stage_temperatures_cold_streams[test_network.heat_exchangers[exchanger].topology.cold_stream, test_network.heat_exchangers[exchanger].topology.enthalpy_stage + 1, operating_case]
+    test_temperatures_enthalpy_stages_cold_streams = test_network.thermodynamic_parameter.enthalpy_stage_temperatures_cold_streams - 273.15
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[0, 0, 0] - 30) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[0, 1, 0] - 175) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[0, 2, 0] - 175) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[0, 3, 0] - 175) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[0, 4, 0] - 175) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[0, 0, 1] - 160) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[0, 1, 1] - 160) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[0, 2, 1] - 160) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[0, 3, 1] - 255) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[0, 4, 1] - 255) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 0, 0] - 150) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 1, 0] - 150) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 2, 0] - 150) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 3, 0] - 233.33) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 4, 0] - 233.33) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 0, 1] - 70) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 1, 1] - 70) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 2, 1] - 71.67) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 3, 1] - 130) <= 10e-3
+    assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 4, 1] - 130) <= 10e-3
 
 
 def test_utility_demands():
     test_network, _ = setup_model()
     test_network.thermodynamic_parameter.matrix[0] = np.array([[3500, 0, 0, 5800, 1500, 0, 0], [0, 3800, 100, 0, 3500, 0, 0]])
-    # TODO: enthaply temperatures which go into balance utility are wrong!
-    assert test_network.balance_utility_heat_exchangers[0].heat_loads[0] == 1
+    assert abs(test_network.balance_utility_heat_exchangers[0].heat_loads[0] - 2200) <= 10e-3
+    assert abs(test_network.balance_utility_heat_exchangers[0].heat_loads[1] - 8700) <= 10e-3
+    assert abs(test_network.balance_utility_heat_exchangers[1].heat_loads[0] - 6200) <= 10e-3
+    assert abs(test_network.balance_utility_heat_exchangers[1].heat_loads[1] - 0) <= 10e-3
+    assert abs(test_network.balance_utility_heat_exchangers[2].heat_loads[0] - 600) <= 10e-3
+    assert abs(test_network.balance_utility_heat_exchangers[2].heat_loads[1] - 1800) <= 10e-3
+    assert abs(test_network.balance_utility_heat_exchangers[3].heat_loads[0] - 2800) <= 10e-3
+    assert abs(test_network.balance_utility_heat_exchangers[3].heat_loads[1] - 0) <= 10e-3
 
 
 def test_economics():

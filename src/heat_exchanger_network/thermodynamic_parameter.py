@@ -4,8 +4,11 @@ import numpy as np
 class ThermodynamicParameter:
     """Observer to update HEX by changes of the X (operation parameters)"""
 
-    def __init__(self, case_study, addresses):
-        self.address_matrix = addresses.matrix
+    def __init__(self, case_study, exchanger_addresses):
+        self.exchanger_addresses = exchanger_addresses
+        self.exchanger_addresses.bind_to(self.update_address_matrix)
+        self.address_matrix = exchanger_addresses._matrix
+
         self.number_heat_exchangers = case_study.number_heat_exchangers
         self.range_heat_exchangers = case_study.range_heat_exchangers
         self.range_balance_utility_heat_exchangers = case_study.range_balance_utility_heat_exchangers
@@ -29,6 +32,9 @@ class ThermodynamicParameter:
         self._temperatures_cold_stream_after_hex = np.zeros([case_study.number_operating_cases, case_study.number_heat_exchangers])
         self._matrix = [self._heat_loads, self._temperatures_hot_stream_before_hex, self._temperatures_hot_stream_after_hex, self._temperatures_cold_stream_before_hex, self._temperatures_cold_stream_after_hex]
         self._value = list()
+
+    def update_address_matrix(self, address_matrix):
+        self.address_matrix = address_matrix
 
     @property
     def matrix(self):

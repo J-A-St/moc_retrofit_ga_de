@@ -14,10 +14,10 @@ def setup_module():
     os.chdir('..')
     test_case = CaseStudy('Jones_P3_PinCH_2.xlsx')
     os.chdir('unit_tests')
-    addresses = ExchangerAddresses(test_case)
-    parameter = ThermodynamicParameter(test_case)
-    test_exchanger = HeatExchanger(addresses, parameter, test_case, 0)
-    return test_exchanger, test_case, addresses, parameter
+    test_addresses = ExchangerAddresses(test_case)
+    test_parameter = ThermodynamicParameter(test_case, test_addresses)
+    test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
+    return test_exchanger, test_case, test_addresses, test_parameter
 
 
 def test_topology():

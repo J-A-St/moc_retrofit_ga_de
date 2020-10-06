@@ -18,7 +18,7 @@ def setup_model():
 def test_heat_exchanger_address_matrix():
     test_network, test_case = setup_model()
     for exchanger in test_case.range_heat_exchangers:
-        assert all(test_network.addresses.matrix[exchanger] == test_network.heat_exchangers[exchanger].topology.address_vector)
+        assert all(test_network.exchanger_addresses.matrix[exchanger] == test_network.heat_exchangers[exchanger].topology.address_vector)
 
 
 def test_balance_utility_heat_exchangers():
@@ -102,7 +102,7 @@ def test_enthalpy_stage_temperatures():
     assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 3, 1] - 130) <= 10e-3
     assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 4, 1] - 130) <= 10e-3
 
-    test_network.addresses.matrix = np.array(
+    test_network.exchanger_addresses.matrix = np.array(
         [
             [0, 1, 3, 1, 0, 0, 0, 1],
             [0, 0, 2, 1, 0, 0, 0, 1],
@@ -134,7 +134,7 @@ def test_enthalpy_stage_temperatures():
     assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 2, 1] - 110) <= 10e-3
     assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 3, 1] - 180) <= 10e-3
     assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 4, 1] - 180) <= 10e-3
-    test_network.addresses.matrix = np.array(
+    test_network.exchanger_addresses.matrix = np.array(
         [
             [0, 1, 2, 1, 0, 0, 0, 1],
             [0, 0, 2, 1, 0, 0, 0, 1],
@@ -179,6 +179,10 @@ def test_utility_demands():
     assert abs(test_network.balance_utility_heat_exchangers[2].heat_loads[1] - 1800) <= 10e-3
     assert abs(test_network.balance_utility_heat_exchangers[3].heat_loads[0] - 2800) <= 10e-3
     assert abs(test_network.balance_utility_heat_exchangers[3].heat_loads[1] - 0) <= 10e-3
+    assert abs(test_network.hot_utility_demand[0] - 15857600) <= 10e-3
+    assert abs(test_network.hot_utility_demand[1] - 6004800) <= 10e-3
+    assert abs(test_network.cold_utility_demand[0] - 39177600) <= 10e-3
+    assert abs(test_network.cold_utility_demand[1] - 29023200) <= 10e-3
 
 
 def test_economics():

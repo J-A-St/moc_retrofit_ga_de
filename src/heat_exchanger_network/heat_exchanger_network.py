@@ -1,3 +1,4 @@
+import difflib
 import numpy as np
 
 from src.heat_exchanger_network.economics import Economics
@@ -27,8 +28,8 @@ class HeatExchangerNetwork:
         self.range_enthalpy_stages = case_study.range_enthalpy_stages
         self.hot_streams = case_study.hot_streams
         self.cold_streams = case_study.cold_streams
-        self.addresses = ExchangerAddresses(case_study)
-        self.thermodynamic_parameter = ThermodynamicParameter(case_study, self.addresses)
+        self.exchanger_addresses = ExchangerAddresses(case_study)
+        self.thermodynamic_parameter = ThermodynamicParameter(case_study, self.exchanger_addresses)
 
         # Utilities
         self.hot_utilities_indices = case_study.hot_utilities_indices
@@ -37,7 +38,7 @@ class HeatExchangerNetwork:
         # Heat exchangers
         self.heat_exchangers = list()
         for exchanger in case_study.range_heat_exchangers:
-            self.heat_exchangers.append(HeatExchanger(self.addresses, self.thermodynamic_parameter, case_study, exchanger))
+            self.heat_exchangers.append(HeatExchanger(self.exchanger_addresses, self.thermodynamic_parameter, case_study, exchanger))
 
         # Restrictions
         self.restrictions = Restrictions(case_study)
@@ -50,7 +51,38 @@ class HeatExchangerNetwork:
         for exchanger in case_study.range_balance_utility_heat_exchangers:
             self.balance_utility_heat_exchangers.append(BalanceUtilityHeatExchanger(case_study, self.thermodynamic_parameter, exchanger))
 
+    def get_sorted_heat_exchangers_on_stream(self, stream, stream_type):
+        # TODO: needs testing! --> does not work number on stream vs enthalpy stage
+        heat_exchanger_on_stream = []
+        for exchanger in self.range_heat_exchangers:
+            if self.heat_exchangers[exchanger].topology.existent and \
+                ((stream_type == 'hot' and self.heat_exchangers[exchanger].topology.hot_stream == stream) or
+                 (stream_type == 'cold' and self.heat_exchangers[exchanger].topology.cold_stream == stream)):
+                heat_exchanger_on_stream.append(exchanger)
+        heat_exchanger_on_stream_sorted = np.zeros([len(heat_exchanger_on_stream)], dtype=int)
+        if stream_type == 'hot':
+            heat_exchanger_on_stream_sorted = sorted(heat_exchanger_on_stream, key=lambda on_stream: self.heat_exchangers[on_stream].topology.enthalpy_stage)
+        elif stream_type == 'cold':
+            heat_exchanger_on_stream_sorted = sorted(heat_exchanger_on_stream, key=lambda on_stream: self.heat_exchangers[on_stream].topology.enthalpy_stage)
+        return np.array(heat_exchanger_on_stream_sorted)
+
+    def get_sorted_heat_exchangers_on_initial_stream(self, stream, stream_type):
+        # TODO: needs testing!
+        heat_exchanger_on_stream = []
+        for exchanger in self.range_heat_exchangers:
+            if self.heat_exchangers[exchanger].topology.existent and \
+                ((stream_type == 'hot' and self.heat_exchangers[exchanger].topology.initial_hot_stream == stream) or
+                 (stream_type == 'cold' and self.heat_exchangers[exchanger].topology.initial_cold_stream == stream)):
+                heat_exchanger_on_stream.append(exchanger)
+        heat_exchanger_on_stream_sorted = np.zeros([len(heat_exchanger_on_stream)], dtype=int)
+        if stream_type == 'hot':
+            heat_exchanger_on_stream_sorted = sorted(heat_exchanger_on_stream, key=lambda on_stream: self.heat_exchangers[on_stream].topology.initial_enthalpy_stage)
+        elif stream_type == 'cold':
+            heat_exchanger_on_stream_sorted = sorted(heat_exchanger_on_stream, key=lambda on_stream: self.heat_exchangers[on_stream].topology.initial_enthalpy_stage)
+        return np.array(heat_exchanger_on_stream_sorted)
+
     def get_utility_heat_exchangers(self, stream_type):
+        # TODO: needs testing!
         utility_heat_exchanger = []
         for exchanger in self.range_heat_exchangers:
             if self.heat_exchangers[exchanger].topology.existent and \
@@ -82,6 +114,168 @@ class HeatExchangerNetwork:
                 if self.balance_utility_heat_exchangers[exchanger].utility_type == 'C':
                     cold_utility_demand[operating_case] += self.balance_utility_heat_exchangers[exchanger].heat_loads[operating_case] * self.operating_cases[operating_case].duration
         return cold_utility_demand
+
+    @property
+    def split_costs(self):
+        # TODO: needs testing! and maybe split in hot and cold split costs?
+        split_costs = 0
+        for stage in self.range_enthalpy_stages:
+            for hot_stream in self.range_hot_streams:
+                number_heat_exchangers_hot = 0
+                number_heat_exchangers_hot_initial = 0
+                initial_split_heat_exchanger_hot = []
+                split_heat_exchanger_hot = []
+                for exchanger in self.range_heat_exchangers:
+                    if self.heat_exchangers[exchanger].topology.existent and \
+                            self.heat_exchangers[exchanger].topology.enthalpy_stage == stage and \
+                            self.heat_exchangers[exchanger].topology.hot_stream == hot_stream:
+                        split_heat_exchanger_hot.append(exchanger)
+                        number_heat_exchangers_hot += 1
+                    if self.heat_exchangers[exchanger].topology.initial_existent and \
+                            self.heat_exchangers[exchanger].topology.initial_enthalpy_stage == stage and \
+                            self.heat_exchangers[exchanger].topology.hot_stream == hot_stream:
+                        initial_split_heat_exchanger_hot.append(exchanger)
+                        number_heat_exchangers_hot_initial += 1
+                if number_heat_exchangers_hot > 1 and number_heat_exchangers_hot_initial > 1:
+                    # if split is modified
+                    for exchanger in self.range_heat_exchangers:
+                        if exchanger in split_heat_exchanger_hot and exchanger not in initial_split_heat_exchanger_hot:
+                            split_costs += self.heat_exchangers[exchanger].costs.base_split_costs
+                        elif exchanger not in split_heat_exchanger_hot and exchanger in initial_split_heat_exchanger_hot:
+                            split_costs += self.heat_exchangers[exchanger].costs.remove_split_costs
+
+                elif number_heat_exchangers_hot < 1 and number_heat_exchangers_hot_initial > 1:
+                    # if split is removed
+                    for exchanger in self.range_heat_exchangers:
+                        if exchanger not in split_heat_exchanger_hot and exchanger in initial_split_heat_exchanger_hot:
+                            split_costs += self.heat_exchangers[exchanger].costs.remove_split_costs
+
+                elif number_heat_exchangers_hot > 1 and number_heat_exchangers_hot_initial < 1:
+                    # if split is added
+                    for exchanger in self.range_heat_exchangers:
+                        if exchanger in split_heat_exchanger_hot:
+                            split_costs += self.heat_exchangers[exchanger].costs.base_split_costs
+
+            for cold_stream in self.range_cold_streams:
+                number_heat_exchangers_cold = 0
+                number_heat_exchangers_cold_initial = 0
+                initial_split_heat_exchanger_cold = []
+                split_heat_exchanger_cold = []
+                for exchanger in self.range_heat_exchangers:
+                    if self.heat_exchangers[exchanger].topology.existent and \
+                            self.heat_exchangers[exchanger].topology.enthalpy_stage == stage and \
+                            self.heat_exchangers[exchanger].topology.cold_stream == cold_stream:
+                        split_heat_exchanger_cold.append(exchanger)
+                        number_heat_exchangers_cold += 1
+                    if self.heat_exchangers[exchanger].topology.existent and \
+                            self.heat_exchangers[exchanger].topology.initial_enthalpy_stage == stage and \
+                            self.heat_exchangers[exchanger].topology.initial_cold_stream == cold_stream:
+                        initial_split_heat_exchanger_cold.append(exchanger)
+                        number_heat_exchangers_cold_initial += 1
+
+                if number_heat_exchangers_cold > 1 and number_heat_exchangers_cold_initial > 1:
+                    # if split is modified
+                    for exchanger in self.range_heat_exchangers:
+                        if exchanger in split_heat_exchanger_cold and exchanger not in initial_split_heat_exchanger_cold:
+                            split_costs += self.heat_exchangers[exchanger].costs.base_split_costs
+                        elif exchanger not in split_heat_exchanger_cold and exchanger in initial_split_heat_exchanger_cold:
+                            split_costs += self.heat_exchangers[exchanger].costs.remove_split_costs
+
+                elif number_heat_exchangers_cold < 1 and number_heat_exchangers_cold_initial > 1:
+                    # if split is removed
+                    for exchanger in self.range_heat_exchangers:
+                        if exchanger not in split_heat_exchanger_cold and exchanger in initial_split_heat_exchanger_cold:
+                            split_costs += self.heat_exchangers[exchanger].costs.remove_split_costs
+
+                elif number_heat_exchangers_cold > 1 and number_heat_exchangers_cold_initial < 1:
+                    # if split is added
+                    for exchanger in self.range_heat_exchangers:
+                        if exchanger in split_heat_exchanger_cold:
+                            split_costs += self.heat_exchangers[exchanger].costs.base_split_costs
+
+        return split_costs
+
+    @property
+    def repipe_costs(self):
+        # TODO: needs testing!
+        repipe_costs = 0
+        for exchanger in self.range_heat_exchangers:
+            if self.heat_exchangers[exchanger].topology.existent and \
+                    self.heat_exchangers[exchanger].topology.initial_existent:
+                if self.heat_exchangers[exchanger].topology.hot_stream != self.heat_exchangers[exchanger].topology.initial_hot_stream:
+                    repipe_costs += self.heat_exchangers[exchanger].costs.base_repipe_costs
+                if self.heat_exchangers[exchanger].topology.cold_stream != self.heat_exchangers[exchanger].initial_cold_stream:
+                    repipe_costs += self.heat_exchangers[exchanger].costs.base_repipe_costs
+        return repipe_costs
+
+    @property
+    def resequence_costs(self):
+        # TODO: needs testing!
+        resequence_costs_hot_cold = 0
+        for stream_type in ['hot', 'cold']:
+            modified_heat_exchangers = np.array([], dtype=int)
+            for stream in self.range_hot_streams:
+                heat_exchangers_on_initial_stream = self.get_sorted_heat_exchangers_on_initial_stream(stream, stream_type)
+                heat_exchangers_on_stream = self.get_sorted_heat_exchangers_on_stream(stream, stream_type)
+                for exchanger in range(len(heat_exchangers_on_initial_stream)):
+                    if heat_exchangers_on_initial_stream[exchanger] not in heat_exchangers_on_stream:
+                        heat_exchangers_on_initial_stream = heat_exchangers_on_initial_stream[heat_exchangers_on_initial_stream != heat_exchangers_on_initial_stream[exchanger]]
+                    if heat_exchangers_on_stream[exchanger] not in heat_exchangers_on_initial_stream:
+                        heat_exchangers_on_stream = heat_exchangers_on_stream[heat_exchangers_on_stream != heat_exchangers_on_stream[exchanger]]
+                matcher = difflib.SequenceMatcher(None, heat_exchangers_on_initial_stream, heat_exchangers_on_stream)
+                for tag, i1, i2, j1, j2 in reversed(matcher.get_opcodes()):
+                    if tag == 'delete':
+                        modified_heat_exchangers = np.append(modified_heat_exchangers, heat_exchangers_on_initial_stream[i1:i2])
+                        del heat_exchangers_on_initial_stream[i1:i2]
+                    elif tag == 'insert':
+                        modified_heat_exchangers = np.append(modified_heat_exchangers, heat_exchangers_on_stream[j1:j2])
+                        heat_exchangers_on_initial_stream[i1:i2] = heat_exchangers_on_stream[j1:j2]
+                    elif tag == 'replace':
+                        modified_heat_exchangers = np.append(modified_heat_exchangers, heat_exchangers_on_initial_stream[i1:i2])
+                        modified_heat_exchangers = np.append(modified_heat_exchangers, heat_exchangers_on_stream[j1:j2])
+                        heat_exchangers_on_initial_stream[i1:i2] = heat_exchangers_on_stream[j1:j2]
+            modified_heat_exchangers_unique = np.unique(np.squeeze(modified_heat_exchangers))
+            number_modifications = len(modified_heat_exchangers_unique)
+            resequence_costs = 0
+            for exchanger in number_modifications:
+                resequencing_costs += self.heat_exchangers[exchanger].costs.base_resequence_costs
+                resequence_costs_hot_cold += resequence_costs
+        return resequence_costs_hot_cold
+
+    @property
+    def match_costs(self):
+        # TODO: needs testing!
+        match_costs = 0
+        for exchanger in self.range_heat_exchangers:
+            if self.heat_exchangers[exchanger].topology.existent:
+                if (self.heat_exchangers[exchanger].topology.hot_stream != self.heat_exchangers[exchanger].topology.initial_hot_stream) or \
+                        (self.heat_exchangers[exchanger].topology.cold_stream != self.heat_exchangers[exchanger].topology.initial_cold_stream):
+                    match_costs += self.economics.match_cost[self.heat_exchangers[exchanger].topology.cold_stream, self.heat_exchangers[exchanger].topology.hot_stream]
+
+    @property
+    def heat_exchanger_costs(self):
+        # TODO: needs testing!
+        heat_exchanger_costs = 0
+        for exchanger in self.range_heat_exchangers:
+            heat_exchanger_costs += self.heat_exchangers[exchanger].total_costs
+        for exchanger in self.range_balance_utility_heat_exchangers:
+            heat_exchanger_costs += self.balance_utility_heat_exchangers[exchanger].exchanger_costs
+        return heat_exchanger_costs
+
+    @property
+    def capital_costs(self):
+        # TODO: needs testing!
+        return self.split_costs + self.repipe_costs + self.resequence_costs + self.match_costs + self.heat_exchanger_costs
+
+    @property
+    def operating_costs(self):
+        # TODO: needs testing!
+        return self.hot_utility_demand * self.economics.specific_hot_utilities_cost + self.cold_utility_demand * self.economics.specific_cold_utilities_cost
+
+    @property
+    def total_annual_costs(self):
+        # TODO: needs testing!
+        return self.economics.annuity_factor * self.capital_costs + self.operating_costs
 
     def is_feasible(self):
         # TODO: check is every heat exchanger is feasible and check is energy balance is fulfilled!

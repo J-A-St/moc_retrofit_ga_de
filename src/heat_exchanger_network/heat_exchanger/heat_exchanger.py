@@ -64,6 +64,10 @@ class HeatExchanger:
         return bypass_costs
 
     @property
+    def total_costs(self):
+        return self.exchanger_costs + self.admixer_costs + self.bypass_costs
+
+    @property
     # TODO: needs testing
     def feasibility_logarithmic_mean_temperature_differences(self):
         is_feasible = [False] * self.operation_parameter.number_operating_cases

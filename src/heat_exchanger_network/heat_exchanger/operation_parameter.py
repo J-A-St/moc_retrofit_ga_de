@@ -28,19 +28,19 @@ class OperationParameter:
 
     @property
     def temperatures_hot_stream_before_hex(self):
-        return self.operation_parameter[1][:, self.number]
+        return self.thermodynamic_parameter.temperatures_hot_stream_before_hex[self.number, :]
 
     @property
     def temperatures_hot_stream_after_hex(self):
-        return self.operation_parameter[2][:, self.number]
+        return self.thermodynamic_parameter.temperatures_hot_stream_after_hex[self.number, :]
 
     @property
     def temperatures_cold_stream_before_hex(self):
-        return self.operation_parameter[3][:, self.number]
+        return self.thermodynamic_parameter.temperatures_cold_stream_before_hex[self.number, :]
 
     @property
     def temperatures_cold_stream_after_hex(self):
-        return self.operation_parameter[4][:, self.number]
+        return self.thermodynamic_parameter.temperatures_cold_stream_after_hex[self.number, :]
 
     @property
     def logarithmic_mean_temperature_differences_no_mixer(self):

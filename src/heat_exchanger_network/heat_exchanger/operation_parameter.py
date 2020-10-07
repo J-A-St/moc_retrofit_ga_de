@@ -16,15 +16,17 @@ class OperationParameter:
         self.one_mixer_per_hex = case_study.manual_parameter['OneMixerBool'].iloc[0]
 
         self.thermodynamic_parameter = thermodynamic_parameter
-        self.thermodynamic_parameter.bind_to(self.update_operation_parameter)
-        self.operation_parameter = thermodynamic_parameter._matrix
+        self.thermodynamic_parameter.bind_to(self.update_all_heat_loads)
+        self.all_heat_loads = self.thermodynamic_parameter.heat_loads
 
-    def update_operation_parameter(self, parameter):
-        self.operation_parameter = parameter
+        # self.operation_parameter = thermodynamic_parameter._matrix
+
+    def update_all_heat_loads(self, all_heat_loads):
+        self.all_heat_loads = all_heat_loads
 
     @property
     def heat_loads(self):
-        return self.operation_parameter[0][:, self.number]
+        return self.all_heat_loads[self.number, :]
 
     @property
     def temperatures_hot_stream_before_hex(self):

@@ -16,7 +16,7 @@ class Topology:
 
         self.exchanger_addresses = exchanger_addresses
         self.exchanger_addresses.bind_to(self.update_address_matrix)
-        self.address_matrix = exchanger_addresses._matrix
+        self.address_matrix = self.exchanger_addresses.matrix
 
     def update_address_matrix(self, address_matrix):
         self.address_matrix = address_matrix

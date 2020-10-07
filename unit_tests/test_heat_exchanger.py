@@ -51,106 +51,131 @@ def test_operation_parameter():
 
 
 def test_logarithmic_temperature_differences_no_mixer():
-    test_exchanger, test_case, _, test_parameter = setup_module()
-    logarithmic_mean_temperature_difference = np.zeros([test_case.number_operating_cases])
-    for operating_case in test_case.range_operating_cases:
-        test_parameter.matrix[1][operating_case, 0] = 400
-        test_parameter.matrix[2][operating_case, 0] = 300
-        test_parameter.matrix[3][operating_case, 0] = 250
-        test_parameter.matrix[4][operating_case, 0] = 350
-        logarithmic_mean_temperature_difference[operating_case] = 400 - 350
-    for operating_case in test_case.range_operating_cases:
-        assert logarithmic_mean_temperature_difference[operating_case] == test_exchanger.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case]
+    # TODO: needs network as well!
+    test_exchanger, test_case, test_addresses, test_parameter = setup_module()
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4:
+        mock_property_1.return_value = np.array([[400 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[250 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        for operating_case in test_case.range_operating_cases:
+            logarithmic_mean_temperature_difference = 400 - 350
+            assert logarithmic_mean_temperature_difference == test_exchanger.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case]
 
-    for operating_case in test_case.range_operating_cases:
-        test_parameter.matrix[1][operating_case, 0] = 400
-        test_parameter.matrix[2][operating_case, 0] = 300
-        test_parameter.matrix[3][operating_case, 0] = 290
-        test_parameter.matrix[4][operating_case, 0] = 350
-        logarithmic_mean_temperature_difference[operating_case] = (10-50) / np.log(10/50)
-    for operating_case in test_case.range_operating_cases:
-        assert logarithmic_mean_temperature_difference[operating_case] == test_exchanger.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case]
+    test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4:
+        mock_property_1.return_value = np.array([[400 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[290 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        for operating_case in test_case.range_operating_cases:
+            logarithmic_mean_temperature_difference = (10-50) / np.log(10/50)
+            assert logarithmic_mean_temperature_difference == test_exchanger.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case]
 
 
 def test_area():
-    test_exchanger, test_case, _, test_parameter = setup_module()
-    hot_streams = test_case.hot_streams
-    cold_streams = test_case.cold_streams
-    topology = test_exchanger.topology
-    logarithmic_mean_temperature_difference = np.zeros([test_case.number_operating_cases])
-    areas = np.zeros([test_case.number_operating_cases])
-    for operating_case in test_case.range_operating_cases:
-        test_parameter.matrix[0][operating_case, 0] = 2000
-        test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
-        test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
-        test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
-        test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
-        temperature_difference_1 = test_parameter.matrix[2][operating_case, 0] - test_parameter.matrix[3][operating_case, 0]
-        temperature_difference_2 = test_parameter.matrix[1][operating_case, 0] - test_parameter.matrix[4][operating_case, 0]
-        logarithmic_mean_temperature_difference[operating_case] = (temperature_difference_1 - temperature_difference_2) / np.log(temperature_difference_1 / temperature_difference_2)
+    test_exchanger, test_case, test_addresses, test_parameter = setup_module()
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4:
+        mock_property_1.return_value = np.array([[400 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[250 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        test_parameter.heat_loads[:, :] = 2000
+        hot_streams = test_case.hot_streams
+        cold_streams = test_case.cold_streams
+        topology = test_exchanger.topology
+        logarithmic_mean_temperature_difference = np.zeros([test_case.number_operating_cases])
+        areas = np.zeros([test_case.number_operating_cases])
+        for operating_case in test_case.range_operating_cases:
+            temperature_difference_1 = test_exchanger.operation_parameter.temperatures_hot_stream_after_hex[operating_case] - test_exchanger.operation_parameter.temperatures_cold_stream_before_hex[operating_case]
+            temperature_difference_2 = test_exchanger.operation_parameter.temperatures_hot_stream_before_hex[operating_case] - test_exchanger.operation_parameter.temperatures_cold_stream_after_hex[operating_case]
+            if temperature_difference_1 == temperature_difference_2:
+                logarithmic_mean_temperature_difference[operating_case] = temperature_difference_1
+            else:
+                logarithmic_mean_temperature_difference[operating_case] = (temperature_difference_1 - temperature_difference_2) / np.log(temperature_difference_1 / temperature_difference_2)
 
-    for operating_case in test_case.range_operating_cases:
-        overall_heat_transfer_coefficient = 1 / (1 / hot_streams[topology.hot_stream].film_heat_transfer_coefficients[operating_case] +
-                                                 1 / cold_streams[topology.cold_stream].film_heat_transfer_coefficients[operating_case])
-        areas[operating_case] = test_exchanger.operation_parameter.heat_loads[operating_case] / \
-            (overall_heat_transfer_coefficient * test_exchanger.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case])
-    for operating_case in test_case.range_operating_cases:
-        assert areas[operating_case] == test_exchanger.operation_parameter.needed_areas[operating_case]
-    assert np.max(areas) == test_exchanger.operation_parameter.area
-    for operating_case in test_case.range_operating_cases:
-        test_parameter.matrix[0][operating_case, 0] = 2000
-        test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
-        test_parameter.matrix[2][operating_case, 0] = 100 * (operating_case + 1)
-        test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
-        test_parameter.matrix[4][operating_case, 0] = 450 * (operating_case + 1)
-    for operating_case in test_case.range_operating_cases:
-        assert test_exchanger.operation_parameter.needed_areas[operating_case] == 0.0
+        for operating_case in test_case.range_operating_cases:
+            overall_heat_transfer_coefficient = 1 / (1 / hot_streams[topology.hot_stream].film_heat_transfer_coefficients[operating_case] + 1 / cold_streams[topology.cold_stream].film_heat_transfer_coefficients[operating_case])
+            areas[operating_case] = test_exchanger.operation_parameter.heat_loads[operating_case] / (overall_heat_transfer_coefficient * test_exchanger.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case])
+        for operating_case in test_case.range_operating_cases:
+            assert areas[operating_case] == test_exchanger.operation_parameter.needed_areas[operating_case]
+        assert np.max(areas) == test_exchanger.operation_parameter.area
+    test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.heat_loads', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4:
+        mock_property_1.return_value = np.array([[300 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[400 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[250 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        for operating_case in test_case.range_operating_cases:
+            assert test_exchanger.operation_parameter.needed_areas[operating_case] == 0.0
 
 
 def test_logarithmic_temperature_differences():
     test_exchanger, test_case, _, test_parameter = setup_module()
-    for operating_case in test_case.range_operating_cases:
-        test_parameter.matrix[0][operating_case, 0] = 2000
-        test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
-        test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
-        test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
-        test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
-        logarithmic_mean_temperature_difference = test_parameter.matrix[0][operating_case, 0] / (test_exchanger.operation_parameter.overall_heat_transfer_coefficients[operating_case] * test_exchanger.operation_parameter.area)
-        assert logarithmic_mean_temperature_difference == test_exchanger.operation_parameter.logarithmic_mean_temperature_differences[operating_case]
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4:
+        mock_property_1.return_value = np.array([[400 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[290 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        test_parameter.heat_loads[:, :] = 2000
+        for operating_case in test_case.range_operating_cases:
+            logarithmic_mean_temperature_difference = test_exchanger.operation_parameter.heat_loads[operating_case] / (test_exchanger.operation_parameter.overall_heat_transfer_coefficients[operating_case] * test_exchanger.operation_parameter.area)
+            assert logarithmic_mean_temperature_difference == test_exchanger.operation_parameter.logarithmic_mean_temperature_differences[operating_case]
 
 
 def test_mixer_type(monkeypatch):
-    _, test_case, test_addresses, test_parameter = setup_module()
-    test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    monkeypatch.setattr('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.random_choice.__defaults__', (0,))
-    for operating_case in test_case.range_operating_cases:
-        test_parameter.matrix[0][operating_case, 0] = 2000
-        test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
-        test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
-        test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
-        test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
-    test_exchanger.operation_parameter.one_mixer_per_hex = True
-    for operating_case in test_case.range_operating_cases:
-        assert test_exchanger.operation_parameter.mixer_types[operating_case] == 'admixer_cold'
-    monkeypatch.setattr('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.random_choice.__defaults__', (None,))
-    test_exchanger.operation_parameter.one_mixer_per_hex = False
-    base_case = np.squeeze(np.argwhere(test_exchanger.operation_parameter.needed_areas == test_exchanger.operation_parameter.area))
-    for operating_case in test_case.range_operating_cases:
-        if operating_case != base_case:
-            assert test_exchanger.operation_parameter.mixer_types[operating_case] != test_exchanger.operation_parameter.mixer_types[base_case]
+    test_exchanger, test_case, _, test_parameter = setup_module()
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4:
+        mock_property_1.return_value = np.array([[400 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[290 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        test_parameter.heat_loads[:, :] = 2000
+        monkeypatch.setattr('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.random_choice.__defaults__', (0,))
+        test_exchanger.operation_parameter.one_mixer_per_hex = True
+        for operating_case in test_case.range_operating_cases:
+            assert test_exchanger.operation_parameter.mixer_types[operating_case] == 'admixer_cold'
+        monkeypatch.setattr('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.random_choice.__defaults__', (None,))
+        test_exchanger.operation_parameter.one_mixer_per_hex = False
+        base_case = np.squeeze(np.argwhere(test_exchanger.operation_parameter.needed_areas == test_exchanger.operation_parameter.area))
+        for operating_case in test_case.range_operating_cases:
+            if operating_case != base_case:
+                assert test_exchanger.operation_parameter.mixer_types[operating_case] != test_exchanger.operation_parameter.mixer_types[base_case]
 
 
 def test_bypass_hot_stream():
-    _, test_case, test_addresses, test_parameter = setup_module()
-    test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property:
-        mock_property.return_value = ['none', 'bypass_hot']
-        for operating_case in test_case.range_operating_cases:
-            test_parameter.matrix[0][operating_case, 0] = 2000
-            test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
-            test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
-            test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
-            test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
+    test_exchanger, test_case, _, test_parameter = setup_module()
+    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_5, \
+        mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4:
+        mock_property_1.return_value = np.array([[400 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[290 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_5.return_value = ['none', 'bypass_hot']
+        test_parameter.heat_loads[:, :] = 2000
+
         for operating_case in test_case.range_operating_cases:
             assert test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] == test_exchanger.operation_parameter.temperatures_hot_stream_before_hex[operating_case]
             assert test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case] == test_exchanger.operation_parameter.temperatures_cold_stream_before_hex[operating_case]
@@ -169,16 +194,18 @@ def test_bypass_hot_stream():
 
 
 def test_admixer_hot_stream():
-    _, test_case, test_addresses, test_parameter = setup_module()
-    test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property:
-        mock_property.return_value = ['none', 'admixer_hot']
-        for operating_case in test_case.range_operating_cases:
-            test_parameter.matrix[0][operating_case, 0] = 2000
-            test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
-            test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
-            test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
-            test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
+    test_exchanger, test_case, _, test_parameter = setup_module()
+    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_5, \
+        mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4:
+        mock_property_1.return_value = np.array([[400 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[290 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_5.return_value = ['none', 'admixer_hot']
+        test_parameter.heat_loads[:, :] = 2000
         for operating_case in test_case.range_operating_cases:
             assert test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] == test_exchanger.operation_parameter.temperatures_hot_stream_after_hex[operating_case]
             assert test_exchanger.operation_parameter.inlet_temperatures_cold_stream[operating_case] == test_exchanger.operation_parameter.temperatures_cold_stream_before_hex[operating_case]
@@ -197,16 +224,18 @@ def test_admixer_hot_stream():
 
 
 def test_bypass_cold_stream():
-    _, test_case, test_addresses, test_parameter = setup_module()
-    test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property:
-        mock_property.return_value = ['none', 'bypass_cold']
-        for operating_case in test_case.range_operating_cases:
-            test_parameter.matrix[0][operating_case, 0] = 2000
-            test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
-            test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
-            test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
-            test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
+    test_exchanger, test_case, _, test_parameter = setup_module()
+    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_5, \
+        mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4:
+        mock_property_1.return_value = np.array([[400 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[290 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_5.return_value = ['none', 'bypass_cold']
+        test_parameter.heat_loads[:, :] = 2000
         for operating_case in test_case.range_operating_cases:
             assert test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] == test_exchanger.operation_parameter.temperatures_hot_stream_before_hex[operating_case]
             assert test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] == test_exchanger.operation_parameter.temperatures_hot_stream_after_hex[operating_case]
@@ -225,16 +254,18 @@ def test_bypass_cold_stream():
 
 
 def test_admixer_cold_stream():
-    _, test_case, test_addresses, test_parameter = setup_module()
-    test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property:
-        mock_property.return_value = ['none', 'admixer_cold']
-        for operating_case in test_case.range_operating_cases:
-            test_parameter.matrix[0][operating_case, 0] = 2000
-            test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
-            test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
-            test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
-            test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
+    test_exchanger, test_case, _, test_parameter = setup_module()
+    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_5, \
+        mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4:
+        mock_property_1.return_value = np.array([[400 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[290 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_5.return_value = ['none', 'admixer_cold']
+        test_parameter.heat_loads[:, :] = 2000
         for operating_case in test_case.range_operating_cases:
             assert test_exchanger.operation_parameter.inlet_temperatures_hot_stream[operating_case] == test_exchanger.operation_parameter.temperatures_hot_stream_before_hex[operating_case]
             assert test_exchanger.operation_parameter.outlet_temperatures_hot_stream[operating_case] == test_exchanger.operation_parameter.temperatures_hot_stream_after_hex[operating_case]
@@ -301,32 +332,30 @@ def test_costs_coefficients():
 
 
 def test_heat_exchanger_costs():
-    test_exchanger, test_case, addresses, test_parameter = setup_module()
-    for operating_case in test_case.range_operating_cases:
-        test_parameter.matrix[0][operating_case, 0] = 5000
-        test_parameter.matrix[1][operating_case, 0] = 400
-        test_parameter.matrix[2][operating_case, 0] = 300
-        test_parameter.matrix[3][operating_case, 0] = 290
-        test_parameter.matrix[4][operating_case, 0] = 350
-    exchanger_costs = test_exchanger.costs.base_costs + test_exchanger.costs.specific_area_costs * (test_exchanger.operation_parameter.area - test_exchanger.operation_parameter.initial_area)**test_exchanger.costs.degression_area
-    assert exchanger_costs == test_exchanger.exchanger_costs
-    for operating_case in test_case.range_operating_cases:
-        test_parameter.matrix[0][operating_case, 0] *= 10e-2
-    assert test_exchanger.exchanger_costs == 0
-    addresses.matrix[0, 7] = False
-    assert test_exchanger.exchanger_costs == test_exchanger.costs.remove_costs
-    test_exchanger_5 = HeatExchanger(addresses, test_parameter, test_case, 5)
-    addresses.matrix[5, 7] = True
-    for operating_case in test_case.range_operating_cases:
-        test_parameter.matrix[0][operating_case, 5] = 5000
-        test_parameter.matrix[1][operating_case, 5] = 400
-        test_parameter.matrix[2][operating_case, 5] = 300
-        test_parameter.matrix[3][operating_case, 5] = 290
-        test_parameter.matrix[4][operating_case, 5] = 350
-    exchanger_costs_5 = test_exchanger_5.costs.base_costs + test_exchanger_5.costs.specific_area_costs * (test_exchanger_5.operation_parameter.area - test_exchanger_5.operation_parameter.initial_area)**test_exchanger_5.costs.degression_area
-    assert exchanger_costs_5 == test_exchanger_5.exchanger_costs
-    addresses.matrix[5, 7] = False
-    assert test_exchanger_5.exchanger_costs == 0
+    test_exchanger, test_case, test_addresses, test_parameter = setup_module()
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4:
+        mock_property_1.return_value = np.array([[400 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[290 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        test_parameter.heat_loads[:, :] = 5000
+        exchanger_costs = test_exchanger.costs.base_costs + test_exchanger.costs.specific_area_costs * (test_exchanger.operation_parameter.area - test_exchanger.operation_parameter.initial_area)**test_exchanger.costs.degression_area
+        assert exchanger_costs == test_exchanger.exchanger_costs
+        for operating_case in test_case.range_operating_cases:
+            test_parameter.heat_loads[:, operating_case] = 5000 * 10e-2
+        assert test_exchanger.exchanger_costs == 0
+        test_addresses.matrix[0, 7] = False
+        assert test_exchanger.exchanger_costs == test_exchanger.costs.remove_costs
+        test_exchanger_5 = HeatExchanger(test_addresses, test_parameter, test_case, 5)
+        test_addresses.matrix[5, 7] = True
+        test_parameter.heat_loads[:, :] = 5000
+        exchanger_costs_5 = test_exchanger_5.costs.base_costs + test_exchanger_5.costs.specific_area_costs * (test_exchanger_5.operation_parameter.area - test_exchanger_5.operation_parameter.initial_area)**test_exchanger_5.costs.degression_area
+        assert exchanger_costs_5 == test_exchanger_5.exchanger_costs
+        test_addresses.matrix[5, 7] = False
+        assert test_exchanger_5.exchanger_costs == 0
 
 
 def test_admixer_costs():
@@ -362,215 +391,257 @@ def test_bypass_costs():
 
 
 def test_feasibility_logarithmic_mean_temperature_differences():
-    test_exchanger, test_case, _, test_parameter = setup_module()
-    for operating_case in test_case.range_operating_cases:
-        test_parameter.matrix[0][operating_case, 0] = 2000
-        test_parameter.matrix[1][operating_case, 0] = 400
-        test_parameter.matrix[2][operating_case, 0] = 300
-        test_parameter.matrix[3][operating_case, 0] = 290
-        test_parameter.matrix[4][operating_case, 0] = 350
-    assert test_exchanger.feasibility_logarithmic_mean_temperature_differences
-    for operating_case in test_case.range_operating_cases:
-        test_parameter.matrix[0][operating_case, 0] = 2000
-        test_parameter.matrix[1][operating_case, 0] = 200
-        test_parameter.matrix[2][operating_case, 0] = 300
-        test_parameter.matrix[3][operating_case, 0] = 400
-        test_parameter.matrix[4][operating_case, 0] = 350
-    assert not test_exchanger.feasibility_logarithmic_mean_temperature_differences
-    for operating_case in test_case.range_operating_cases:
-        test_parameter.matrix[0][operating_case, 0] = 2000
-        test_parameter.matrix[1][operating_case, 0] = 400
-        test_parameter.matrix[2][operating_case, 0] = 300
-        test_parameter.matrix[3][operating_case, 0] = 400
-        test_parameter.matrix[4][operating_case, 0] = 350
-    assert not test_exchanger.feasibility_logarithmic_mean_temperature_differences
+    test_exchanger, test_case, test_addresses, test_parameter = setup_module()
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4:
+        mock_property_1.return_value = np.array([[400 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[290 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        test_parameter.heat_loads[:, :] = 2000
+        assert test_exchanger.feasibility_logarithmic_mean_temperature_differences
+    test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4:
+        mock_property_1.return_value = np.array([[200 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[400 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        test_parameter.heat_loads[:, :] = 2000
+        assert not test_exchanger.feasibility_logarithmic_mean_temperature_differences
+    test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4:
+        mock_property_1.return_value = np.array([[400 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[400 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        test_parameter.heat_loads[:, :] = 2000
+        assert not test_exchanger.feasibility_logarithmic_mean_temperature_differences
 
 
 def test_feasibility_temperature_differences():
-    _, test_case, test_addresses, test_parameter = setup_module()
+    test_exchanger, test_case, test_addresses, test_parameter = setup_module()
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_5, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.inlet_temperatures_hot_stream', new_callable=mock.PropertyMock) as mock_property_6, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_cold_stream', new_callable=mock.PropertyMock) as mock_property_7:
+        mock_property_1.return_value = np.array([[400 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[290 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_5.return_value = ['none', 'bypass_hot']
+        mock_property_6.return_value = [500, 300]
+        mock_property_7.return_value = [400, 200]
+        test_parameter.heat_loads[:, :] = 2000
+        assert test_exchanger.feasibility_temperature_differences
     test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_1:
-        mock_property_1.return_value = ['none', 'bypass_hot']
-        with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.inlet_temperatures_hot_stream', new_callable=mock.PropertyMock) as mock_property_2:
-            mock_property_2.return_value = [500, 300]
-            with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_cold_stream', new_callable=mock.PropertyMock) as mock_property_3:
-                mock_property_3.return_value = [400, 200]
-                for operating_case in test_case.range_operating_cases:
-                    test_parameter.matrix[0][operating_case, 0] = 2000
-                    test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
-                    test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
-                    test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
-                    test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
-                assert test_exchanger.feasibility_temperature_differences
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_5, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.inlet_temperatures_hot_stream', new_callable=mock.PropertyMock) as mock_property_6, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_cold_stream', new_callable=mock.PropertyMock) as mock_property_7:
+        mock_property_1.return_value = np.array([[400 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[290 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_5.return_value = ['none', 'bypass_hot']
+        mock_property_6.return_value = [500, 300]
+        mock_property_7.return_value = [400, 350]
+        test_parameter.heat_loads[:, :] = 2000
+        assert not test_exchanger.feasibility_temperature_differences
     test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_1:
-        mock_property_1.return_value = ['none', 'bypass_hot']
-        with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.inlet_temperatures_hot_stream', new_callable=mock.PropertyMock) as mock_property_2:
-            mock_property_2.return_value = [500, 300]
-            with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_cold_stream', new_callable=mock.PropertyMock) as mock_property_3:
-                mock_property_3.return_value = [400, 350]
-                for operating_case in test_case.range_operating_cases:
-                    test_parameter.matrix[0][operating_case, 0] = 2000
-                    test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
-                    test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
-                    test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
-                    test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
-                assert not test_exchanger.feasibility_temperature_differences
-    test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_1:
-        mock_property_1.return_value = ['none', 'bypass_hot']
-        with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.inlet_temperatures_hot_stream', new_callable=mock.PropertyMock) as mock_property_2:
-            mock_property_2.return_value = [500, 300]
-            with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_cold_stream', new_callable=mock.PropertyMock) as mock_property_3:
-                mock_property_3.return_value = [600, 200]
-                for operating_case in test_case.range_operating_cases:
-                    test_parameter.matrix[0][operating_case, 0] = 2000
-                    test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
-                    test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
-                    test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
-                    test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
-                assert not test_exchanger.feasibility_temperature_differences
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_5, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.inlet_temperatures_hot_stream', new_callable=mock.PropertyMock) as mock_property_6, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_cold_stream', new_callable=mock.PropertyMock) as mock_property_7:
+        mock_property_1.return_value = np.array([[400 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[290 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_5.return_value = ['none', 'bypass_hot']
+        mock_property_6.return_value = [500, 300]
+        mock_property_7.return_value = [600, 200]
+        test_parameter.heat_loads[:, :] = 2000
+        assert not test_exchanger.feasibility_temperature_differences
 
 
 def test_feasibility_mixer():
-    _, test_case, test_addresses, test_parameter = setup_module()
+    test_exchanger, test_case, test_addresses, test_parameter = setup_module()
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_5, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_hot_stream', new_callable=mock.PropertyMock) as mock_property_6:
+        mock_property_1.return_value = np.array([[400 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[290 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_5.return_value = ['none', 'bypass_hot']
+        mock_property_6.return_value = [500, 1]
+        test_parameter.heat_loads[:, :] = 2000
+        assert test_exchanger.feasibility_mixer
     test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_1:
-        mock_property_1.return_value = ['none', 'bypass_hot']
-        with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_hot_stream', new_callable=mock.PropertyMock) as mock_property_2:
-            mock_property_2.return_value = [500, 1]
-            for operating_case in test_case.range_operating_cases:
-                test_parameter.matrix[0][operating_case, 0] = 2000
-                test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
-                test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
-                test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
-                test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
-            assert test_exchanger.feasibility_mixer
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_5, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_hot_stream', new_callable=mock.PropertyMock) as mock_property_6:
+        mock_property_1.return_value = np.array([[400 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[290 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_5.return_value = ['none', 'bypass_hot']
+        mock_property_6.return_value = [500, -5]
+        test_parameter.heat_loads[:, :] = 2000
+        assert not test_exchanger.feasibility_mixer
     test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_1:
-        mock_property_1.return_value = ['none', 'bypass_hot']
-        with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_hot_stream', new_callable=mock.PropertyMock) as mock_property_2:
-            mock_property_2.return_value = [500, -5]
-            for operating_case in test_case.range_operating_cases:
-                test_parameter.matrix[0][operating_case, 0] = 2000
-                test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
-                test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
-                test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
-                test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
-            assert not test_exchanger.feasibility_mixer
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_5, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.inlet_temperatures_hot_stream', new_callable=mock.PropertyMock) as mock_property_6, \
+    mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_hot_stream', new_callable=mock.PropertyMock) as mock_property_7:
+        mock_property_1.return_value = np.array([[400 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[290 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_5.return_value = ['none', 'admixer_hot']
+        mock_property_6.return_value = [500, 10]
+        mock_property_7.return_value = [500, 1]
+        test_parameter.heat_loads[:, :] = 2000
+        assert test_exchanger.feasibility_mixer
     test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_1:
-        mock_property_1.return_value = ['none', 'admixer_hot']
-        with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.inlet_temperatures_hot_stream', new_callable=mock.PropertyMock) as mock_property_2:
-            mock_property_2.return_value = [500, 10]
-            with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_hot_stream', new_callable=mock.PropertyMock) as mock_property_3:
-                mock_property_3.return_value = [500, 1]
-                for operating_case in test_case.range_operating_cases:
-                    test_parameter.matrix[0][operating_case, 0] = 2000
-                    test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
-                    test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
-                    test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
-                    test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
-                assert test_exchanger.feasibility_mixer
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_5, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.inlet_temperatures_hot_stream', new_callable=mock.PropertyMock) as mock_property_6, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_hot_stream', new_callable=mock.PropertyMock) as mock_property_7:
+        mock_property_1.return_value = np.array([[400 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[290 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_5.return_value = ['none', 'admixer_hot']
+        mock_property_6.return_value = [500, 1]
+        mock_property_7.return_value = [500, 10]
+        test_parameter.heat_loads[:, :] = 2000
+        assert not test_exchanger.feasibility_mixer
     test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_1:
-        mock_property_1.return_value = ['none', 'admixer_hot']
-        with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.inlet_temperatures_hot_stream', new_callable=mock.PropertyMock) as mock_property_2:
-            mock_property_2.return_value = [500, 1]
-            with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_hot_stream', new_callable=mock.PropertyMock) as mock_property_3:
-                mock_property_3.return_value = [500, 10]
-                for operating_case in test_case.range_operating_cases:
-                    test_parameter.matrix[0][operating_case, 0] = 2000
-                    test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
-                    test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
-                    test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
-                    test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
-                assert not test_exchanger.feasibility_mixer
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_5, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_cold_stream', new_callable=mock.PropertyMock) as mock_property_6:
+        mock_property_1.return_value = np.array([[400 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[290 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_5.return_value = ['none', 'bypass_cold']
+        mock_property_6.return_value = [500, 1]
+        test_parameter.heat_loads[:, :] = 2000
+        assert test_exchanger.feasibility_mixer
     test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_1:
-        mock_property_1.return_value = ['none', 'bypass_cold']
-        with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_cold_stream', new_callable=mock.PropertyMock) as mock_property_2:
-            mock_property_2.return_value = [500, 1]
-            for operating_case in test_case.range_operating_cases:
-                test_parameter.matrix[0][operating_case, 0] = 2000
-                test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
-                test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
-                test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
-                test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
-            assert test_exchanger.feasibility_mixer
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_5, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_cold_stream', new_callable=mock.PropertyMock) as mock_property_6:
+        mock_property_1.return_value = np.array([[400 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[290 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_5.return_value = ['none', 'bypass_cold']
+        mock_property_6.return_value = [500, 600]
+        test_parameter.heat_loads[:, :] = 2000
+        assert not test_exchanger.feasibility_mixer
     test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_1:
-        mock_property_1.return_value = ['none', 'bypass_cold']
-        with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_cold_stream', new_callable=mock.PropertyMock) as mock_property_2:
-            mock_property_2.return_value = [500, 600]
-            for operating_case in test_case.range_operating_cases:
-                test_parameter.matrix[0][operating_case, 0] = 2000
-                test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
-                test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
-                test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
-                test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
-            assert not test_exchanger.feasibility_mixer
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_5, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.inlet_temperatures_cold_stream', new_callable=mock.PropertyMock) as mock_property_6, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_cold_stream', new_callable=mock.PropertyMock) as mock_property_7:
+        mock_property_1.return_value = np.array([[400 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[290 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_5.return_value = ['none', 'admixer_cold']
+        mock_property_6.return_value = [500, 10]
+        mock_property_7.return_value = [500, 100]
+        test_parameter.heat_loads[:, :] = 2000
+        assert test_exchanger.feasibility_mixer
     test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_1:
-        mock_property_1.return_value = ['none', 'admixer_cold']
-        with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.inlet_temperatures_cold_stream', new_callable=mock.PropertyMock) as mock_property_2:
-            mock_property_2.return_value = [500, 10]
-            with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_cold_stream', new_callable=mock.PropertyMock) as mock_property_3:
-                mock_property_3.return_value = [500, 100]
-                for operating_case in test_case.range_operating_cases:
-                    test_parameter.matrix[0][operating_case, 0] = 2000
-                    test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
-                    test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
-                    test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
-                    test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
-                assert test_exchanger.feasibility_mixer
-    test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_1:
-        mock_property_1.return_value = ['none', 'admixer_cold']
-        with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.inlet_temperatures_cold_stream', new_callable=mock.PropertyMock) as mock_property_2:
-            mock_property_2.return_value = [500, 110]
-            with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_cold_stream', new_callable=mock.PropertyMock) as mock_property_3:
-                mock_property_3.return_value = [500, 10]
-                for operating_case in test_case.range_operating_cases:
-                    test_parameter.matrix[0][operating_case, 0] = 2000
-                    test_parameter.matrix[1][operating_case, 0] = 400 * (operating_case + 1)
-                    test_parameter.matrix[2][operating_case, 0] = 300 * (operating_case + 1)
-                    test_parameter.matrix[3][operating_case, 0] = 290 * (operating_case + 1)
-                    test_parameter.matrix[4][operating_case, 0] = 350 * (operating_case + 1)
-                assert not test_exchanger.feasibility_mixer
+    with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+            mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.mixer_types', new_callable=mock.PropertyMock) as mock_property_5, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.inlet_temperatures_cold_stream', new_callable=mock.PropertyMock) as mock_property_6, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.outlet_temperatures_cold_stream', new_callable=mock.PropertyMock) as mock_property_7:
+        mock_property_1.return_value = np.array([[400 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_2.return_value = np.array([[300 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_3.return_value = np.array([[290 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+        mock_property_5.return_value = ['none', 'admixer_cold']
+        mock_property_6.return_value = [500, 110]
+        mock_property_7.return_value = [500, 10]
+        test_parameter.heat_loads[:, :] = 2000
+        assert not test_exchanger.feasibility_mixer
 
 
 def test_is_feasible():
-    _, test_case, test_addresses, test_parameter = setup_module()
-    test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_logarithmic_mean_temperature_differences', new_callable=mock.PropertyMock) as mock_property_1:
+    test_exchanger, test_case, test_addresses, test_parameter = setup_module()
+    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_logarithmic_mean_temperature_differences', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_temperature_differences', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_mixer', new_callable=mock.PropertyMock) as mock_property_3:
         mock_property_1.return_value = True
-        with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_temperature_differences', new_callable=mock.PropertyMock) as mock_property_2:
-            mock_property_2.return_value = True
-            with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_mixer', new_callable=mock.PropertyMock) as mock_property_2:
-                mock_property_2.return_value = True
-                assert test_exchanger.is_feasible
+        mock_property_2.return_value = True
+        mock_property_3.return_value = True
+        assert test_exchanger.is_feasible
+
     test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_logarithmic_mean_temperature_differences', new_callable=mock.PropertyMock) as mock_property_1:
+    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_logarithmic_mean_temperature_differences', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_temperature_differences', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_mixer', new_callable=mock.PropertyMock) as mock_property_3:
         mock_property_1.return_value = False
-        with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_temperature_differences', new_callable=mock.PropertyMock) as mock_property_2:
-            mock_property_2.return_value = True
-            with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_mixer', new_callable=mock.PropertyMock) as mock_property_2:
-                mock_property_2.return_value = True
-                assert not test_exchanger.is_feasible
+        mock_property_2.return_value = True
+        mock_property_3.return_value = True
+        assert not test_exchanger.is_feasible
     test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_logarithmic_mean_temperature_differences', new_callable=mock.PropertyMock) as mock_property_1:
+    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_logarithmic_mean_temperature_differences', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_temperature_differences', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_mixer', new_callable=mock.PropertyMock) as mock_property_3:
         mock_property_1.return_value = True
-        with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_temperature_differences', new_callable=mock.PropertyMock) as mock_property_2:
-            mock_property_2.return_value = False
-            with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_mixer', new_callable=mock.PropertyMock) as mock_property_2:
-                mock_property_2.return_value = True
-                assert not test_exchanger.is_feasible
+        mock_property_2.return_value = False
+        mock_property_3.return_value = True
+        assert not test_exchanger.is_feasible
     test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_logarithmic_mean_temperature_differences', new_callable=mock.PropertyMock) as mock_property_1:
+    with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_logarithmic_mean_temperature_differences', new_callable=mock.PropertyMock) as mock_property_1, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_temperature_differences', new_callable=mock.PropertyMock) as mock_property_2, \
+            mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_mixer', new_callable=mock.PropertyMock) as mock_property_3:
         mock_property_1.return_value = True
-        with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_temperature_differences', new_callable=mock.PropertyMock) as mock_property_2:
-            mock_property_2.return_value = True
-            with mock.patch('src.heat_exchanger_network.heat_exchanger.heat_exchanger.HeatExchanger.feasibility_mixer', new_callable=mock.PropertyMock) as mock_property_2:
-                mock_property_2.return_value = False
-                assert not test_exchanger.is_feasible
+        mock_property_2.return_value = True
+        mock_property_3.return_value = False
+        assert not test_exchanger.is_feasible

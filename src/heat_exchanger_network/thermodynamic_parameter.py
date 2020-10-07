@@ -23,31 +23,30 @@ class ThermodynamicParameter:
         self.range_enthalpy_stages = case_study.range_enthalpy_stages
         self.hot_streams = case_study.hot_streams
         self.cold_streams = case_study.cold_streams
-        self._heat_loads = np.zeros([case_study.number_operating_cases, case_study.number_heat_exchangers])
+        self._heat_loads = np.zeros([case_study.number_heat_exchangers, case_study.number_operating_cases])
         self._enthalpy_stage_temperatures_hot_streams = np.zeros([case_study.number_hot_streams, case_study.number_enthalpy_stages + 1, case_study.number_operating_cases])
         self._enthalpy_stage_temperatures_cold_streams = np.zeros([case_study.number_cold_streams, case_study.number_enthalpy_stages + 1, case_study.number_operating_cases])
-        self._temperatures_hot_stream_before_hex = np.zeros([case_study.number_operating_cases, case_study.number_heat_exchangers])
-        self._temperatures_hot_stream_after_hex = np.zeros([case_study.number_operating_cases, case_study.number_heat_exchangers])
-        self._temperatures_cold_stream_before_hex = np.zeros([case_study.number_operating_cases, case_study.number_heat_exchangers])
-        self._temperatures_cold_stream_after_hex = np.zeros([case_study.number_operating_cases, case_study.number_heat_exchangers])
-        self._matrix = [self._heat_loads, self._temperatures_hot_stream_before_hex, self._temperatures_hot_stream_after_hex, self._temperatures_cold_stream_before_hex, self._temperatures_cold_stream_after_hex]
-        self._value = list()
+        self._temperatures_hot_stream_before_hex = np.zeros([case_study.number_heat_exchangers, case_study.number_operating_cases])
+        self._temperatures_hot_stream_after_hex = np.zeros([case_study.number_heat_exchangers, case_study.number_operating_cases])
+        self._temperatures_cold_stream_before_hex = np.zeros([case_study.number_heat_exchangers, case_study.number_operating_cases])
+        self._temperatures_cold_stream_after_hex = np.zeros([case_study.number_heat_exchangers, case_study.number_operating_cases])
+        self._observers = []
 
     def update_address_matrix(self, address_matrix):
         self.address_matrix = address_matrix
 
     @property
-    def matrix(self):
-        return self._matrix
+    def heat_loads(self):
+        return self._heat_loads
 
-    @matrix.setter
-    def matrix(self, value):
-        self._matrix = value
-        for callback in self._value:
-            callback(self._matrix)
+    @heat_loads.setter
+    def heat_loads(self, value):
+        self._heat_loads = value
+        for callback in self._observers:
+            callback(self._heat_loads)
 
     def bind_to(self, callback):
-        self._value.append(callback)
+        self._observers.append(callback)
 
     @property
     def enthalpy_stage_temperatures_hot_streams(self):
@@ -59,7 +58,7 @@ class ThermodynamicParameter:
                     for exchanger in self.range_heat_exchangers:
                         if self.address_matrix[exchanger, 0] == stream and \
                                 self.address_matrix[exchanger, 2] == stage:
-                            enthalpy_difference[operating_case] += self.matrix[0][operating_case, exchanger]
+                            enthalpy_difference[operating_case] += self.heat_loads[exchanger, operating_case]
                     if stage == self.number_enthalpy_stages:
                         enthalpy_stage_temperatures_hot_streams[stream, stage, operating_case] = self.hot_streams[stream].supply_temperatures[operating_case]
                     else:
@@ -76,7 +75,7 @@ class ThermodynamicParameter:
                     for exchanger in self.range_heat_exchangers:
                         if self.address_matrix[exchanger, 1] == stream and \
                                 self.address_matrix[exchanger, 2] == stage - 1:
-                            enthalpy_difference[operating_case] += self.matrix[0][operating_case, exchanger]
+                            enthalpy_difference[operating_case] += self.heat_loads[exchanger, operating_case]
                     if stage == 0:
                         enthalpy_stage_temperatures_cold_streams[stream, stage, operating_case] = self.cold_streams[stream].supply_temperatures[operating_case]
                     else:

@@ -57,7 +57,7 @@ def test_restrictions():
 
 def test_enthalpy_stage_temperatures():
     test_network, _ = setup_model()
-    test_network.thermodynamic_parameter.matrix[0] = np.array([[3500, 0, 0, 5800, 1500, 0, 0], [0, 3800, 100, 0, 3500, 0, 0]])
+    test_network.thermodynamic_parameter.heat_loads = np.array([[3500, 0], [0, 3800], [0, 100], [5800, 0], [1500, 3500], [0, 0], [0, 0]])
     test_temperatures_enthalpy_stages_hot_streams = test_network.thermodynamic_parameter.enthalpy_stage_temperatures_hot_streams - 273.15
     test_temperatures_enthalpy_stages_cold_streams = test_network.thermodynamic_parameter.enthalpy_stage_temperatures_cold_streams - 273.15
     assert abs(test_temperatures_enthalpy_stages_hot_streams[0, 0, 0] - 94) <= 10e-3
@@ -170,7 +170,7 @@ def test_enthalpy_stage_temperatures():
 
 def test_utility_demands():
     test_network, _ = setup_model()
-    test_network.thermodynamic_parameter.matrix[0] = np.array([[3500, 0, 0, 5800, 1500, 0, 0], [0, 3800, 100, 0, 3500, 0, 0]])
+    test_network.thermodynamic_parameter.heat_loads = np.array([[3500, 0], [0, 3800], [0, 100], [5800, 0], [1500, 3500], [0, 0], [0, 0]])
     assert abs(test_network.balance_utility_heat_exchangers[0].heat_loads[0] - 2200) <= 10e-3
     assert abs(test_network.balance_utility_heat_exchangers[0].heat_loads[1] - 8700) <= 10e-3
     assert abs(test_network.balance_utility_heat_exchangers[1].heat_loads[0] - 6200) <= 10e-3

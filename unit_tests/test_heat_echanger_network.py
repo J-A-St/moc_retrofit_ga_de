@@ -186,6 +186,22 @@ def test_utility_demands():
     assert abs(test_network.cold_utility_demand[1] - 29023200) <= 10e-3
 
 
+def test_sorted_heat_exchangers_on_stream():
+    pass
+
+
+def test_sorted_heat_exchangers_on_initial_stream():
+    pass
+
+
+def test_utility_heat_exchangers():
+    pass
+
+
+def test_utility_demand():
+    pass
+
+
 def test_split_costs():
     test_network, _ = setup_model()
     test_network.exchanger_addresses.matrix = np.array(
@@ -229,5 +245,61 @@ def test_split_costs():
     assert test_network.split_costs == test_network.heat_exchangers[3].costs.base_split_costs + test_network.heat_exchangers[2].costs.remove_split_costs + test_network.heat_exchangers[0].costs.remove_split_costs + test_network.heat_exchangers[2].costs.remove_split_costs
 
 
-def test_economics():
+def test_repipe_costs():
+    pass
+
+
+def test_resequence_costs():
+    pass
+
+
+def test_match_costs():
+    pass
+
+
+def test_capital_costs():
+    pass
+
+
+def test_operating_costs():
+    pass
+
+
+def test_total_annual_costs():
+    pass
+
+
+def test_heat_exchanger_feasibility():
+    pass
+
+
+def test_energy_balance_feasibility():
+    pass
+
+
+def test_split_heat_exchanger_violation_distance():
+    test_network, _ = setup_model()
+    test_eam = np.array(
+        [
+            [0, 1, 3, 1, 0, 0, 0, 1],
+            [0, 0, 3, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 3, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 3, 0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    assert test_network.split_heat_exchanger_violation_distance(test_eam) == 3
+
+
+def test_utility_connection_violation_distance():
+    pass
+
+
+def test_topology_violation_distance():
+    pass
+
+
+def test_is_feasible():
     pass

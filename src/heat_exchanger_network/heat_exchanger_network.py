@@ -301,9 +301,9 @@ class HeatExchangerNetwork:
                 h_dubs = 0
                 for exchanger in self.range_heat_exchangers:
                     if stream not in self.hot_utilities_indices and \
-                            exchanger_addresses[7][exchanger] and \
-                            exchanger_addresses[0][exchanger] == stream and \
-                            exchanger_addresses[2][exchanger] == stage:
+                            exchanger_addresses[exchanger][7] and \
+                            exchanger_addresses[exchanger][0] == stream and \
+                            exchanger_addresses[exchanger][2] == stage:
                         h_dubs += 1
                 if h_dubs > self.restrictions.max_splits:
                     number_split_violations += h_dubs - (self.restrictions.max_splits + 1)
@@ -311,9 +311,9 @@ class HeatExchangerNetwork:
                 c_dubs = 0
                 for exchanger in self.range_heat_exchangers:
                     if stream not in self.cold_utilities_indices and \
-                            exchanger_addresses[7][exchanger] and \
-                            exchanger_addresses[1][exchanger] == stream and \
-                            exchanger_addresses[2][exchanger] == stage:
+                            exchanger_addresses[exchanger][7] and \
+                            exchanger_addresses[exchanger][1] == stream and \
+                            exchanger_addresses[exchanger][2] == stage:
                         c_dubs += 1
                 if c_dubs > self.restrictions.max_splits:
                     number_split_violations += c_dubs - (self.restrictions.max_splits + 1)

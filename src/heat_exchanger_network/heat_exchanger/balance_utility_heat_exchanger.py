@@ -8,8 +8,8 @@ class BalanceUtilityHeatExchanger:
         self.number = number
         # Topology instance variables
         self.thermodynamic_parameter = thermodynamic_parameter
-        self.thermodynamic_parameter.bind_to(self.update_parameter)
-        self.heat_loads_hexs = self.thermodynamic_parameter._heat_loads
+        self.thermodynamic_parameter.bind_to(self.update_all_heat_loads)
+        self.all_heat_loads = self.thermodynamic_parameter.heat_loads
         self.utility_type = case_study.initial_exchanger_balance_utilities['H/C'][number]
         self.connected_stream = int(case_study.initial_exchanger_balance_utilities['stream'][number] - 1)
 
@@ -34,8 +34,8 @@ class BalanceUtilityHeatExchanger:
         self.degression_area = case_study.initial_exchanger_balance_utilities['d_f'][number]
         self.remove_costs = case_study.initial_exchanger_balance_utilities['c_R'][number]
 
-    def update_parameter(self, parameter):
-        self.heat_loads_hexs = parameter
+    def update_all_heat_loads(self, parameter):
+        self.all_heat_loads = parameter
 
     @property
     def film_heat_transfer_coefficient_utility(self):

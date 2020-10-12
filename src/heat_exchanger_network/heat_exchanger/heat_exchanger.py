@@ -68,7 +68,6 @@ class HeatExchanger:
         return self.exchanger_costs + self.admixer_costs + self.bypass_costs
 
     @property
-    # TODO: needs testing
     def feasibility_logarithmic_mean_temperature_differences(self):
         is_feasible = [False] * self.operation_parameter.number_operating_cases
         for operating_case in self.operation_parameter.range_operating_cases:
@@ -79,7 +78,6 @@ class HeatExchanger:
         return all(is_feasible)
 
     @property
-    # TODO: needs testing
     def feasibility_temperature_differences(self):
         is_feasible = [False] * self.operation_parameter.number_operating_cases
         for operating_case in self.operation_parameter.range_operating_cases:
@@ -93,7 +91,6 @@ class HeatExchanger:
 
     @property
     def feasibility_mixer(self):
-        # TODO: needs testing
         is_feasible = [False] * self.operation_parameter.number_operating_cases
         for operating_case in self.operation_parameter.range_operating_cases:
             if self.operation_parameter.mixer_types[operating_case] == 'bypass_hot' and self.operation_parameter.outlet_temperatures_hot_stream[operating_case] < self.extreme_temperature_hot_stream[operating_case]:
@@ -110,26 +107,26 @@ class HeatExchanger:
 
     @property
     def is_feasible(self):
-        # TODO: needs testing
         if self.feasibility_logarithmic_mean_temperature_differences and self.feasibility_temperature_differences and self.feasibility_mixer:
             return True
         else:
             return False
 
     def __repr__(self):
-        return '\n'.join(['heat exchanger number {}:'.format(self.number), 'address matrix: {}'.format(self.topology.address_vector),
-                          'is feasible: {}'.format(self.is_feasible),
-                          'heat loads: {}'.format(self.operation_parameter.heat_loads), 'hot stream split factions: {}'.format(self.operation_parameter.split_fractions_hot_stream),
-                          'cold stream split fractions: {}'.format(self.operation_parameter.split_fractions_cold_stream),
-                          'hot stream mixer fractions: {}'.format(self.operation_parameter.mixer_fractions_hot_stream),
-                          'cold stream mixer fractions: {}'.format(self.operation_parameter.mixer_fractions_cold_stream),
-                          'inlet temperatures hot stream: {}'.format(self.operation_parameter.inlet_temperatures_hot_stream),
-                          'outlet temperatures hot stream: {}'.format(self.operation_parameter.outlet_temperatures_hot_stream),
-                          'inlet temperatures cold stream: {}'.format(self.operation_parameter.inlet_temperatures_cold_stream),
-                          'outlet temperatures cold stream: {}'.format(self.operation_parameter.outlet_temperatures_cold_stream),
-                          'logarithmic temperature difference: {}'.format(self.operation_parameter.logarithmic_mean_temperature_differences_no_mixer),
-                          'needed areas: {}'.format(self.operation_parameter.needed_areas),
-                          'area: {}'.format(self.operation_parameter.area)])
+        pass
+        # return '\n'.join(['heat exchanger number {}:'.format(self.number), 'address matrix: {}'.format(self.topology.address_vector),
+        #                   'is feasible: {}'.format(self.is_feasible),
+        #                   'heat loads: {}'.format(self.operation_parameter.heat_loads), 'hot stream split factions: {}'.format(self.operation_parameter.split_fractions_hot_stream),
+        #                   'cold stream split fractions: {}'.format(self.operation_parameter.split_fractions_cold_stream),
+        #                   'hot stream mixer fractions: {}'.format(self.operation_parameter.mixer_fractions_hot_stream),
+        #                   'cold stream mixer fractions: {}'.format(self.operation_parameter.mixer_fractions_cold_stream),
+        #                   'inlet temperatures hot stream: {}'.format(self.operation_parameter.inlet_temperatures_hot_stream),
+        #                   'outlet temperatures hot stream: {}'.format(self.operation_parameter.outlet_temperatures_hot_stream),
+        #                   'inlet temperatures cold stream: {}'.format(self.operation_parameter.inlet_temperatures_cold_stream),
+        #                   'outlet temperatures cold stream: {}'.format(self.operation_parameter.outlet_temperatures_cold_stream),
+        #                   'logarithmic temperature difference: {}'.format(self.operation_parameter.logarithmic_mean_temperature_differences_no_mixer),
+        #                   'needed areas: {}'.format(self.operation_parameter.needed_areas),
+        #                   'area: {}'.format(self.operation_parameter.area)])
 
     def __str__(self):
         pass

@@ -1,4 +1,5 @@
 import os
+import mock
 import numpy as np
 
 from src.read_data.read_case_study_data import CaseStudy
@@ -183,6 +184,49 @@ def test_utility_demands():
     assert abs(test_network.hot_utility_demand[1] - 6004800) <= 10e-3
     assert abs(test_network.cold_utility_demand[0] - 39177600) <= 10e-3
     assert abs(test_network.cold_utility_demand[1] - 29023200) <= 10e-3
+
+
+def test_split_costs():
+    test_network, _ = setup_model()
+    test_network.exchanger_addresses.matrix = np.array(
+        [
+            [0, 1, 3, 1, 0, 0, 0, 1],
+            [0, 0, 3, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 3, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    assert test_network.split_costs == test_network.heat_exchangers[0].costs.base_split_costs + 2 * test_network.heat_exchangers[1].costs.base_split_costs + 2 * test_network.heat_exchangers[2].costs.base_split_costs + 2 * test_network.heat_exchangers[3].costs.base_split_costs + 2 * test_network.heat_exchangers[4].costs.base_split_costs
+    test_network.heat_exchangers[3].topology.initial_enthalpy_stage = 3
+    test_network.exchanger_addresses.matrix = np.array(
+        [
+            [0, 1, 3, 1, 0, 0, 0, 1],
+            [0, 0, 2, 1, 0, 0, 0, 1],
+            [0, 1, 1, 1, 0, 0, 0, 1],
+            [0, 0, 0, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    assert test_network.split_costs == test_network.heat_exchangers[0].costs.remove_split_costs + test_network.heat_exchangers[3].costs.remove_split_costs
+    test_network.heat_exchangers[2].topology.initial_enthalpy_stage = 3
+    test_network.heat_exchangers[3].topology.initial_enthalpy_stage = 0
+    test_network.exchanger_addresses.matrix = np.array(
+        [
+            [0, 1, 3, 1, 0, 0, 0, 1],
+            [0, 0, 2, 1, 0, 0, 0, 1],
+            [0, 1, 1, 1, 0, 0, 0, 1],
+            [0, 0, 3, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    assert test_network.split_costs == test_network.heat_exchangers[3].costs.base_split_costs + test_network.heat_exchangers[2].costs.remove_split_costs + test_network.heat_exchangers[0].costs.remove_split_costs + test_network.heat_exchangers[2].costs.remove_split_costs
 
 
 def test_economics():

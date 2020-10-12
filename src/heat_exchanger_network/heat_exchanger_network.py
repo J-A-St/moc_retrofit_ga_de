@@ -117,7 +117,6 @@ class HeatExchangerNetwork:
 
     @property
     def split_costs(self):
-        # TODO: needs testing! and maybe split in hot and cold split costs?
         split_costs = 0
         for stage in self.range_enthalpy_stages:
             for hot_stream in self.range_hot_streams:
@@ -144,13 +143,13 @@ class HeatExchangerNetwork:
                         elif exchanger not in split_heat_exchanger_hot and exchanger in initial_split_heat_exchanger_hot:
                             split_costs += self.heat_exchangers[exchanger].costs.remove_split_costs
 
-                elif number_heat_exchangers_hot < 1 and number_heat_exchangers_hot_initial > 1:
+                elif number_heat_exchangers_hot <= 1 and number_heat_exchangers_hot_initial > 1:
                     # if split is removed
                     for exchanger in self.range_heat_exchangers:
-                        if exchanger not in split_heat_exchanger_hot and exchanger in initial_split_heat_exchanger_hot:
+                        if exchanger in initial_split_heat_exchanger_hot:
                             split_costs += self.heat_exchangers[exchanger].costs.remove_split_costs
 
-                elif number_heat_exchangers_hot > 1 and number_heat_exchangers_hot_initial < 1:
+                elif number_heat_exchangers_hot > 1 and number_heat_exchangers_hot_initial <= 1:
                     # if split is added
                     for exchanger in self.range_heat_exchangers:
                         if exchanger in split_heat_exchanger_hot:
@@ -181,13 +180,13 @@ class HeatExchangerNetwork:
                         elif exchanger not in split_heat_exchanger_cold and exchanger in initial_split_heat_exchanger_cold:
                             split_costs += self.heat_exchangers[exchanger].costs.remove_split_costs
 
-                elif number_heat_exchangers_cold < 1 and number_heat_exchangers_cold_initial > 1:
+                elif number_heat_exchangers_cold <= 1 and number_heat_exchangers_cold_initial > 1:
                     # if split is removed
                     for exchanger in self.range_heat_exchangers:
-                        if exchanger not in split_heat_exchanger_cold and exchanger in initial_split_heat_exchanger_cold:
+                        if exchanger in initial_split_heat_exchanger_cold:
                             split_costs += self.heat_exchangers[exchanger].costs.remove_split_costs
 
-                elif number_heat_exchangers_cold > 1 and number_heat_exchangers_cold_initial < 1:
+                elif number_heat_exchangers_cold > 1 and number_heat_exchangers_cold_initial <= 1:
                     # if split is added
                     for exchanger in self.range_heat_exchangers:
                         if exchanger in split_heat_exchanger_cold:
@@ -275,12 +274,73 @@ class HeatExchangerNetwork:
     @property
     def total_annual_costs(self):
         # TODO: needs testing!
+        # TODO: heat loads and whole calculation should also be performed if topology is feasible!
         return self.economics.annuity_factor * self.capital_costs + self.operating_costs
 
+    @property
+    def heat_exchanger_feasibility(self):
+        # TODO: needs testing!
+        for exchanger in self.range_heat_exchangers:
+            if not self.heat_exchangers[exchanger].is_feasible:
+                return False
+        return True
+
+    @property
+    def energy_balance_feasibility(self):
+        if self.hot_utility_demand >= 0 and \
+                self.cold_utility_demand >= 0:
+            return True
+        else:
+            return False
+
+    def split_heat_exchanger_violation_distance(self, exchanger_addresses):
+        # TODO: needs testing!
+        number_split_violations = 0
+        for stage in self.range_enthalpy_stages:
+            for stream in self.range_hot_streams:
+                h_dubs = 0
+                for exchanger in self.range_heat_exchangers:
+                    if stream not in self.hot_utilities_indices and \
+                            exchanger_addresses[7][exchanger] and \
+                            exchanger_addresses[0][exchanger] == stream and \
+                            exchanger_addresses[2][exchanger] == stage:
+                        h_dubs += 1
+                if h_dubs > self.restrictions.max_splits:
+                    number_split_violations += h_dubs - (self.restrictions.max_splits + 1)
+            for stream in self.range_cold_streams:
+                c_dubs = 0
+                for exchanger in self.range_heat_exchangers:
+                    if stream not in self.cold_utilities_indices and \
+                            exchanger_addresses[7][exchanger] and \
+                            exchanger_addresses[1][exchanger] == stream and \
+                            exchanger_addresses[2][exchanger] == stage:
+                        c_dubs += 1
+                if c_dubs > self.restrictions.max_splits:
+                    number_split_violations += c_dubs - (self.restrictions.max_splits + 1)
+        return number_split_violations
+
+    def utility_connections_violation_distance(self, exchanger_addresses):
+        # TODO: needs testing!
+        utility_connections = 0
+        for exchanger in self.range_heat_exchangers:
+            if exchanger_addresses[0][exchanger] in self.hot_utilities_indices and \
+                    exchanger_addresses[1][exchanger] in self.cold_utilities_indices:
+                utility_connections += 1
+        return utility_connections
+
+    def topology_violation_distance(self, exchanger_addresses):
+        # TODO: needs testing!
+        # TODO: needs to be called before creating a network (using only the EAM)
+        return self.split_heat_exchanger_violation_distance(exchanger_addresses) + self.utility_connections_violation_distance(exchanger_addresses)
+
+    @property
     def is_feasible(self):
-        # TODO: check is every heat exchanger is feasible and check is energy balance is fulfilled!
-        # TODO: reformulate to property
-        pass
+        # TODO: maybe a distance function is needed too
+        if self.heat_exchanger_feasibility and  \
+                self.energy_balance_feasibility:
+            return True
+        else:
+            return False
 
     def __repr__(self):
         pass

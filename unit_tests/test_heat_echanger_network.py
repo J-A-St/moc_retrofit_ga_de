@@ -222,11 +222,55 @@ def test_sorted_heat_exchangers_on_initial_stream():
 
 
 def test_utility_heat_exchangers():
-    pass
+    test_network, _ = setup_model()
+    hot_utility_heat_exchangers = test_network.get_utility_heat_exchangers('hot')
+    cold_utility_heat_exchangers = test_network.get_utility_heat_exchangers('cold')
+    assert len(hot_utility_heat_exchangers) == 0
+    assert len(cold_utility_heat_exchangers) == 0
+    test_network.exchanger_addresses.matrix = np.array(
+        [
+            [0, 2, 3, 1, 0, 0, 0, 1],
+            [0, 2, 2, 1, 0, 0, 0, 1],
+            [0, 1, 1, 1, 0, 0, 0, 1],
+            [0, 2, 3, 1, 0, 0, 0, 1],
+            [1, 2, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    cold_utility_heat_exchangers = test_network.get_utility_heat_exchangers('cold')
+    assert cold_utility_heat_exchangers[0] == 0
+    assert cold_utility_heat_exchangers[1] == 1
+    assert cold_utility_heat_exchangers[2] == 3
+    assert cold_utility_heat_exchangers[3] == 4
+    test_network.exchanger_addresses.matrix = np.array(
+        [
+            [0, 1, 3, 1, 0, 0, 0, 1],
+            [0, 0, 2, 1, 0, 0, 0, 1],
+            [2, 1, 1, 1, 0, 0, 0, 1],
+            [2, 0, 3, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    hot_utility_heat_exchangers = test_network.get_utility_heat_exchangers('hot')
+    assert hot_utility_heat_exchangers[0] == 2
+    assert hot_utility_heat_exchangers[1] == 3
 
 
 def test_utility_demand():
-    pass
+    test_network, _ = setup_model()
+    test_network.thermodynamic_parameter.heat_loads = np.array([[3500, 0], [0, 3800], [0, 100], [5800, 0], [1500, 3500], [0, 0], [0, 0]])
+    assert abs(test_network.hot_utility_demand[0] - 15857600) <= 10e-3
+    assert abs(test_network.hot_utility_demand[1] - 6004800) <= 10e-3
+    assert abs(test_network.cold_utility_demand[0] - 39177600) <= 10e-3
+    assert abs(test_network.cold_utility_demand[1] - 29023200) <= 10e-3
+    test_network.thermodynamic_parameter.heat_loads = np.array([[2500, 0], [0, 3800], [0, 100], [5800, 0], [1500, 3500], [0, 0], [0, 0]])
+    assert abs(test_network.hot_utility_demand[0] - (15857600 + 1000 * test_network.operating_cases[0].duration)) <= 10e-3
+    assert abs(test_network.hot_utility_demand[1] - 6004800) <= 10e-3
+    assert abs(test_network.cold_utility_demand[0] - (39177600 + 1000 * test_network.operating_cases[0].duration)) <= 10e-3
+    assert abs(test_network.cold_utility_demand[1] - 29023200) <= 10e-3
 
 
 def test_split_costs():

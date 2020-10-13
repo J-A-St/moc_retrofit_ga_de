@@ -80,7 +80,6 @@ class HeatExchangerNetwork:
         return np.array(heat_exchanger_on_stream_sorted)
 
     def get_utility_heat_exchangers(self, stream_type):
-        # TODO: needs testing!
         utility_heat_exchanger = []
         for exchanger in self.range_heat_exchangers:
             if self.heat_exchangers[exchanger].topology.existent and \
@@ -91,7 +90,6 @@ class HeatExchangerNetwork:
 
     @property
     def hot_utility_demand(self):
-        # TODO: needs testing!
         hot_utility_exchangers = self.get_utility_heat_exchangers('hot')
         hot_utility_demand = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
@@ -103,7 +101,6 @@ class HeatExchangerNetwork:
 
     @property
     def cold_utility_demand(self):
-        # TODO: needs testing!
         cold_utility_exchangers = self.get_utility_heat_exchangers('cold')
         cold_utility_demand = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:

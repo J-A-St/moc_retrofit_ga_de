@@ -52,7 +52,6 @@ class HeatExchangerNetwork:
             self.balance_utility_heat_exchangers.append(BalanceUtilityHeatExchanger(case_study, self.thermodynamic_parameter, exchanger))
 
     def get_sorted_heat_exchangers_on_stream(self, stream, stream_type):
-        # TODO: needs testing! --> does not work number on stream vs enthalpy stage
         heat_exchanger_on_stream = []
         for exchanger in self.range_heat_exchangers:
             if self.heat_exchangers[exchanger].topology.existent and \
@@ -67,7 +66,6 @@ class HeatExchangerNetwork:
         return np.array(heat_exchanger_on_stream_sorted)
 
     def get_sorted_heat_exchangers_on_initial_stream(self, stream, stream_type):
-        # TODO: needs testing!
         heat_exchanger_on_stream = []
         for exchanger in self.range_heat_exchangers:
             if self.heat_exchangers[exchanger].topology.existent and \

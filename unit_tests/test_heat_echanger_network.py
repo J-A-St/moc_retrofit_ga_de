@@ -187,11 +187,38 @@ def test_utility_demands():
 
 
 def test_sorted_heat_exchangers_on_stream():
-    pass
+    test_network, _ = setup_model()
+    test_network.exchanger_addresses.matrix = np.array(
+        [
+            [0, 1, 3, 1, 0, 0, 0, 1],
+            [0, 0, 2, 1, 0, 0, 0, 1],
+            [0, 1, 1, 1, 0, 0, 0, 1],
+            [0, 0, 3, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    sorted_heat_exchangers_on_stream = test_network.get_sorted_heat_exchangers_on_stream(0, 'hot')
+    assert sorted_heat_exchangers_on_stream[0] == 2
+    assert sorted_heat_exchangers_on_stream[1] == 1
+    assert sorted_heat_exchangers_on_stream[2] == 0
+    assert sorted_heat_exchangers_on_stream[3] == 3
+    sorted_heat_exchangers_on_stream = test_network.get_sorted_heat_exchangers_on_stream(0, 'cold')
+    assert sorted_heat_exchangers_on_stream[0] == 1
+    assert sorted_heat_exchangers_on_stream[1] == 3
 
 
 def test_sorted_heat_exchangers_on_initial_stream():
-    pass
+    test_network, _ = setup_model()
+    sorted_heat_exchangers_on_stream = test_network.get_sorted_heat_exchangers_on_stream(0, 'hot')
+    assert sorted_heat_exchangers_on_stream[0] == 3
+    assert sorted_heat_exchangers_on_stream[1] == 2
+    assert sorted_heat_exchangers_on_stream[2] == 1
+    assert sorted_heat_exchangers_on_stream[3] == 0
+    sorted_heat_exchangers_on_stream = test_network.get_sorted_heat_exchangers_on_stream(0, 'cold')
+    assert sorted_heat_exchangers_on_stream[0] == 3
+    assert sorted_heat_exchangers_on_stream[1] == 1
 
 
 def test_utility_heat_exchangers():
@@ -291,6 +318,18 @@ def test_split_heat_exchanger_violation_distance():
         ]
     )
     assert test_network.split_heat_exchanger_violation_distance(test_eam) == 3
+    test_eam = np.array(
+        [
+            [0, 1, 3, 1, 0, 0, 0, 1],
+            [0, 0, 2, 1, 0, 0, 0, 1],
+            [1, 1, 1, 1, 0, 0, 0, 1],
+            [0, 0, 3, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    assert test_network.split_heat_exchanger_violation_distance(test_eam) == 0
 
 
 def test_utility_connection_violation_distance():

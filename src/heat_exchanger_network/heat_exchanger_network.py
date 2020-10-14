@@ -191,26 +191,24 @@ class HeatExchangerNetwork:
 
     @property
     def repipe_costs(self):
-        # TODO: needs testing!
         repipe_costs = 0
         for exchanger in self.range_heat_exchangers:
             if self.heat_exchangers[exchanger].topology.existent and \
                     self.heat_exchangers[exchanger].topology.initial_existent:
                 if self.heat_exchangers[exchanger].topology.hot_stream != self.heat_exchangers[exchanger].topology.initial_hot_stream:
                     repipe_costs += self.heat_exchangers[exchanger].costs.base_repipe_costs
-                if self.heat_exchangers[exchanger].topology.cold_stream != self.heat_exchangers[exchanger].initial_cold_stream:
+                if self.heat_exchangers[exchanger].topology.cold_stream != self.heat_exchangers[exchanger].topology.initial_cold_stream:
                     repipe_costs += self.heat_exchangers[exchanger].costs.base_repipe_costs
         return repipe_costs
 
     @property
     def resequence_costs(self):
-        # TODO: needs testing!
         resequence_costs_hot_cold = 0
         for stream_type in ['hot', 'cold']:
             modified_heat_exchangers = np.array([], dtype=int)
             for stream in self.range_hot_streams:
-                heat_exchangers_on_initial_stream = self.get_sorted_heat_exchangers_on_initial_stream(stream, stream_type)
-                heat_exchangers_on_stream = self.get_sorted_heat_exchangers_on_stream(stream, stream_type)
+                heat_exchangers_on_initial_stream = self.get_sorted_heat_exchangers_on_initial_stream(stream, stream_type).tolist()
+                heat_exchangers_on_stream = self.get_sorted_heat_exchangers_on_stream(stream, stream_type).tolist()
                 for exchanger in range(len(heat_exchangers_on_initial_stream)):
                     if heat_exchangers_on_initial_stream[exchanger] not in heat_exchangers_on_stream:
                         heat_exchangers_on_initial_stream = heat_exchangers_on_initial_stream[heat_exchangers_on_initial_stream != heat_exchangers_on_initial_stream[exchanger]]
@@ -229,26 +227,24 @@ class HeatExchangerNetwork:
                         modified_heat_exchangers = np.append(modified_heat_exchangers, heat_exchangers_on_stream[j1:j2])
                         heat_exchangers_on_initial_stream[i1:i2] = heat_exchangers_on_stream[j1:j2]
             modified_heat_exchangers_unique = np.unique(np.squeeze(modified_heat_exchangers))
-            number_modifications = len(modified_heat_exchangers_unique)
             resequence_costs = 0
-            for exchanger in number_modifications:
-                resequencing_costs += self.heat_exchangers[exchanger].costs.base_resequence_costs
-                resequence_costs_hot_cold += resequence_costs
+            for exchanger in modified_heat_exchangers_unique:
+                resequence_costs += self.heat_exchangers[exchanger].costs.base_resequence_costs
+            resequence_costs_hot_cold += resequence_costs
         return resequence_costs_hot_cold
 
     @property
     def match_costs(self):
-        # TODO: needs testing!
         match_costs = 0
         for exchanger in self.range_heat_exchangers:
             if self.heat_exchangers[exchanger].topology.existent:
                 if (self.heat_exchangers[exchanger].topology.hot_stream != self.heat_exchangers[exchanger].topology.initial_hot_stream) or \
                         (self.heat_exchangers[exchanger].topology.cold_stream != self.heat_exchangers[exchanger].topology.initial_cold_stream):
                     match_costs += self.economics.match_cost[self.heat_exchangers[exchanger].topology.cold_stream, self.heat_exchangers[exchanger].topology.hot_stream]
+        return match_costs
 
     @property
     def heat_exchanger_costs(self):
-        # TODO: needs testing!
         heat_exchanger_costs = 0
         for exchanger in self.range_heat_exchangers:
             heat_exchanger_costs += self.heat_exchangers[exchanger].total_costs
@@ -264,7 +260,7 @@ class HeatExchangerNetwork:
     @property
     def operating_costs(self):
         # TODO: needs testing!
-        return self.hot_utility_demand * self.economics.specific_hot_utilities_cost + self.cold_utility_demand * self.economics.specific_cold_utilities_cost
+        return sum(self.hot_utility_demand * self.economics.specific_hot_utilities_cost) + sum(self.cold_utility_demand * self.economics.specific_cold_utilities_cost)
 
     @property
     def total_annual_costs(self):

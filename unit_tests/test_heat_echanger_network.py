@@ -171,6 +171,17 @@ def test_enthalpy_stage_temperatures():
 
 def test_utility_demands():
     test_network, _ = setup_model()
+    test_network.exchanger_addresses.matrix = np.array(
+        [
+            [0, 1, 3, 1, 0, 0, 0, 1],
+            [0, 0, 2, 1, 0, 0, 0, 1],
+            [0, 1, 1, 1, 0, 0, 0, 1],
+            [0, 0, 0, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
     test_network.thermodynamic_parameter.heat_loads = np.array([[3500, 0], [0, 3800], [0, 100], [5800, 0], [1500, 3500], [0, 0], [0, 0]])
     assert abs(test_network.balance_utility_heat_exchangers[0].heat_loads[0] - 2200) <= 10e-3
     assert abs(test_network.balance_utility_heat_exchangers[0].heat_loads[1] - 8700) <= 10e-3
@@ -317,26 +328,114 @@ def test_split_costs():
 
 
 def test_repipe_costs():
-    pass
+    test_network, _ = setup_model()
+    test_network.exchanger_addresses.matrix = np.array(
+        [
+            [0, 1, 3, 1, 0, 0, 0, 1],
+            [0, 0, 2, 1, 0, 0, 0, 1],
+            [0, 1, 1, 1, 0, 0, 0, 1],
+            [0, 0, 0, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    assert test_network.repipe_costs == 0
+    test_network.exchanger_addresses.matrix = np.array(
+        [
+            [0, 2, 3, 1, 0, 0, 0, 1],
+            [0, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 1, 1, 0, 0, 0, 1],
+            [1, 1, 0, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    assert test_network.repipe_costs == test_network.heat_exchangers[0].costs.base_repipe_costs + test_network.heat_exchangers[1].costs.base_repipe_costs + test_network.heat_exchangers[2].costs.base_repipe_costs + 2 * test_network.heat_exchangers[3].costs.base_repipe_costs
 
 
 def test_resequence_costs():
-    pass
+    test_network, _ = setup_model()
+    test_network.exchanger_addresses.matrix = np.array(
+        [
+            [0, 1, 3, 1, 0, 0, 0, 1],
+            [0, 0, 2, 1, 0, 0, 0, 1],
+            [0, 1, 1, 1, 0, 0, 0, 1],
+            [0, 0, 0, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    assert test_network.resequence_costs == 0
+    test_network.exchanger_addresses.matrix = np.array(
+        [
+            [0, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 3, 1, 0, 0, 0, 1],
+            [0, 1, 1, 1, 0, 0, 0, 1],
+            [0, 0, 0, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    assert test_network.resequence_costs == 2 * test_network.heat_exchangers[0].costs.base_resequence_costs
+    test_network.exchanger_addresses.matrix = np.array(
+        [
+            [0, 1, 0, 1, 0, 0, 0, 1],
+            [0, 0, 1, 1, 0, 0, 0, 1],
+            [0, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 3, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    assert test_network.resequence_costs == 2 * test_network.heat_exchangers[0].costs.base_resequence_costs + 2 * test_network.heat_exchangers[1].costs.base_resequence_costs + test_network.heat_exchangers[2].costs.base_resequence_costs
 
 
 def test_match_costs():
-    pass
-
-
-def test_capital_costs():
-    pass
+    test_network, _ = setup_model()
+    test_network.exchanger_addresses.matrix = np.array(
+        [
+            [0, 1, 3, 1, 0, 0, 0, 1],
+            [0, 0, 2, 1, 0, 0, 0, 1],
+            [0, 1, 1, 1, 0, 0, 0, 1],
+            [0, 0, 0, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    assert test_network.match_costs == 0
+    test_network.exchanger_addresses.matrix = np.array(
+        [
+            [0, 2, 3, 1, 0, 0, 0, 1],
+            [0, 0, 2, 1, 0, 0, 0, 1],
+            [0, 1, 1, 1, 0, 0, 0, 1],
+            [0, 0, 0, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    assert test_network.match_costs == test_network.economics.match_cost[2, 0]
+    test_network.exchanger_addresses.matrix = np.array(
+        [
+            [0, 2, 3, 1, 0, 0, 0, 1],
+            [0, 2, 2, 1, 0, 0, 0, 1],
+            [0, 2, 1, 1, 0, 0, 0, 1],
+            [1, 1, 0, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    assert test_network.match_costs == 3 * test_network.economics.match_cost[2, 0] + test_network.economics.match_cost[1, 1]
 
 
 def test_operating_costs():
-    pass
-
-
-def test_total_annual_costs():
     pass
 
 

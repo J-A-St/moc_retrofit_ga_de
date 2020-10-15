@@ -436,7 +436,17 @@ def test_match_costs():
 
 
 def test_operating_costs():
-    pass
+    test_network, _ = setup_model()
+    test_network.thermodynamic_parameter.heat_loads = np.array([[3500, 0], [0, 3800], [0, 100], [5800, 0], [1500, 3500], [0, 0], [0, 0]])
+    operating_costs = 0
+    for operating_case in test_network.range_operating_cases:
+        operating_costs += test_network.hot_utility_demand[operating_case] * test_network.economics.specific_hot_utilities_cost[operating_case] + test_network.cold_utility_demand[operating_case] * test_network.economics.specific_cold_utilities_cost[operating_case]
+    assert test_network.operating_costs == operating_costs
+    test_network.thermodynamic_parameter.heat_loads = np.array([[2500, 0], [0, 3800], [0, 100], [5800, 0], [1500, 3500], [0, 0], [0, 0]])
+    operating_costs = 0
+    for operating_case in test_network.range_operating_cases:
+        operating_costs += test_network.hot_utility_demand[operating_case] * test_network.economics.specific_hot_utilities_cost[operating_case] + test_network.cold_utility_demand[operating_case] * test_network.economics.specific_cold_utilities_cost[operating_case]
+    assert test_network.operating_costs == operating_costs
 
 
 def test_heat_exchanger_feasibility():

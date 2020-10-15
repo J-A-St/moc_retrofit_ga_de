@@ -254,17 +254,14 @@ class HeatExchangerNetwork:
 
     @property
     def capital_costs(self):
-        # TODO: needs testing!
         return self.split_costs + self.repipe_costs + self.resequence_costs + self.match_costs + self.heat_exchanger_costs
 
     @property
     def operating_costs(self):
-        # TODO: needs testing!
         return sum(self.hot_utility_demand * self.economics.specific_hot_utilities_cost) + sum(self.cold_utility_demand * self.economics.specific_cold_utilities_cost)
 
     @property
     def total_annual_costs(self):
-        # TODO: needs testing!
         # TODO: heat loads and whole calculation should also be performed if topology is feasible!
         return self.economics.annuity_factor * self.capital_costs + self.operating_costs
 

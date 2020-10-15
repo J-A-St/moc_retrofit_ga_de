@@ -19,6 +19,8 @@ class Economics:
                     self.specific_cold_utilities_cost[cold_utility, operating_case] = case_study.stream_data['UtilityCostperkWh'][stream + case_study.number_streams * operating_case]
                     cold_utility += 1
 
+        self.specific_hot_utilities_cost = np.squeeze(self.specific_hot_utilities_cost)
+        self.specific_cold_utilities_cost = np.squeeze(self.specific_cold_utilities_cost)
         self.penalty_total_annual_cost_value = case_study.manual_parameter['GA_TAC_Penalty'].iloc[0]  # e.g. (CHF/y)
         self.match_cost = case_study.match_cost.values[:, 2:]  # (y)
         self.deprecation_lifetime = case_study.economic_data['DeprecationLifetime'].iloc[0]  # (-)

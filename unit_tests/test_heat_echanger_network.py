@@ -449,12 +449,14 @@ def test_operating_costs():
     assert test_network.operating_costs == operating_costs
 
 
-def test_energy_balance_feasibility():
+def test_infeasibility_energy_balance():
     test_network, _ = setup_model()
     test_network.thermodynamic_parameter.heat_loads = np.array([[3500, 0], [0, 3800], [0, 100], [5800, 0], [1500, 3500], [0, 0], [0, 0]])
-    assert test_network.energy_balance_feasibility == True
+    assert not test_network.infeasibility_energy_balance[0]
+    assert test_network.infeasibility_energy_balance[1] == 0
     test_network.thermodynamic_parameter.heat_loads = np.array([[13500, 0], [0, 3800], [0, 100], [5800, 0], [1500, 3500], [0, 0], [0, 0]])
-    assert test_network.energy_balance_feasibility == False
+    assert test_network.infeasibility_energy_balance[0]
+    assert test_network.infeasibility_energy_balance[1] == (0 - np.sum(2))**2
 
 
 def test_split_heat_exchanger_violation_distance():
@@ -511,7 +513,3 @@ def test_utility_connection_violation_distance():
         ]
     )
     assert test_network.utility_connections_violation_distance(test_eam) == 3
-
-
-def test_is_feasible():
-    pass

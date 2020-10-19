@@ -16,6 +16,7 @@ class HeatExchangerNetwork:
     def __init__(self, case_study):
         self.number_heat_exchangers = case_study.number_heat_exchangers
         self.range_heat_exchangers = case_study.range_heat_exchangers
+        self.number_balance_utility_heat_exchangers = case_study.number_balance_utility_heat_exchangers
         self.range_balance_utility_heat_exchangers = case_study.range_balance_utility_heat_exchangers
         self.number_hot_streams = case_study.number_hot_streams
         self.range_hot_streams = case_study.range_hot_streams
@@ -267,19 +268,20 @@ class HeatExchangerNetwork:
         return self.economics.annuity_factor * self.capital_costs + self.operating_costs
 
     @property
-    def heat_exchanger_feasibility(self):
+    def feasibility_heat_exchanger(self):
         for exchanger in self.range_heat_exchangers:
             if not self.heat_exchangers[exchanger].is_feasible:
                 return False
         return True
 
     @property
-    def energy_balance_feasibility(self):
-        if all(self.hot_utility_demand >= 0) and \
-                all(self.cold_utility_demand >= 0):
-            return True
-        else:
-            return False
+    def infeasibility_energy_balance(self):
+        is_infeasible = np.array([[False] * self.number_operating_cases] * self.number_balance_utility_heat_exchangers)
+        for exchanger in self.range_balance_utility_heat_exchangers:
+            for operating_case in self.range_operating_cases:
+                if self.balance_utility_heat_exchangers[exchanger].heat_loads[operating_case] < 0:
+                    is_infeasible[exchanger, operating_case] = True
+        return is_infeasible.any(), (0 - np.sum(is_infeasible))**2
 
     def split_heat_exchanger_violation_distance(self, exchanger_addresses):
         number_split_violations = 0
@@ -320,8 +322,8 @@ class HeatExchangerNetwork:
 
     @property
     def is_feasible(self):
-        if self.heat_exchanger_feasibility and  \
-                self.energy_balance_feasibility:
+        if self.feasibility_heat_exchanger and  \
+                not self.infeasibility_energy_balance:
             return True
         else:
             return False

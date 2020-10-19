@@ -68,48 +68,48 @@ class HeatExchanger:
         return self.exchanger_costs + self.admixer_costs + self.bypass_costs
 
     @property
-    def feasibility_logarithmic_mean_temperature_differences(self):
-        is_feasible = [False] * self.operation_parameter.number_operating_cases
+    def infeasibility_logarithmic_mean_temperature_differences(self):
+        is_infeasible = np.array([False] * self.operation_parameter.number_operating_cases)
         for operating_case in self.operation_parameter.range_operating_cases:
             if np.isnan(self.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case]) or self.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case] <= 0:
-                is_feasible[operating_case] = False
+                is_infeasible[operating_case] = True
             else:
-                is_feasible[operating_case] = True
-        return all(is_feasible)
+                is_infeasible[operating_case] = False
+        return is_infeasible.any(), (0 - np.sum(is_infeasible))**2
 
     @property
-    def feasibility_temperature_differences(self):
+    def infeasibility_temperature_differences(self):
         # TODO: Why is this so slow?
-        is_feasible = [False] * self.operation_parameter.number_operating_cases
+        is_infeasible = np.array([False] * self.operation_parameter.number_operating_cases)
         for operating_case in self.operation_parameter.range_operating_cases:
             if self.operation_parameter.outlet_temperatures_hot_stream[operating_case] <= self.operation_parameter.inlet_temperatures_cold_stream[operating_case]:
-                is_feasible[operating_case] = False
+                is_infeasible[operating_case] = True
             elif self.operation_parameter.inlet_temperatures_hot_stream[operating_case] <= self.operation_parameter.outlet_temperatures_cold_stream[operating_case]:
-                is_feasible[operating_case] = False
+                is_infeasible[operating_case] = True
             else:
-                is_feasible[operating_case] = True
-        return all(is_feasible)
+                is_infeasible[operating_case] = False
+        return is_infeasible.any(), (0 - np.sum(is_infeasible))**2
 
     @property
-    def feasibility_mixer(self):
+    def infeasibility_mixer(self):
         # TODO: Why is this so slow?
-        is_feasible = [False] * self.operation_parameter.number_operating_cases
+        is_infeasible = np.array([False] * self.operation_parameter.number_operating_cases)
         for operating_case in self.operation_parameter.range_operating_cases:
             if self.operation_parameter.mixer_types[operating_case] == 'bypass_hot' and self.operation_parameter.outlet_temperatures_hot_stream[operating_case] < self.extreme_temperature_hot_stream[operating_case]:
-                is_feasible[operating_case] = False
+                is_infeasible[operating_case] = True
             elif self.operation_parameter.mixer_types[operating_case] == 'admixer_hot' and self.operation_parameter.inlet_temperatures_hot_stream[operating_case] <= self.operation_parameter.outlet_temperatures_hot_stream[operating_case]:
-                is_feasible[operating_case] = False
+                is_infeasible[operating_case] = True
             elif self.operation_parameter.mixer_types[operating_case] == 'bypass_cold' and self.operation_parameter.outlet_temperatures_cold_stream[operating_case] > self.extreme_temperature_cold_stream[operating_case]:
-                is_feasible[operating_case] = False
+                is_infeasible[operating_case] = True
             elif self.operation_parameter.mixer_types[operating_case] == 'admixer_cold' and self.operation_parameter.inlet_temperatures_cold_stream[operating_case] >= self.operation_parameter.outlet_temperatures_cold_stream[operating_case]:
-                is_feasible[operating_case] = False
+                is_infeasible[operating_case] = True
             else:
-                is_feasible[operating_case] = True
-        return all(is_feasible)
+                is_infeasible[operating_case] = False
+        return is_infeasible.any(), (0 - np.sum(is_infeasible))**2
 
     @property
     def is_feasible(self):
-        if self.feasibility_logarithmic_mean_temperature_differences and self.feasibility_temperature_differences and self.feasibility_mixer:
+        if not self.infeasibility_logarithmic_mean_temperature_differences[0] and not self.infeasibility_temperature_differences[0] and not self.infeasibility_mixer[0]:
             return True
         else:
             return False

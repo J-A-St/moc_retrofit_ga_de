@@ -263,11 +263,11 @@ class HeatExchangerNetwork:
     @property
     def total_annual_costs(self):
         # TODO: heat loads and whole calculation should also be performed if topology is feasible!
+        # TODO: add penalty function if energy balance or heat exchanger are infeasible
         return self.economics.annuity_factor * self.capital_costs + self.operating_costs
 
     @property
     def heat_exchanger_feasibility(self):
-        # TODO: needs testing!
         for exchanger in self.range_heat_exchangers:
             if not self.heat_exchangers[exchanger].is_feasible:
                 return False
@@ -275,14 +275,13 @@ class HeatExchangerNetwork:
 
     @property
     def energy_balance_feasibility(self):
-        if self.hot_utility_demand >= 0 and \
-                self.cold_utility_demand >= 0:
+        if all(self.hot_utility_demand >= 0) and \
+                all(self.cold_utility_demand >= 0):
             return True
         else:
             return False
 
     def split_heat_exchanger_violation_distance(self, exchanger_addresses):
-        # TODO: needs testing!
         number_split_violations = 0
         for stage in self.range_enthalpy_stages:
             for stream in self.range_hot_streams:
@@ -308,22 +307,19 @@ class HeatExchangerNetwork:
         return number_split_violations
 
     def utility_connections_violation_distance(self, exchanger_addresses):
-        # TODO: needs testing!
         utility_connections = 0
         for exchanger in self.range_heat_exchangers:
-            if exchanger_addresses[0][exchanger] in self.hot_utilities_indices and \
-                    exchanger_addresses[1][exchanger] in self.cold_utilities_indices:
+            if exchanger_addresses[exchanger][0] in self.hot_utilities_indices and \
+                    exchanger_addresses[exchanger][1] in self.cold_utilities_indices:
                 utility_connections += 1
         return utility_connections
 
     def topology_violation_distance(self, exchanger_addresses):
-        # TODO: needs testing!
         # TODO: needs to be called before creating a network (using only the EAM)
         return self.split_heat_exchanger_violation_distance(exchanger_addresses) + self.utility_connections_violation_distance(exchanger_addresses)
 
     @property
     def is_feasible(self):
-        # TODO: maybe a distance function is needed too
         if self.heat_exchanger_feasibility and  \
                 self.energy_balance_feasibility:
             return True

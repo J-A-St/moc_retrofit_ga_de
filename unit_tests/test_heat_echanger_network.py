@@ -449,12 +449,12 @@ def test_operating_costs():
     assert test_network.operating_costs == operating_costs
 
 
-def test_heat_exchanger_feasibility():
-    pass
-
-
 def test_energy_balance_feasibility():
-    pass
+    test_network, _ = setup_model()
+    test_network.thermodynamic_parameter.heat_loads = np.array([[3500, 0], [0, 3800], [0, 100], [5800, 0], [1500, 3500], [0, 0], [0, 0]])
+    assert test_network.energy_balance_feasibility == True
+    test_network.thermodynamic_parameter.heat_loads = np.array([[13500, 0], [0, 3800], [0, 100], [5800, 0], [1500, 3500], [0, 0], [0, 0]])
+    assert test_network.energy_balance_feasibility == False
 
 
 def test_split_heat_exchanger_violation_distance():
@@ -486,11 +486,31 @@ def test_split_heat_exchanger_violation_distance():
 
 
 def test_utility_connection_violation_distance():
-    pass
-
-
-def test_topology_violation_distance():
-    pass
+    test_network, _ = setup_model()
+    test_eam = np.array(
+        [
+            [0, 1, 3, 1, 0, 0, 0, 1],
+            [0, 0, 3, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 3, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 3, 0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    assert test_network.utility_connections_violation_distance(test_eam) == 0
+    test_eam = np.array(
+        [
+            [2, 2, 3, 1, 0, 0, 0, 1],
+            [2, 2, 3, 1, 0, 0, 0, 1],
+            [2, 1, 2, 1, 0, 0, 0, 1],
+            [0, 2, 3, 1, 0, 0, 0, 1],
+            [2, 2, 2, 1, 0, 0, 0, 1],
+            [0, 0, 3, 0, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    assert test_network.utility_connections_violation_distance(test_eam) == 3
 
 
 def test_is_feasible():

@@ -30,6 +30,8 @@ class DifferentialEvolution():
         self.probability_crossover = algorithm_parameter.differential_evolution_probability_crossover
         self.scaling_factor = algorithm_parameter.differential_evolution_scaling_factor
 
+        self.de_best_solution = None
+
     def initialize_individual(self, individual_class, exchanger_addresses):
         """Create an individual matrix of heat duties for all existing HEX matches"""
         # TODO: needs testing!
@@ -46,6 +48,7 @@ class DifferentialEvolution():
         return individual
 
     def fitness_function(self, individual, exchanger_addresses):
+        """Calculate the whole network including costs"""
         heat_exchanger_network = HeatExchangerNetwork(self.case_study)
         heat_exchanger_network.exchanger_addresses.matrix = exchanger_addresses
         heat_exchanger_network.thermodynamic_parameter.heat_loads = individual
@@ -57,16 +60,16 @@ class DifferentialEvolution():
             fitness = 1 / (self.penalty_total_annual_cost_value + quadratic_distance)
         return fitness,
 
-    def differential_exolution(self, exchanger_addresses):
+    def differential_evolution(self, exchanger_addresses):
         """Main differential evolution algorithm"""
         toolbox = base.Toolbox()
-        toolbox.register('individual_de', self.initialize_individual, creator.Individual_de)
+        toolbox.register('individual_de', self.initialize_individual, creator.Individual_de, exchanger_addresses)
         toolbox.register('population_de', tools.initRepeat, list, toolbox.inidividual_de)
         toolbox.register('select_parents_de', tools.selRandom, k=3)
-        toolbox.register('evaluate_de', self.fitness_function)
+        toolbox.register('evaluate_de', self.fitness_function, exchanger_addresses)
 
         # Initialize population
-        population = toolbox.population_de(n=self.algorithm_parameter.population_size)
+        population = toolbox.population_de(n=self.population_size)
         hall_of_fame_de = tools.HallOfFame(maxsize=self.hall_of_fame_size, similar=np.array_equal)
         # Evaluate entire population
         fitness = list(toolbox.map(toolbox.evaluate_de, population))
@@ -105,3 +108,4 @@ class DifferentialEvolution():
                 hall_of_fame_de.update(population)
         self.de_best_solution = hall_of_fame_de[0]
         _ = toolbox.evaluate_de(hall_of_fame_de[0])
+        # TODO: best DE solution has to be attached to the GA solution (heat loads and mixer fractions; mixer types have to be updated in the exchanger addresses!)

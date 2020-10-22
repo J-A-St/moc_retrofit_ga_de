@@ -30,7 +30,7 @@ class DifferentialEvolution():
         self.probability_crossover = algorithm_parameter.differential_evolution_probability_crossover
         self.scaling_factor = algorithm_parameter.differential_evolution_scaling_factor
 
-        self.de_best_solution = None
+        self.best_solution = None
 
     def initialize_individual(self, individual_class, exchanger_addresses):
         """Create an individual matrix of heat duties for all existing HEX matches"""
@@ -106,6 +106,6 @@ class DifferentialEvolution():
                     number_without_improvement_de = 0
             else:
                 hall_of_fame_de.update(population)
-        self.de_best_solution = hall_of_fame_de[0]
+        self.best_solution = hall_of_fame_de[0]
         _ = toolbox.evaluate_de(hall_of_fame_de[0])
         # TODO: best DE solution has to be attached to the GA solution (heat loads and mixer fractions; mixer types have to be updated in the exchanger addresses!)

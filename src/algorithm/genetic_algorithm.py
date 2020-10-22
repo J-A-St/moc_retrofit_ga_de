@@ -19,6 +19,7 @@ class GeneticAlgorithm:
         self.number_cold_streams = case_study.number_cold_streams
         self.number_enthalpy_stages = case_study.number_enthalpy_stages
 
+        self.algorithm_parameter = algorithm_parameter
         self.penalty_total_annual_cost_value = case_study.manual_parameter['GA_TAC_Penalty'].iloc[0]
         self.probability_bit_flip = algorithm_parameter.genetic_algorithm_probability_bit_flip
 
@@ -55,15 +56,20 @@ class GeneticAlgorithm:
         quadratic_distance_utility_connection_infeasibility = (0 - self.heat_exchanger_network.utility_connections_violation_distance(individual))**2
         if quadratic_distance_split_infeasibility > 0 or quadratic_distance_utility_connection_infeasibility > 0:
             fitness = 1 / (self.penalty_total_annual_cost_value + quadratic_distance_split_infeasibility + quadratic_distance_utility_connection_infeasibility)
+            best_individual_differential_evolution = np.zeros([self.number_heat_exchangers, self.number_operating_cases]).tolist()
         else:
             fitness = self.differential_evolution.differential_evolution(individual)
-        return fitness,
+            best_individual_differential_evolution = self.differential_evolution.best_solution
+
+        total_annual_cost = 1 / fitness
+        return fitness, total_annual_cost, best_individual_differential_evolution
 
     @staticmethod
-    def crossover(self, child_1, child_2):
+    def crossover(child_1, child_2):
+        # TODO: needs testing!
         """Crossover operator of genes"""
-        for exchanger in self.range_heat_exchangers:
-            child_1[exchanger], child_2[exchanger] = list(tools.cx0nePoint(child_1[exchanger], child_2[exchanger]))
+        cxpoint = rng.integers(1, len(child_1[:, 0]))
+        child_1[cxpoint:, :], child_2[cxpoint:, :] = child_2[cxpoint:, :].copy(), child_1[cxpoint:, :].copy()
         return child_1, child_2
 
     def mutation(self, individual):
@@ -77,9 +83,98 @@ class GeneticAlgorithm:
                 individual[gene_number] = list(tools.mutUniformInt(gene, 0, self.number_cold_streams, self.probability_bit_flip))
                 individual[gene_number] = individual[gene_number].pop(0)
             elif gene_number == 2:
-                individual[gene_number] = list(tools.mutUniformInt(gene, 0, self.number_enthalpy_stages, self.probabiliy_bit_flip))
+                individual[gene_number] = list(tools.mutUniformInt(gene, 0, self.number_enthalpy_stages, self.probability_bit_flip))
                 individual[gene_number] = individual[gene_number].pop(0)
             elif gene_number == 7:
                 individual[gene_number] = list(tools.mutFlipBit(gene, self.probability_bit_flip))
                 individual[gene_number] = individual[gene_number].pop(0)
         return individual
+
+    def genetic_algorithm(self, case_study):
+        """Genetic algorithm (topology optimization)"""
+        # GA: Create GA classes
+        weights_de_individual = np.ones([case_study.number_heat_exchangers, case_study.number_operating_cases])
+        creator.create('FtinessMin_ga', base.Fitness, weights=(1.0, 1.0, weights_de_individual))
+        creator.create('Individual_ga', list, fitness=creator.FitnessMin_ga)
+        # DE: Create DE classes
+        creator.create('FitnessMin_de', base.Fitness, weights=(1.0,))
+        creator.create('Individual_de', list, fitness=creator.FitnessMin_de)
+        # GA: Define individuals of exchanger address matrices
+        toolbox = base.Toolbox()
+        toolbox.register('individual_ga', self.initialize_individual, creator.Individual_ga)
+        toolbox.register('population_ga', tools.initRepeat, list, toolbox.individual_ga)
+        toolbox.register('evaluate_ga', self.fitness_function)
+        toolbox.register('select_ga', tools.selTournament, tournsize=self.algorithm_paramter.genetic_algorithm_tournament_size)  # TODO: self.algorithm_parameter and self.case_study????
+        toolbox.register('mate_ga', self.crossover)
+        toolbox.register('mutate_ga', self.mutation)
+        # GA: Generate population
+        population_ga = toolbox.population_ga(self.algorithm_parameter.genetic_algorithm_population_size)
+        hall_of_fame_ga = tools.HallOfFame(maxsize=self.algorithm_parameter.genetic_algorithm_hall_of_fame_size)
+        # GA: Evaluate entire population
+        if self.algorithm_parameter.number_of_workers != 1:
+            with Pool(self.algorithm_parameter.number_of_workers) as worker:
+                fitness = list(worker.map(toolbox.evaluate_ga, population_ga))
+        else:
+            fitness = list(map(toolbox.evaluate_ga, population_ga))
+        for individual, fit in zip(population_ga, fitness):
+            individual.fitness.values = fit[0:2]
+            individual.individual_de = fit[2]
+
+        number_generations_ga = 0
+        start = timer()
+        while number_generations_ga < self.algorithm_parameter.genetic_algorithm_number_generations:
+            """Genetic algorithm"""
+            number_generations_ga += 1
+            print('--GA: Generation %i --' % number_generations_ga)
+            # GA: Select the next generation of individuals
+            offspring = toolbox.select_ga(population_ga, len(population_ga))
+            # GA: Clone selected individuals
+            offspring = list(toolbox.map(toolbox.clone, offspring))
+            # GA: crossover
+            for child_1, child_2 in zip(offspring[::2], offspring[1::2]):
+                if rng.random() < self.algorithm_parameter.genetic_algorithm_probability_crossover:
+                    toolbox.mate_ga(child_1, child_2)
+                    del child_1.fitness.values
+                    del child_2.fitness.values
+
+            for mutant in offspring:
+                if rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
+                    toolbox.mutate_ga(mutant)
+                    del mutant.fitness.values
+            # GA: Evaluate individuals with invalid fitness (parallel computing of DE)
+            invalid_individual_ga = [individual for individual in offspring if not individual.fitness.valid]
+            if self.algorithm_parameter.number_of_workers != 1:
+                with Pool(self.algorithm_parameter.number_of_workers) as worker:
+                    fitness = wroker.map(toolbox.evaluate_ga, invalid_individual_ga)
+            else:
+                fitness = map(toolbox.evaluate_ga, invalid_individual_ga)
+            for individual, fit in zip(invalid_individual_ga, fitness):
+                individual.fitness.values = fit[0:2]
+                individual.individual_de = fit[2]
+            population_ga[:] = offspring
+
+            # GA: Update Hall of Fame
+            if number_generations_ga == 1:
+                hall_of_fame_ga.update(population_ga)
+            elif number_generations_ga != 1:
+                old = sum(hall_of_fame_ga[0].fitness.getValues())
+                hall_of_fame_ga.update(population_ga)
+                new = sum(hall_of_fame_ga[0].fitness.getValues())
+
+            print('TAC:', 1 / hall_of_fame_ga[0].fitness.values[0])
+            print('fitness:', hall_of_fame_ga[0].fitness.values[0])
+            print('GA chromosome:', hall_of_fame_ga[0])
+            print('DE chromosome:', hall_of_fame_ga[0].individual_de)
+
+        print('-- End of evolution --')
+        end = timer()
+        print('Computation time: %s s' % (end - start))
+        print('Hall of fame list:')
+        for i in range(len(hall_of_fame_ga)):
+            print('Rank:', i + 1)
+            print('TAC:', 1 / hall_of_fame_ga[i].fitness.values[0])
+            print('fitness:', hall_of_fame_ga[i].fitness.values[0])
+            print('GA chromosome:', hall_of_fame_ga[i])
+            print('DE chromosome:', hall_of_fame_ga[i].individual_de)
+            print(10*'-')
+        return hall_of_fame_ga

@@ -12,8 +12,8 @@ class DifferentialEvolution():
 
     def __init__(self, case_study, algorithm_parameter):
         self.case_study = case_study
-        self.number_heat_exchangers = case_study.number_heat_exchanger
-        self.range_heat_exchangers = case_study.range_heat_exchanger
+        self.number_heat_exchangers = case_study.number_heat_exchangers
+        self.range_heat_exchangers = case_study.range_heat_exchangers
         self.number_operating_cases = case_study.number_operating_cases
         self.range_operating_cases = case_study.range_operating_cases
         self.number_hot_streams = case_study.number_hot_streams
@@ -39,15 +39,15 @@ class DifferentialEvolution():
         for exchanger in self.range_heat_exchangers:
             if exchanger_addresses[exchanger, 7] == 1:
                 for operating_case in self.range_operating_cases:
-                    max_heat_duty = np.nanmin(self.hot_streams[exchanger_addresses[exchanger, 0]].enthalpy_flows[operating_case], self.cold_streams[exchanger_addresses[exchanger, 1]].enthalpy_flows[operating_case])
+                    max_heat_duty = np.nanmin([self.hot_streams[exchanger_addresses[exchanger, 0]].enthalpy_flows[operating_case], self.cold_streams[exchanger_addresses[exchanger, 1]].enthalpy_flows[operating_case]])
                     if max_heat_duty != 0:
-                        heat_duties[exchanger, operating_case] = rng.standard_normal(self.min_heat_load, max_heat_duty)
+                        heat_duties[exchanger, operating_case] = (max_heat_duty - self.min_heat_load) * rng.random() + self.min_heat_load
                     else:
                         heat_duties[exchanger, operating_case] = max_heat_duty
         individual = individual_class(heat_duties.tolist())
         return individual
 
-    def fitness_function(self, individual, exchanger_addresses):
+    def fitness_function(self, exchanger_addresses, individual):
         """Calculate the whole network including costs"""
         heat_exchanger_network = HeatExchangerNetwork(self.case_study)
         heat_exchanger_network.exchanger_addresses.matrix = exchanger_addresses
@@ -63,16 +63,16 @@ class DifferentialEvolution():
     def differential_evolution(self, exchanger_addresses):
         """Main differential evolution algorithm"""
         toolbox = base.Toolbox()
-        toolbox.register('individual_de', self.initialize_individual, creator.Individual_de, exchanger_addresses)
-        toolbox.register('population_de', tools.initRepeat, list, toolbox.inidividual_de)
+        toolbox.register('individual_de', self.initialize_individual, creator.Individual_de, exchanger_addresses)  # TODO: exchanger addresses?
+        toolbox.register('population_de', tools.initRepeat, list, toolbox.individual_de)
         toolbox.register('select_parents_de', tools.selRandom, k=3)
-        toolbox.register('evaluate_de', self.fitness_function, exchanger_addresses)
+        toolbox.register('evaluate_de', self.fitness_function, exchanger_addresses)  # TODO: exchanger addresses?
 
         # Initialize population
         population = toolbox.population_de(n=self.population_size)
         hall_of_fame_de = tools.HallOfFame(maxsize=self.hall_of_fame_size, similar=np.array_equal)
         # Evaluate entire population
-        fitness = list(toolbox.map(toolbox.evaluate_de, population))
+        fitness = list(toolbox.map(toolbox.evaluate_de, population))  # TODO: exchanger addresses?
         for individual, fit in zip(population, fitness):
             individual.fitness.values = fit
 
@@ -91,8 +91,8 @@ class DifferentialEvolution():
                             individual_donor[exchanger][operating_case] = np.absolute(individual_r1[exchanger][operating_case] + self.scaling_factor * (individual_r2[exchanger][operating_case] - individual_r3[exchanger][operating_case]))
                             max_heat_duty = np.nanmin((self.hot_streams[exchanger_addresses[exchanger, 0], operating_case], self.cold_streams[exchanger_addresses[exchanger, 1], operating_case]))
                             if max_heat_duty != 0 and (individual_donor[exchanger][operating_case] < self.min_heat_load or individual_donor[exchanger][operating_case] > max_heat_duty):
-                                individual_donor[exchanger][operating_case] = rng.standard_normal(self.min_heat_load, max_heat_duty)
-                individual_donor.fittness.values = toolbox.evaluate_de(individual_donor)
+                                individual_donor[exchanger][operating_case] = (max_heat_duty - self.min_heat_load) * rng.random() + self.min_heat_load
+                individual_donor.fittness.values = toolbox.evaluate_de(individual_donor)  # TODO: exchanger addresses?
                 # Selection (objective 1/TAC)
                 if individual_donor[0] > agent.fitness.values[0]:
                     population[pop] = individual_donor

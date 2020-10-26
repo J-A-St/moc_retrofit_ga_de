@@ -44,7 +44,7 @@ class DifferentialEvolution():
                         heat_duties[exchanger, operating_case] = (max_heat_duty - self.min_heat_load) * rng.random() + self.min_heat_load
                     else:
                         heat_duties[exchanger, operating_case] = max_heat_duty
-        individual = individual_class(heat_duties.tolist())
+        individual = np.array(individual_class(heat_duties.tolist()))
         return individual
 
     def fitness_function(self, exchanger_addresses, individual):

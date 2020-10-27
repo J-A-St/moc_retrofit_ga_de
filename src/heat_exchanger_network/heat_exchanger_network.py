@@ -210,11 +210,12 @@ class HeatExchangerNetwork:
             for stream in self.range_hot_streams:
                 heat_exchangers_on_initial_stream = self.get_sorted_heat_exchangers_on_initial_stream(stream, stream_type).tolist()
                 heat_exchangers_on_stream = self.get_sorted_heat_exchangers_on_stream(stream, stream_type).tolist()
-                for exchanger in range(len(heat_exchangers_on_initial_stream)):
-                    if heat_exchangers_on_initial_stream[exchanger] not in heat_exchangers_on_stream:
-                        heat_exchangers_on_initial_stream = heat_exchangers_on_initial_stream[heat_exchangers_on_initial_stream != heat_exchangers_on_initial_stream[exchanger]]
-                    if heat_exchangers_on_stream[exchanger] not in heat_exchangers_on_initial_stream:
-                        heat_exchangers_on_stream = heat_exchangers_on_stream[heat_exchangers_on_stream != heat_exchangers_on_stream[exchanger]]
+                for exchanger in heat_exchangers_on_initial_stream:
+                    if exchanger not in heat_exchangers_on_stream:
+                        heat_exchangers_on_initial_stream.remove(exchanger)
+                for exchanger in heat_exchangers_on_stream:
+                    if exchanger not in heat_exchangers_on_initial_stream:
+                        heat_exchangers_on_stream.remove(exchanger)
                 matcher = difflib.SequenceMatcher(None, heat_exchangers_on_initial_stream, heat_exchangers_on_stream)
                 for tag, i1, i2, j1, j2 in reversed(matcher.get_opcodes()):
                     if tag == 'delete':

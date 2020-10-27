@@ -53,7 +53,7 @@ class OperationParameter:
             temperature_difference_b = self.temperatures_hot_stream_before_hex[operating_case] - self.temperatures_cold_stream_after_hex[operating_case]
             if temperature_difference_a == temperature_difference_b:
                 logarithmic_mean_temperature_differences[operating_case] = temperature_difference_a
-            elif temperature_difference_a < 0 or temperature_difference_a < 0:
+            elif temperature_difference_a <= 0 or temperature_difference_b <= 0:
                 logarithmic_mean_temperature_differences[operating_case] = np.nan
             else:
                 logarithmic_mean_temperature_differences[operating_case] = (temperature_difference_a - temperature_difference_b) / np.log(temperature_difference_a / temperature_difference_b)

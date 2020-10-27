@@ -76,9 +76,10 @@ class DifferentialEvolution():
         for individual, fit in zip(population, fitness):
             individual.fitness.values = fit
 
-        number_generation_de = 0
+        number_generations_de = 0
         number_without_improvement_de = 0
-        while number_generation_de <= self.number_generations and number_without_improvement_de <= self.number_no_improvement:
+        while number_generations_de <= self.number_generations and number_without_improvement_de <= self.number_no_improvement:
+            print('--DE: Generation %i --' % number_generations_de)
             for pop, agent in enumerate(population):
                 individual_r1, individual_r2, individual_r3 = np.array(toolbox.select_parents_de(population))
                 individual_donor = toolbox.clone(agent)
@@ -96,7 +97,7 @@ class DifferentialEvolution():
                 # Selection (objective 1/TAC)
                 if individual_donor[0] > agent.fitness.values[0]:
                     population[pop] = individual_donor
-            if number_generation_de > 1:
+            if number_generations_de > 1:
                 best_old = hall_of_fame_de[0].fitness.values[0]
                 hall_of_fame_de.update(population)
                 best_new = hall_of_fame_de[0].fitness.values[0]

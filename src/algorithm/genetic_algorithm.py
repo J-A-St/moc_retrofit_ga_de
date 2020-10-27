@@ -106,11 +106,11 @@ class GeneticAlgorithm:
         population_ga = toolbox.population_ga(self.algorithm_parameter.genetic_algorithm_population_size)
         hall_of_fame_ga = tools.HallOfFame(maxsize=self.algorithm_parameter.genetic_algorithm_hall_of_fame_size)
         # GA: Evaluate entire population
-        if self.algorithm_parameter.number_workers != 1:
+        if self.algorithm_parameter.number_workers == 1:
+            fitness = list(map(toolbox.evaluate_ga, population_ga))
+        else:
             with Pool(self.algorithm_parameter.number_workers) as worker:
                 fitness = list(worker.map(toolbox.evaluate_ga, population_ga))
-        else:
-            fitness = list(map(toolbox.evaluate_ga, population_ga))
         for individual, fit in zip(population_ga, fitness):
             individual.fitness.values = fit[0:2]
             individual.individual_de = fit[2]

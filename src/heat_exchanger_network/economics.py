@@ -3,7 +3,6 @@ import numpy as np
 
 class Economics:
     """Economic data and cost calculations for heat exchanger network"""
-    # TODO: add cost functions
 
     def __init__(self, case_study):
         self.specific_hot_utilities_cost = np.empty([len(case_study.hot_utilities_indices), case_study.number_operating_cases])  # e.g. (CHF/m2)

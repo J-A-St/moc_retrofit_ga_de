@@ -51,7 +51,6 @@ def test_operation_parameter():
 
 
 def test_logarithmic_temperature_differences_no_mixer():
-    # TODO: needs network as well!
     test_exchanger, test_case, test_addresses, test_parameter = setup_module()
     with mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
             mock.patch('src.heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \

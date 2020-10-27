@@ -1,5 +1,4 @@
 import os
-import mock
 import numpy as np
 
 from src.read_data.read_case_study_data import CaseStudy
@@ -393,6 +392,30 @@ def test_resequence_costs():
         ]
     )
     assert test_network.resequence_costs == 2 * test_network.heat_exchangers[0].costs.base_resequence_costs + 2 * test_network.heat_exchangers[1].costs.base_resequence_costs + test_network.heat_exchangers[2].costs.base_resequence_costs
+    test_network.exchanger_addresses.matrix = np.array(
+        [
+            [0, 1, 3, 1, 0, 0, 0, 1],
+            [1, 0, 2, 1, 0, 0, 0, 1],
+            [0, 1, 1, 1, 0, 0, 0, 1],
+            [0, 0, 0, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    assert test_network.resequence_costs == 0
+    test_network.exchanger_addresses.matrix = np.array(
+        [
+            [0, 1, 1, 1, 0, 0, 0, 1],
+            [1, 0, 2, 1, 0, 0, 0, 1],
+            [0, 1, 3, 1, 0, 0, 0, 1],
+            [0, 0, 0, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    assert test_network.resequence_costs == 2 * test_network.heat_exchangers[0].costs.base_resequence_costs + test_network.heat_exchangers[4].costs.base_resequence_costs
 
 
 def test_match_costs():
@@ -423,10 +446,10 @@ def test_match_costs():
     assert test_network.match_costs == test_network.economics.match_cost[2, 0]
     test_network.exchanger_addresses.matrix = np.array(
         [
-            [0, 2, 3, 1, 0, 0, 0, 1],
-            [0, 2, 2, 1, 0, 0, 0, 1],
-            [0, 2, 1, 1, 0, 0, 0, 1],
-            [1, 1, 0, 1, 0, 0, 0, 1],
+            [0, 1, 3, 1, 0, 0, 0, 1],
+            [0, 0, 2, 1, 0, 0, 0, 1],
+            [0, 1, 1, 1, 0, 0, 0, 1],
+            [0, 1, 0, 1, 0, 0, 0, 1],
             [1, 1, 2, 1, 0, 0, 0, 1],
             [0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0]

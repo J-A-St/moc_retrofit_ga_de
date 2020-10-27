@@ -446,10 +446,10 @@ def test_match_costs():
     assert test_network.match_costs == test_network.economics.match_cost[2, 0]
     test_network.exchanger_addresses.matrix = np.array(
         [
-            [0, 1, 3, 1, 0, 0, 0, 1],
-            [0, 0, 2, 1, 0, 0, 0, 1],
-            [0, 1, 1, 1, 0, 0, 0, 1],
-            [0, 1, 0, 1, 0, 0, 0, 1],
+            [0, 2, 3, 1, 0, 0, 0, 1],
+            [0, 2, 2, 1, 0, 0, 0, 1],
+            [0, 2, 1, 1, 0, 0, 0, 1],
+            [1, 1, 0, 1, 0, 0, 0, 1],
             [1, 1, 2, 1, 0, 0, 0, 1],
             [0, 0, 0, 0, 0, 0, 0, 0],
             [0, 0, 0, 0, 0, 0, 0, 0]

@@ -6,7 +6,6 @@ import numpy as np
 from deap import tools
 from deap import creator
 from deap import base
-import numpy as np
 rng = np.random.default_rng()
 
 

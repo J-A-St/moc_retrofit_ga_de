@@ -204,6 +204,7 @@ class HeatExchangerNetwork:
 
     @property
     def resequence_costs(self):
+        # TODO: set(a) & set(b) instead of the two for lopops through the exchangers on streams
         resequence_costs_hot_cold = 0
         for stream_type in ['hot', 'cold']:
             modified_heat_exchangers = np.array([], dtype=int)

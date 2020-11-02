@@ -106,29 +106,36 @@ class BalanceUtilityHeatExchanger:
         heat_loads = np.zeros([self.number_operating_cases])
         if self.utility_type == 'H':
             for operating_case in self.range_operating_cases:
-                heat_loads[operating_case] = self.heat_capacity_flows[operating_case] * (self.outlet_temperatures_stream[operating_case] - self.inlet_temperatures_stream[operating_case])
+                if not self.cold_streams[self.connected_stream].is_soft[operating_case]:
+                    heat_loads[operating_case] = self.heat_capacity_flows[operating_case] * (self.outlet_temperatures_stream[operating_case] - self.inlet_temperatures_stream[operating_case])
         elif self.utility_type == 'C':
             for operating_case in self.range_operating_cases:
-                heat_loads[operating_case] = self.heat_capacity_flows[operating_case] * (self.inlet_temperatures_stream[operating_case] - self.outlet_temperatures_stream[operating_case])
+                if not self.hot_streams[self.connected_stream].is_soft[operating_case]:
+                    heat_loads[operating_case] = self.heat_capacity_flows[operating_case] * (self.inlet_temperatures_stream[operating_case] - self.outlet_temperatures_stream[operating_case])
         return heat_loads
 
     @property
     def logarithmic_mean_temperature_differences(self):
-        lograrithmic_temperature_differences = np.zeros([self.number_operating_cases])
+        logarithmic_temperature_differences = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
             temperature_difference_a = abs(self.inlet_temperatures_utility[operating_case] - self.outlet_temperatures_stream[operating_case])
             temperature_difference_b = abs(self.outlet_temperatures_utility[operating_case] - self.inlet_temperatures_stream[operating_case])
             if temperature_difference_a == temperature_difference_b:
-                lograrithmic_temperature_differences[operating_case] = temperature_difference_a
+                logarithmic_temperature_differences[operating_case] = temperature_difference_a
+            elif temperature_difference_a <= 0 or temperature_difference_b <= 0:
+                logarithmic_temperature_differences[operating_case] = np.nan
             else:
-                lograrithmic_temperature_differences[operating_case] = (temperature_difference_a - temperature_difference_b) / np.log(temperature_difference_a / temperature_difference_b)
-        return lograrithmic_temperature_differences
+                logarithmic_temperature_differences[operating_case] = (temperature_difference_a - temperature_difference_b) / np.log(temperature_difference_a / temperature_difference_b)
+        return logarithmic_temperature_differences
 
     @property
     def needed_areas(self):
         needed_areas = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
-            needed_areas[operating_case] = self.heat_loads[operating_case] / (self.overall_heat_transfer_coefficient[operating_case] * self.logarithmic_mean_temperature_differences[operating_case])
+            if np.isnan(self.logarithmic_mean_temperature_differences[operating_case]) or self.logarithmic_mean_temperature_differences[operating_case] <= 0:
+                needed_areas[operating_case] = 0.0
+            else:
+                needed_areas[operating_case] = self.heat_loads[operating_case] / (self.overall_heat_transfer_coefficient[operating_case] * self.logarithmic_mean_temperature_differences[operating_case])
         return needed_areas
 
     @property

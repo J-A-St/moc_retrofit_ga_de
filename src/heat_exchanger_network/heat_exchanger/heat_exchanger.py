@@ -79,7 +79,7 @@ class HeatExchanger:
 
     @property
     def infeasibility_temperature_differences(self):
-        # TODO: Why is this so slow?
+        # TODO: Why is this so slow? Around 7 sec
         is_infeasible = np.array([False] * self.operation_parameter.number_operating_cases)
         for operating_case in self.operation_parameter.range_operating_cases:
             if self.operation_parameter.outlet_temperatures_hot_stream[operating_case] <= self.operation_parameter.inlet_temperatures_cold_stream[operating_case]:
@@ -92,7 +92,7 @@ class HeatExchanger:
 
     @property
     def infeasibility_mixer(self):
-        # TODO: Why is this so slow?
+        # TODO: Why is this so slow? Aounrd 3 sec
         is_infeasible = np.array([False] * self.operation_parameter.number_operating_cases)
         for operating_case in self.operation_parameter.range_operating_cases:
             if self.operation_parameter.mixer_types[operating_case] == 'bypass_hot' and self.operation_parameter.outlet_temperatures_hot_stream[operating_case] < self.extreme_temperature_hot_stream[operating_case]:

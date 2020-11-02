@@ -1,9 +1,15 @@
 import os
 import sys
+import platform
 import mock
 import numpy as np
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))+'\\src')
+operating_system = platform.system()
+if operating_system == 'Windows':
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))+'\\src')
+elif operating_system == 'Linux':
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))+'/src')
+
 
 from read_data.read_case_study_data import CaseStudy
 from heat_exchanger_network.exchanger_addresses import ExchangerAddresses
@@ -59,7 +65,7 @@ def test_logarithmic_mean_temperature_difference():
 def test_areas():
     test_balance_exchanger, test_case, test_network = setup_model()
     test_balance_exchanger = BalanceUtilityHeatExchanger(test_case, test_network.thermodynamic_parameter, 0)
-    with mock.patch('src.heat_exchanger_network.heat_exchanger.balance_utility_heat_exchanger.BalanceUtilityHeatExchanger.logarithmic_mean_temperature_differences', new_callable=mock.PropertyMock) as mock_property:
+    with mock.patch('heat_exchanger_network.heat_exchanger.balance_utility_heat_exchanger.BalanceUtilityHeatExchanger.logarithmic_mean_temperature_differences', new_callable=mock.PropertyMock) as mock_property:
         mock_property.return_value = [10, 50]
         needed_areas = np.zeros([2])
         for operating_case in test_case.range_operating_cases:

@@ -1,8 +1,13 @@
 import os
 import sys
+import platform
 import numpy as np
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))+'\\src')
+operating_system = platform.system()
+if operating_system == 'Windows':
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))+'\\src')
+elif operating_system == 'Linux':
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))+'/src')
 
 from read_data.read_case_study_data import CaseStudy
 from heat_exchanger_network.heat_exchanger_network import HeatExchangerNetwork

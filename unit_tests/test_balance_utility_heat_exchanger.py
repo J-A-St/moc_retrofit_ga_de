@@ -1,14 +1,15 @@
 import os
 import sys
-sys.path.append('../')
 import mock
 import numpy as np
 
-from src.read_data.read_case_study_data import CaseStudy
-from src.heat_exchanger_network.exchanger_addresses import ExchangerAddresses
-from src.heat_exchanger_network.thermodynamic_parameter import ThermodynamicParameter
-from src.heat_exchanger_network.heat_exchanger_network import HeatExchangerNetwork
-from src.heat_exchanger_network.heat_exchanger.balance_utility_heat_exchanger import BalanceUtilityHeatExchanger
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))+'\\src')
+
+from read_data.read_case_study_data import CaseStudy
+from heat_exchanger_network.exchanger_addresses import ExchangerAddresses
+from heat_exchanger_network.thermodynamic_parameter import ThermodynamicParameter
+from heat_exchanger_network.heat_exchanger_network import HeatExchangerNetwork
+from heat_exchanger_network.heat_exchanger.balance_utility_heat_exchanger import BalanceUtilityHeatExchanger
 
 
 def setup_model():

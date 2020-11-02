@@ -1,8 +1,8 @@
 import numpy as np
 
-from src.heat_exchanger_network.heat_exchanger.costs import Costs
-from src.heat_exchanger_network.heat_exchanger.operation_parameter import OperationParameter
-from src.heat_exchanger_network.heat_exchanger.topology import Topology
+from heat_exchanger_network.heat_exchanger.costs import Costs
+from heat_exchanger_network.heat_exchanger.operation_parameter import OperationParameter
+from heat_exchanger_network.heat_exchanger.topology import Topology
 
 
 class HeatExchanger:

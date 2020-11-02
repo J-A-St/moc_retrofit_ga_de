@@ -1,8 +1,11 @@
 import os
+import sys
 import numpy as np
 
-from src.read_data.read_case_study_data import CaseStudy
-from src.heat_exchanger_network.heat_exchanger_network import HeatExchangerNetwork
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))+'\\src')
+
+from read_data.read_case_study_data import CaseStudy
+from heat_exchanger_network.heat_exchanger_network import HeatExchangerNetwork
 
 
 def setup_model():

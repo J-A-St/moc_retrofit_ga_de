@@ -1,9 +1,10 @@
-from src.heat_exchanger_network.heat_exchanger_network import HeatExchangerNetwork
 from deap import tools
 from deap import creator
 from deap import base
 import numpy as np
 rng = np.random.default_rng()
+
+from heat_exchanger_network.heat_exchanger_network import HeatExchangerNetwork
 
 
 class DifferentialEvolution():

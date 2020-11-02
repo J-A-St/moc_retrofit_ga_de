@@ -1,10 +1,11 @@
 import os
-
+import sys
 import numpy as np
 import pandas as pd
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))+'\\src')
 
-from src.read_data.read_case_study_data import CaseStudy
+from read_data.read_case_study_data import CaseStudy
 
 
 def setup_model():

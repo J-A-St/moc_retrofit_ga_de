@@ -1,19 +1,20 @@
 import os
+import sys
 import numpy as np
-
 import cProfile
 import pstats
 import io
-
 from deap import tools
 from deap import creator
 from deap import base
 
-from src.read_data.read_case_study_data import CaseStudy
-from src.read_data.read_algorithm_parameter import AlgorithmParameter
-from src.heat_exchanger_network.heat_exchanger.heat_exchanger import HeatExchanger
-from src.heat_exchanger_network.heat_exchanger_network import HeatExchangerNetwork
-from src.algorithm.differential_evolution import DifferentialEvolution
+sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))+'\\src')
+
+from read_data.read_case_study_data import CaseStudy
+from read_data.read_algorithm_parameter import AlgorithmParameter
+from heat_exchanger_network.heat_exchanger.heat_exchanger import HeatExchanger
+from heat_exchanger_network.heat_exchanger_network import HeatExchangerNetwork
+from algorithm.differential_evolution import DifferentialEvolution
 
 
 def profile(fnc):
@@ -38,7 +39,7 @@ def profile(fnc):
 
 @profile
 def run_heat_exchanger():
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(os.path.dirname(os.path.abspath(__file__))+'\\..')
     test_case = CaseStudy('Jones_P3_PinCH_2.xlsx')
     heat_exchanger_network = HeatExchangerNetwork(test_case)
     heat_exchanger_network.exchanger_addresses.matrix = np.array(
@@ -69,7 +70,7 @@ def run_heat_exchanger():
 
 @profile
 def initialize_differential_evolution():
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(os.path.dirname(os.path.abspath(__file__))+'\\..')
     test_case = CaseStudy('Jones_P3_PinCH_2.xlsx')
     test_parameter = AlgorithmParameter('AlgorithmParameter_profiling.xlsx')
     creator.create('FitnessMin_de', base.Fitness, weights=(1.0,))
@@ -95,7 +96,7 @@ def initialize_differential_evolution():
 
 @profile
 def evaluate_initial_population():
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(os.path.dirname(os.path.abspath(__file__))+'\\..')
     test_case = CaseStudy('Jones_P3_PinCH_2.xlsx')
     test_parameter = AlgorithmParameter('AlgorithmParameter_profiling.xlsx')
     creator.create('FitnessMin_de', base.Fitness, weights=(1.0,))
@@ -126,7 +127,7 @@ def evaluate_initial_population():
 
 @profile
 def run_differential_evolution():
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir(os.path.dirname(os.path.abspath(__file__))+'\\..')
     test_case = CaseStudy('Jones_P3_PinCH_2.xlsx')
     test_parameter = AlgorithmParameter('AlgorithmParameter.xlsx')
     creator.create('FitnessMin_de', base.Fitness, weights=(1.0,))

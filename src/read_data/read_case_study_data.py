@@ -3,8 +3,8 @@ import os
 import numpy as np
 import pandas as pd
 
-from src.heat_exchanger_network.operating_case import OperatingCase
-from src.heat_exchanger_network.stream import Stream
+from heat_exchanger_network.operating_case import OperatingCase
+from heat_exchanger_network.stream import Stream
 
 
 class CaseStudy:

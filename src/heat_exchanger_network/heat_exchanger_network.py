@@ -1,12 +1,12 @@
 import difflib
 import numpy as np
 
-from src.heat_exchanger_network.economics import Economics
-from src.heat_exchanger_network.exchanger_addresses import ExchangerAddresses
-from src.heat_exchanger_network.thermodynamic_parameter import ThermodynamicParameter
-from src.heat_exchanger_network.heat_exchanger.heat_exchanger import HeatExchanger
-from src.heat_exchanger_network.heat_exchanger.balance_utility_heat_exchanger import BalanceUtilityHeatExchanger
-from src.heat_exchanger_network.restrictions import Restrictions
+from heat_exchanger_network.economics import Economics
+from heat_exchanger_network.exchanger_addresses import ExchangerAddresses
+from heat_exchanger_network.thermodynamic_parameter import ThermodynamicParameter
+from heat_exchanger_network.heat_exchanger.heat_exchanger import HeatExchanger
+from heat_exchanger_network.heat_exchanger.balance_utility_heat_exchanger import BalanceUtilityHeatExchanger
+from heat_exchanger_network.restrictions import Restrictions
 
 
 class HeatExchangerNetwork:

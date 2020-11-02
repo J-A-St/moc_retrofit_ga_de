@@ -1,5 +1,3 @@
-from src.algorithm.differential_evolution import DifferentialEvolution
-from src.heat_exchanger_network.heat_exchanger_network import HeatExchangerNetwork
 from multiprocessing import Pool
 from timeit import default_timer as timer
 import numpy as np
@@ -8,6 +6,8 @@ from deap import creator
 from deap import base
 rng = np.random.default_rng()
 
+from algorithm.differential_evolution import DifferentialEvolution
+from heat_exchanger_network.heat_exchanger_network import HeatExchangerNetwork
 
 class GeneticAlgorithm:
     """genetic algorithm (GA) for optimization of the heat exchanger network topology"""

@@ -1,7 +1,7 @@
 
-from src.read_data.read_case_study_data import CaseStudy
-from src.read_data.read_algorithm_parameter import AlgorithmParameter
-from src.algorithm.genetic_algorithm import GeneticAlgorithm
+from read_data.read_case_study_data import CaseStudy
+from read_data.read_algorithm_parameter import AlgorithmParameter
+from algorithm.genetic_algorithm import GeneticAlgorithm
 
 
 def main():

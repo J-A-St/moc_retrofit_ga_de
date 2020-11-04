@@ -72,6 +72,10 @@ def run_heat_exchanger():
     )
     # heat_exchanger_network.heat_exchangers[0].operation_parameter.logarithmic_mean_temperature_differences_no_mixer
     heat_exchanger_network.heat_exchangers[0].is_feasible
+    # print(heat_exchanger_network.heat_exchangers[0].operation_parameter.temperatures_hot_stream_before_hex)
+    # print(heat_exchanger_network.heat_exchangers[0].operation_parameter.temperatures_hot_stream_after_hex)
+    # print(heat_exchanger_network.heat_exchangers[0].operation_parameter.temperatures_cold_stream_before_hex)
+    # print(heat_exchanger_network.heat_exchangers[0].operation_parameter.temperatures_cold_stream_after_hex)
 
 
 @profile

@@ -1,5 +1,5 @@
 import numpy as np
-
+from functools import cached_property
 
 class ThermodynamicParameter:
     """Observer to update HEX by changes of the X (operation parameters)"""
@@ -48,7 +48,7 @@ class ThermodynamicParameter:
     def bind_to(self, callback):
         self._observers.append(callback)
 
-    @property
+    @cached_property
     def enthalpy_stage_temperatures_hot_streams(self):
         enthalpy_stage_temperatures_hot_streams = np.zeros([self.number_hot_streams, self.number_enthalpy_stages + 1, self.number_operating_cases])
         for stream in self.range_hot_streams:
@@ -65,7 +65,7 @@ class ThermodynamicParameter:
                         enthalpy_stage_temperatures_hot_streams[stream, stage, operating_case] = enthalpy_stage_temperatures_hot_streams[stream, stage + 1, operating_case] - enthalpy_difference[operating_case] / (self.hot_streams[stream].heat_capacity_flows[operating_case])
         return enthalpy_stage_temperatures_hot_streams
 
-    @property
+    @cached_property
     def enthalpy_stage_temperatures_cold_streams(self):
         enthalpy_stage_temperatures_cold_streams = np.zeros([self.number_cold_streams, self.number_enthalpy_stages + 1, self.number_operating_cases])
         for stream in self.range_cold_streams:
@@ -82,7 +82,7 @@ class ThermodynamicParameter:
                         enthalpy_stage_temperatures_cold_streams[stream, stage, operating_case] = enthalpy_stage_temperatures_cold_streams[stream, stage - 1, operating_case] + enthalpy_difference[operating_case] / (self.cold_streams[stream].heat_capacity_flows[operating_case])
         return enthalpy_stage_temperatures_cold_streams
 
-    @property
+    @cached_property
     def temperatures_hot_stream_before_hex(self):
         temperatures_hot_stream_before_hex = np.zeros([self.number_heat_exchangers, self.number_operating_cases])
         for exchanger in self.range_heat_exchangers:
@@ -90,7 +90,7 @@ class ThermodynamicParameter:
                 temperatures_hot_stream_before_hex[exchanger, operating_case] = self.enthalpy_stage_temperatures_hot_streams[self.address_matrix[exchanger, 0], self.address_matrix[exchanger, 2] + 1, operating_case]
         return temperatures_hot_stream_before_hex
 
-    @property
+    @cached_property
     def temperatures_hot_stream_after_hex(self):
         temperatures_hot_stream_after_hex = np.zeros([self.number_heat_exchangers, self.number_operating_cases])
         for exchanger in self.range_heat_exchangers:
@@ -98,7 +98,7 @@ class ThermodynamicParameter:
                 temperatures_hot_stream_after_hex[exchanger, operating_case] = self.enthalpy_stage_temperatures_hot_streams[self.address_matrix[exchanger, 0], self.address_matrix[exchanger, 2], operating_case]
         return temperatures_hot_stream_after_hex
 
-    @property
+    @cached_property
     def temperatures_cold_stream_before_hex(self):
         temperatures_cold_stream_before_hex = np.zeros([self.number_heat_exchangers, self.number_operating_cases])
         for exchanger in self.range_heat_exchangers:
@@ -106,7 +106,7 @@ class ThermodynamicParameter:
                 temperatures_cold_stream_before_hex[exchanger, operating_case] = self.enthalpy_stage_temperatures_cold_streams[self.address_matrix[exchanger, 1], self.address_matrix[exchanger, 2], operating_case]
         return temperatures_cold_stream_before_hex
 
-    @property
+    @cached_property
     def temperatures_cold_stream_after_hex(self):
         temperatures_cold_stream_after_hex = np.zeros([self.number_heat_exchangers, self.number_operating_cases])
         for exchanger in self.range_heat_exchangers:

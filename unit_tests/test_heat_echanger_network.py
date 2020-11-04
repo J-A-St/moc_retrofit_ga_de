@@ -109,7 +109,8 @@ def test_enthalpy_stage_temperatures():
     assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 2, 1] - 71.67) <= 10e-3
     assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 3, 1] - 130) <= 10e-3
     assert abs(test_temperatures_enthalpy_stages_cold_streams[1, 4, 1] - 130) <= 10e-3
-
+    del test_network.thermodynamic_parameter.__dict__['enthalpy_stage_temperatures_hot_streams']
+    del test_network.thermodynamic_parameter.__dict__['enthalpy_stage_temperatures_cold_streams']
     test_network.exchanger_addresses.matrix = np.array(
         [
             [0, 1, 3, 1, 0, 0, 0, 1],
@@ -142,6 +143,7 @@ def test_enthalpy_stage_temperatures():
     assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 2, 1] - 110) <= 10e-3
     assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 3, 1] - 180) <= 10e-3
     assert abs(test_temperatures_enthalpy_stages_hot_streams[1, 4, 1] - 180) <= 10e-3
+    del test_network.thermodynamic_parameter.__dict__['enthalpy_stage_temperatures_hot_streams']
     test_network.exchanger_addresses.matrix = np.array(
         [
             [0, 1, 2, 1, 0, 0, 0, 1],
@@ -284,6 +286,8 @@ def test_utility_demand():
     assert abs(test_network.hot_utility_demand[1] - 6004800) <= 10e-3
     assert abs(test_network.cold_utility_demand[0] - 39177600) <= 10e-3
     assert abs(test_network.cold_utility_demand[1] - 29023200) <= 10e-3
+    del test_network.thermodynamic_parameter.__dict__['enthalpy_stage_temperatures_hot_streams']
+    del test_network.thermodynamic_parameter.__dict__['enthalpy_stage_temperatures_cold_streams']
     test_network.thermodynamic_parameter.heat_loads = np.array([[2500, 0], [0, 3800], [0, 100], [5800, 0], [1500, 3500], [0, 0], [0, 0]])
     assert abs(test_network.hot_utility_demand[0] - (15857600 + 1000 * test_network.operating_cases[0].duration)) <= 10e-3
     assert abs(test_network.hot_utility_demand[1] - 6004800) <= 10e-3
@@ -485,6 +489,8 @@ def test_infeasibility_energy_balance():
     test_network.thermodynamic_parameter.heat_loads = np.array([[3500, 0], [0, 3800], [0, 100], [5800, 0], [1500, 3500], [0, 0], [0, 0]])
     assert not test_network.infeasibility_energy_balance[0]
     assert test_network.infeasibility_energy_balance[1] == 0
+    del test_network.thermodynamic_parameter.__dict__['enthalpy_stage_temperatures_hot_streams']
+    del test_network.thermodynamic_parameter.__dict__['enthalpy_stage_temperatures_cold_streams']
     test_network.thermodynamic_parameter.heat_loads = np.array([[13500, 0], [0, 3800], [0, 100], [5800, 0], [1500, 3500], [0, 0], [0, 0]])
     assert test_network.infeasibility_energy_balance[0]
     assert test_network.infeasibility_energy_balance[1] == (0 - np.sum(2))**2

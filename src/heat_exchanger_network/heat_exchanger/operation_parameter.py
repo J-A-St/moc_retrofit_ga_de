@@ -184,6 +184,7 @@ class OperationParameter:
                     logarithmic_mean_temperature_difference = self.logarithmic_mean_temperature_differences[operating_case]
                     temperature_difference_2_ratio = temperature_difference_2 / logarithmic_mean_temperature_difference
                     temperature_difference_1_ratio = - lambertw(-temperature_difference_2_ratio * np.exp(-temperature_difference_2_ratio), -1).real / temperature_difference_2_ratio
+                    # TODO: 186: RuntimeWarning: overflow encountered in exp!
                     temperature_difference_1 = temperature_difference_1_ratio * temperature_difference_2
                     # temperature_difference_1 = (2 * self.logarithmic_mean_temperature_differences[operating_case]**0.3275-temperature_difference_2**0.3275)**(1/0.3275)
 

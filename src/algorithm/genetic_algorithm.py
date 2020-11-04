@@ -39,7 +39,7 @@ class GeneticAlgorithm:
             admixer_cold_stream = 0
             exchanger_addresses.append([hot_stream, cold_stream, enthalpy_stage, bypass_hot_stream, admixer_hot_stream, bypass_cold_stream, admixer_cold_stream, existent])
         exchanger_addresses = list(map(list, zip(*exchanger_addresses)))
-        individual = np.transpose(individual_class(exchanger_addresses))
+        individual = individual_class(np.transpose(exchanger_addresses).tolist())
         return individual
 
     def fitness_function(self, individual):
@@ -62,8 +62,8 @@ class GeneticAlgorithm:
     def crossover(child_1, child_2):
         # TODO: needs testing!
         """Crossover operator of genes"""
-        cxpoint = rng.integers(1, len(child_1[:, 0]))
-        child_1[cxpoint:, :], child_2[cxpoint:, :] = child_2[cxpoint:, :].copy(), child_1[cxpoint:, :].copy()
+        cxpoint = rng.integers(1, len(child_1))
+        child_1[cxpoint:], child_2[cxpoint:] = child_2[cxpoint:].copy(), child_1[cxpoint:].copy()
         return child_1, child_2
 
     def mutation(self, individual):
@@ -71,13 +71,13 @@ class GeneticAlgorithm:
          and random bit flip for the existence of a heat exchanger"""
         for gene_number, gene in enumerate(individual):
             if gene_number == 0:
-                individual[gene_number] = list(tools.mutUniformInt(gene, 0, self.case_study.number_hot_streams, self.algorithm_parameter.genetic_algorithm_probability_bit_flip))
+                individual[gene_number] = list(tools.mutUniformInt(gene, 0, self.case_study.number_hot_streams - 1, self.algorithm_parameter.genetic_algorithm_probability_bit_flip))
                 individual[gene_number] = individual[gene_number].pop(0)
             elif gene_number == 1:
-                individual[gene_number] = list(tools.mutUniformInt(gene, 0, self.case_study.number_cold_streams, self.algorithm_parameter.genetic_algorithm_probability_bit_flip))
+                individual[gene_number] = list(tools.mutUniformInt(gene, 0, self.case_study.number_cold_streams - 1, self.algorithm_parameter.genetic_algorithm_probability_bit_flip))
                 individual[gene_number] = individual[gene_number].pop(0)
             elif gene_number == 2:
-                individual[gene_number] = list(tools.mutUniformInt(gene, 0, self.case_study.number_enthalpy_stages, self.algorithm_parameter.genetic_algorithm_probability_bit_flip))
+                individual[gene_number] = list(tools.mutUniformInt(gene, 0, self.case_study.number_enthalpy_stages - 1, self.algorithm_parameter.genetic_algorithm_probability_bit_flip))
                 individual[gene_number] = individual[gene_number].pop(0)
             elif gene_number == 7:
                 individual[gene_number] = list(tools.mutFlipBit(gene, self.algorithm_parameter.genetic_algorithm_probability_bit_flip))

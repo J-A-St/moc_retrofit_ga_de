@@ -40,19 +40,20 @@ class DifferentialEvolution():
         for exchanger in self.range_heat_exchangers:
             if exchanger_addresses[exchanger, 7] == 1:
                 for operating_case in self.range_operating_cases:
-                    max_heat_duty = np.nanmin([self.hot_streams[exchanger_addresses[exchanger, 0]].enthalpy_flows[operating_case], self.cold_streams[exchanger_addresses[exchanger, 1]].enthalpy_flows[operating_case]])
+                    max_heat_duty = np.nanmin((self.hot_streams[exchanger_addresses[exchanger, 0]].enthalpy_flows[operating_case], self.cold_streams[exchanger_addresses[exchanger, 1]].enthalpy_flows[operating_case]))
                     if max_heat_duty != 0:
                         heat_duties[exchanger, operating_case] = (max_heat_duty - self.min_heat_load) * rng.random() + self.min_heat_load
                     else:
                         heat_duties[exchanger, operating_case] = max_heat_duty
-        individual = np.array(individual_class(heat_duties.tolist()))
+        individual = individual_class(heat_duties.tolist())
         return individual
 
     def fitness_function(self, exchanger_addresses, individual):
         """Calculate the whole network including costs"""
         heat_exchanger_network = HeatExchangerNetwork(self.case_study)
         heat_exchanger_network.exchanger_addresses.matrix = exchanger_addresses
-        heat_exchanger_network.thermodynamic_parameter.heat_loads = individual
+        heat_exchanger_network.thermodynamic_parameter.clear_temperature_cache()
+        heat_exchanger_network.thermodynamic_parameter.heat_loads = np.array(individual)
         if heat_exchanger_network.is_feasible:
             fitness = 1 / heat_exchanger_network.total_annual_costs
         else:
@@ -63,6 +64,7 @@ class DifferentialEvolution():
 
     def differential_evolution(self, exchanger_addresses):
         """Main differential evolution algorithm"""
+        exchanger_addresses = np.array(exchanger_addresses)
         toolbox = base.Toolbox()
         toolbox.register('individual_de', self.initialize_individual, creator.Individual_de, exchanger_addresses)  # TODO: exchanger addresses?
         toolbox.register('population_de', tools.initRepeat, list, toolbox.individual_de)
@@ -80,7 +82,8 @@ class DifferentialEvolution():
         number_generations_de = 0
         number_without_improvement_de = 0
         while number_generations_de <= self.number_generations and number_without_improvement_de <= self.number_no_improvement:
-            print('--DE: Generation %i --' % number_generations_de)
+            # print('--DE: Generation %i --' % number_generations_de)
+            number_generations_de += 1
             for pop, agent in enumerate(population):
                 individual_r1, individual_r2, individual_r3 = np.array(toolbox.select_parents_de(population))
                 individual_donor = toolbox.clone(agent)
@@ -91,12 +94,12 @@ class DifferentialEvolution():
                         if pop == index or rng.random() < self.probability_crossover:
                             # Mutation
                             individual_donor[exchanger][operating_case] = np.absolute(individual_r1[exchanger][operating_case] + self.scaling_factor * (individual_r2[exchanger][operating_case] - individual_r3[exchanger][operating_case]))
-                            max_heat_duty = np.nanmin((self.hot_streams[exchanger_addresses[exchanger, 0], operating_case], self.cold_streams[exchanger_addresses[exchanger, 1], operating_case]))
+                            max_heat_duty = np.nanmin((self.hot_streams[exchanger_addresses[exchanger, 0]].enthalpy_flows[operating_case], self.cold_streams[exchanger_addresses[exchanger, 1]].enthalpy_flows[operating_case]))
                             if max_heat_duty != 0 and (individual_donor[exchanger][operating_case] < self.min_heat_load or individual_donor[exchanger][operating_case] > max_heat_duty):
                                 individual_donor[exchanger][operating_case] = (max_heat_duty - self.min_heat_load) * rng.random() + self.min_heat_load
-                individual_donor.fittness.values = toolbox.evaluate_de(individual_donor)  # TODO: exchanger addresses?
+                individual_donor.fitness.values = toolbox.evaluate_de(individual_donor)  # TODO: exchanger addresses?
                 # Selection (objective 1/TAC)
-                if individual_donor[0] > agent.fitness.values[0]:
+                if individual_donor.fitness.values[0] > agent.fitness.values[0]:
                     population[pop] = individual_donor
             if number_generations_de > 1:
                 best_old = hall_of_fame_de[0].fitness.values[0]

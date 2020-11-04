@@ -49,12 +49,8 @@ class OperationParameter:
         """Update logarithmic temperature differences in the heat exchanger."""
         logarithmic_mean_temperature_differences = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
-            # temperature_difference_a = self.temperatures_hot_stream_after_hex[operating_case] - self.temperatures_cold_stream_before_hex[operating_case]
-            # temperature_difference_b = self.temperatures_hot_stream_before_hex[operating_case] - self.temperatures_cold_stream_after_hex[operating_case]
-
-            temperature_difference_a = self.thermodynamic_parameter.temperatures_hot_stream_after_hex[self.number, operating_case] - self.thermodynamic_parameter.temperatures_cold_stream_before_hex[self.number, operating_case]
-            temperature_difference_b = self.thermodynamic_parameter.temperatures_hot_stream_before_hex[self.number, operating_case] - self.thermodynamic_parameter.temperatures_cold_stream_after_hex[self.number, operating_case]
-
+            temperature_difference_a = self.temperatures_hot_stream_after_hex[operating_case] - self.temperatures_cold_stream_before_hex[operating_case]
+            temperature_difference_b = self.temperatures_hot_stream_before_hex[operating_case] - self.temperatures_cold_stream_after_hex[operating_case]
             if temperature_difference_a == temperature_difference_b:
                 logarithmic_mean_temperature_differences[operating_case] = temperature_difference_a
             elif temperature_difference_a <= 0 or temperature_difference_b <= 0:

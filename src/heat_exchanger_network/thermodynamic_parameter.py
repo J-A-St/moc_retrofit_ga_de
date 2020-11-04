@@ -113,3 +113,15 @@ class ThermodynamicParameter:
             for operating_case in self.range_operating_cases:
                 temperatures_cold_stream_after_hex[exchanger, operating_case] = self.enthalpy_stage_temperatures_cold_streams[self.address_matrix[exchanger, 1], self.address_matrix[exchanger, 2] + 1, operating_case]
         return temperatures_cold_stream_after_hex
+
+
+    def clear_temperature_cache(self):
+        try:
+            del self.__dict__['enthalpy_stage_temperatures_hot_streams']
+            del self.__dict__['enthalpy_stage_temperatures_cold_streams']
+            del self.__dict__['temperatures_hot_stream_before_hex']
+            del self.__dict__['temperatures_hot_stream_after_hex']
+            del self.__dict__['temperatures_cold_stream_before_hex']
+            del self.__dict__['temperatures_cold_stream_after_hex']
+        except:
+            pass

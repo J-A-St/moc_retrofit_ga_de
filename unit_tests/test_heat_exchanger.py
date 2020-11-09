@@ -127,7 +127,7 @@ def test_area():
         mock_property_3.return_value = np.array([[250 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
         mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
         for operating_case in test_case.range_operating_cases:
-            assert test_exchanger.operation_parameter.needed_areas[operating_case] == 0.0
+            assert np.isnan(test_exchanger.operation_parameter.needed_areas[operating_case])
 
 
 def test_logarithmic_temperature_differences():
@@ -163,6 +163,7 @@ def test_mixer_type(monkeypatch):
             assert test_exchanger.operation_parameter.mixer_types[operating_case] == 'admixer_cold'
         monkeypatch.setattr('heat_exchanger_network.heat_exchanger.heat_exchanger.OperationParameter.random_choice.__defaults__', (None,))
         test_exchanger.operation_parameter.one_mixer_per_hex = False
+        del test_exchanger.operation_parameter.__dict__['mixer_types']
         base_case = np.squeeze(np.argwhere(test_exchanger.operation_parameter.needed_areas == test_exchanger.operation_parameter.area))
         for operating_case in test_case.range_operating_cases:
             if operating_case != base_case:
@@ -397,43 +398,43 @@ def test_bypass_costs():
     assert test_exchanger.bypass_costs == test_exchanger.costs.base_bypass_costs
 
 
-def test_infeasibility_logarithmic_mean_temperature_differences():
-    test_exchanger, test_case, test_addresses, test_parameter = setup_module()
-    with mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
-            mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
-            mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
-            mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4:
-        mock_property_1.return_value = np.array([[400 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
-        mock_property_2.return_value = np.array([[300 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
-        mock_property_3.return_value = np.array([[290 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
-        mock_property_4.return_value = np.array([[350 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
-        test_parameter.heat_loads[:, :] = 2000
-        assert not test_exchanger.infeasibility_logarithmic_mean_temperature_differences[0]
-        assert test_exchanger.infeasibility_mixer[1] == 0
-    test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
-            mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
-            mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
-            mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4:
-        mock_property_1.return_value = np.array([[200 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
-        mock_property_2.return_value = np.array([[300 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
-        mock_property_3.return_value = np.array([[400 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
-        mock_property_4.return_value = np.array([[350 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
-        test_parameter.heat_loads[:, :] = 2000
-        assert test_exchanger.infeasibility_logarithmic_mean_temperature_differences[0]
-        assert test_exchanger.infeasibility_logarithmic_mean_temperature_differences[1] == (0 - np.sum(2))**2
-    test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
-    with mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
-            mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
-            mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
-            mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4:
-        mock_property_1.return_value = np.array([[400 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
-        mock_property_2.return_value = np.array([[300 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
-        mock_property_3.return_value = np.array([[400 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
-        mock_property_4.return_value = np.array([[350 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
-        test_parameter.heat_loads[:, :] = 2000
-        assert test_exchanger.infeasibility_logarithmic_mean_temperature_differences[0]
-        assert test_exchanger.infeasibility_logarithmic_mean_temperature_differences[1] == (0 - np.sum(2))**2
+# def test_infeasibility_logarithmic_mean_temperature_differences():
+#     test_exchanger, test_case, test_addresses, test_parameter = setup_module()
+#     with mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+#             mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+#             mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+#             mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4:
+#         mock_property_1.return_value = np.array([[400 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+#         mock_property_2.return_value = np.array([[300 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+#         mock_property_3.return_value = np.array([[290 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+#         mock_property_4.return_value = np.array([[350 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+#         test_parameter.heat_loads[:, :] = 2000
+#         assert not test_exchanger.infeasibility_logarithmic_mean_temperature_differences[0]
+#         assert test_exchanger.infeasibility_mixer[1] == 0
+#     test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
+#     with mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+#             mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+#             mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+#             mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4:
+#         mock_property_1.return_value = np.array([[200 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+#         mock_property_2.return_value = np.array([[300 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+#         mock_property_3.return_value = np.array([[400 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+#         mock_property_4.return_value = np.array([[350 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+#         test_parameter.heat_loads[:, :] = 2000
+#         assert test_exchanger.infeasibility_logarithmic_mean_temperature_differences[0]
+#         assert test_exchanger.infeasibility_logarithmic_mean_temperature_differences[1] == (0 - np.sum(2))**2
+#     test_exchanger = HeatExchanger(test_addresses, test_parameter, test_case, 0)
+#     with mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_1, \
+#             mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_hot_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_2, \
+#             mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_before_hex', new_callable=mock.PropertyMock) as mock_property_3, \
+#             mock.patch('heat_exchanger_network.thermodynamic_parameter.ThermodynamicParameter.temperatures_cold_stream_after_hex', new_callable=mock.PropertyMock) as mock_property_4:
+#         mock_property_1.return_value = np.array([[400 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+#         mock_property_2.return_value = np.array([[300 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+#         mock_property_3.return_value = np.array([[400 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+#         mock_property_4.return_value = np.array([[350 for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
+#         test_parameter.heat_loads[:, :] = 2000
+#         assert test_exchanger.infeasibility_logarithmic_mean_temperature_differences[0]
+#         assert test_exchanger.infeasibility_logarithmic_mean_temperature_differences[1] == (0 - np.sum(2))**2
 
 
 def test_infeasibility_temperature_differences():

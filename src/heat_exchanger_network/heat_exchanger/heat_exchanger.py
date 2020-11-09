@@ -22,7 +22,7 @@ class HeatExchanger:
     @property
     def exchanger_costs(self):
         exchanger_costs = 0
-        if self.topology.existent and not np.isnan(self.operation_parameter.area):
+        if self.topology.existent and np.isnan(self.operation_parameter.area):
             exchanger_costs = 0
         elif self.topology.existent and self.topology.initial_existent:
             if self.operation_parameter.area > self.operation_parameter.initial_area:

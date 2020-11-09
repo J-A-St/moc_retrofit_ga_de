@@ -123,5 +123,5 @@ class ThermodynamicParameter:
             del self.__dict__['temperatures_hot_stream_after_hex']
             del self.__dict__['temperatures_cold_stream_before_hex']
             del self.__dict__['temperatures_cold_stream_after_hex']
-        except:
+        except KeyError:
             pass

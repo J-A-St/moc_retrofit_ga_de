@@ -22,7 +22,9 @@ class HeatExchanger:
     @property
     def exchanger_costs(self):
         exchanger_costs = 0
-        if self.topology.existent and self.topology.initial_existent:
+        if self.topology.existent and not np.isnan(self.operation_parameter.area):
+            exchanger_costs = 0
+        elif self.topology.existent and self.topology.initial_existent:
             if self.operation_parameter.area > self.operation_parameter.initial_area:
                 exchanger_costs = self.costs.base_costs + self.costs.specific_area_costs * (self.operation_parameter.area - self.operation_parameter.initial_area) ** self.costs.degression_area
         elif self.topology.existent and not self.topology.initial_existent:
@@ -67,21 +69,26 @@ class HeatExchanger:
     def total_costs(self):
         return self.exchanger_costs + self.admixer_costs + self.bypass_costs
 
-    @property
-    def infeasibility_logarithmic_mean_temperature_differences(self):
-        is_infeasible = np.array([False] * self.operation_parameter.number_operating_cases)
-        for operating_case in self.operation_parameter.range_operating_cases:
-            if np.isnan(self.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case]) or self.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case] <= 0:
-                is_infeasible[operating_case] = True
-            else:
-                is_infeasible[operating_case] = False
-        return is_infeasible.any(), (0 - np.sum(is_infeasible))**2
+    # @property
+    # def infeasibility_logarithmic_mean_temperature_differences(self):
+    #     is_infeasible = np.array([False] * self.operation_parameter.number_operating_cases)
+    #     for operating_case in self.operation_parameter.range_operating_cases:
+    #         if np.isnan(self.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case]) or self.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case] <= 0:
+    #             is_infeasible[operating_case] = True
+    #         else:
+    #             is_infeasible[operating_case] = False
+    #     return is_infeasible.any(), (0 - np.sum(is_infeasible))**2
 
     @property
     def infeasibility_temperature_differences(self):
         is_infeasible = np.array([False] * self.operation_parameter.number_operating_cases)
         for operating_case in self.operation_parameter.range_operating_cases:
-            if self.operation_parameter.outlet_temperatures_hot_stream[operating_case] <= self.operation_parameter.inlet_temperatures_cold_stream[operating_case]:
+            if any(np.isnan([self.operation_parameter.inlet_temperatures_hot_stream[operating_case],
+                         self.operation_parameter.outlet_temperatures_hot_stream[operating_case],
+                         self.operation_parameter.inlet_temperatures_cold_stream[operating_case],
+                         self.operation_parameter.outlet_temperatures_cold_stream[operating_case]])):  
+                is_infeasible[operating_case] = True
+            elif self.operation_parameter.outlet_temperatures_hot_stream[operating_case] <= self.operation_parameter.inlet_temperatures_cold_stream[operating_case]:
                 is_infeasible[operating_case] = True
             elif self.operation_parameter.inlet_temperatures_hot_stream[operating_case] <= self.operation_parameter.outlet_temperatures_cold_stream[operating_case]:
                 is_infeasible[operating_case] = True
@@ -107,7 +114,7 @@ class HeatExchanger:
 
     @property
     def is_feasible(self):
-        if not self.infeasibility_logarithmic_mean_temperature_differences[0] and not self.infeasibility_temperature_differences[0] and not self.infeasibility_mixer[0]:
+        if not self.infeasibility_temperature_differences[0] and not self.infeasibility_mixer[0]:  # and not self.infeasibility_logarithmic_mean_temperature_differences[0]
             return True
         else:
             return False

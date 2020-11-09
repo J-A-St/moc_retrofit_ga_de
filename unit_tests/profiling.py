@@ -104,6 +104,35 @@ def initialize_differential_evolution():
     toolbox.register('select_parents_de', tools.selRandom, k=3)
     toolbox.register('evaluate_de', differential_evolution.fitness_function, exchanger_addresses)
 
+@profile
+def evaluate_single_solution():
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    os.chdir('..')
+    test_case = CaseStudy('Jones_P3_PinCH_2.xlsx')
+    test_parameter = AlgorithmParameter('AlgorithmParameter_profiling.xlsx')
+    creator.create('FitnessMin_de', base.Fitness, weights=(1.0,))
+    creator.create('Individual_de', list, fitness=creator.FitnessMin_de)
+    differential_evolution = DifferentialEvolution(test_case, test_parameter)
+    exchanger_addresses = np.array(
+        [
+            [0, 1, 1, 1, 0, 0, 0, 1],
+            [1, 0, 2, 1, 0, 0, 0, 1],
+            [0, 1, 3, 1, 0, 0, 0, 1],
+            [0, 0, 0, 1, 0, 0, 0, 1],
+            [1, 1, 2, 1, 0, 0, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [0, 0, 0, 0, 0, 0, 0, 0]
+        ]
+    )
+    toolbox = base.Toolbox()
+    toolbox.register('individual_de', differential_evolution.initialize_individual, creator.Individual_de, exchanger_addresses)
+    toolbox.register('population_de', tools.initRepeat, list, toolbox.individual_de)
+    # toolbox.register('select_parents_de', tools.selRandom, k=3)
+    toolbox.register('evaluate_de', differential_evolution.fitness_function, exchanger_addresses)
+    population = toolbox.population_de(n=1)
+    toolbox.evaluate_de(population[0])
+
+
 
 @profile
 def evaluate_initial_population():
@@ -161,4 +190,4 @@ def run_differential_evolution():
 
 
 if __name__ == "__main__":
-    run_heat_exchanger()
+    evaluate_single_solution()

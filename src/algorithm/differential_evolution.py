@@ -57,7 +57,7 @@ class DifferentialEvolution():
         if heat_exchanger_network.is_feasible:
             fitness = 1 / heat_exchanger_network.total_annual_costs
         else:
-            quadratic_distance = sum([heat_exchanger_network.heat_exchangers[exchanger].infeasibility_logarithmic_mean_temperature_differences[1] + heat_exchanger_network.heat_exchangers[exchanger].infeasibility_temperature_differences[1] + heat_exchanger_network.heat_exchangers[exchanger].infeasibility_mixer[1] for exchanger in self.range_heat_exchangers] + heat_exchanger_network.infeasibility_energy_balance[1])
+            quadratic_distance = sum([heat_exchanger_network.heat_exchangers[exchanger].infeasibility_temperature_differences[1] + heat_exchanger_network.heat_exchangers[exchanger].infeasibility_mixer[1] for exchanger in self.range_heat_exchangers] + heat_exchanger_network.infeasibility_energy_balance[1])
 
             fitness = 1 / (self.penalty_total_annual_cost_value + quadratic_distance)
         return fitness,

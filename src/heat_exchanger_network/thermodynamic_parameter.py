@@ -115,7 +115,7 @@ class ThermodynamicParameter:
         return temperatures_cold_stream_after_hex
 
 
-    def clear_temperature_cache(self):
+    def clear_cache(self):
         try:
             del self.__dict__['enthalpy_stage_temperatures_hot_streams']
             del self.__dict__['enthalpy_stage_temperatures_cold_streams']

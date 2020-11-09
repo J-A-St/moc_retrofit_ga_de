@@ -11,7 +11,6 @@ from heat_exchanger_network.restrictions import Restrictions
 
 class HeatExchangerNetwork:
     """Heat exchanger network object"""
-    # TODO: include HEN (sum of all HEX costs) utility balance HEX, split, re-piping, re-sequencing, match costs, operation costs, and feasibility check
 
     def __init__(self, case_study):
         self.number_heat_exchangers = case_study.number_heat_exchangers
@@ -265,8 +264,6 @@ class HeatExchangerNetwork:
 
     @property
     def total_annual_costs(self):
-        # TODO: heat loads and whole calculation should also be performed if topology is feasible!
-        # TODO: add penalty function if energy balance or heat exchanger are infeasible
         return self.economics.annuity_factor * self.capital_costs + self.operating_costs
 
     @property
@@ -319,7 +316,6 @@ class HeatExchangerNetwork:
         return utility_connections
 
     def topology_violation_distance(self, exchanger_addresses):
-        # TODO: needs to be called before creating a network (using only the EAM)
         return self.split_heat_exchanger_violation_distance(exchanger_addresses) + self.utility_connections_violation_distance(exchanger_addresses)
 
     @property
@@ -329,6 +325,11 @@ class HeatExchangerNetwork:
             return True
         else:
             return False
+
+    def clear_cache(self):
+        self.thermodynamic_parameter.clear_cache()
+        for exchanger in self.range_heat_exchangers:
+            self.heat_exchangers[exchanger].operation_parameter.clear_cache()
 
     def __repr__(self):
         pass

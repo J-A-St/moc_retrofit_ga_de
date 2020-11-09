@@ -1,6 +1,7 @@
 from scipy.special import lambertw
 import numpy as np
 rng = np.random.default_rng()
+from functools import cached_property
 
 
 class OperationParameter:
@@ -92,7 +93,7 @@ class OperationParameter:
                 logarithmic_mean_temperature_differences[operating_case] = self.heat_loads[operating_case] / (self.overall_heat_transfer_coefficients[operating_case] * self.area)
         return logarithmic_mean_temperature_differences
 
-    @property
+    @cached_property
     def mixer_types(self):
         # TODO: should not occur for gaseous streams! (practicability) --> argument for SA algorithm!
         possible_mixer_types = ['bypass_hot', 'bypass_cold', 'admixer_hot', 'admixer_cold']
@@ -114,7 +115,7 @@ class OperationParameter:
                     mixer_types.append('none')
         return mixer_types
 
-    @property
+    @cached_property
     def inlet_temperatures_hot_stream(self):
         # TODO: add case if logarithmic_mean_temperature == 0 (heat loads == 0)
         inlet_temperatures_hot_stream = np.zeros([self.number_operating_cases])
@@ -140,7 +141,7 @@ class OperationParameter:
                 inlet_temperatures_hot_stream[operating_case] = self.temperatures_hot_stream_before_hex[operating_case]
         return inlet_temperatures_hot_stream
 
-    @property
+    @cached_property
     def outlet_temperatures_hot_stream(self):
         # TODO: add case if logarithmic_mean_temperature == 0 (heat loads == 0)
         outlet_temperatures_hot_stream = np.zeros([self.number_operating_cases])
@@ -166,7 +167,7 @@ class OperationParameter:
                 outlet_temperatures_hot_stream[operating_case] = self.temperatures_hot_stream_after_hex[operating_case]
         return outlet_temperatures_hot_stream
 
-    @property
+    @cached_property
     def inlet_temperatures_cold_stream(self):
         # TODO: add case if logarithmic_mean_temperature == 0 (heat loads == 0)
         inlet_temperatures_cold_stream = np.zeros([self.number_operating_cases])
@@ -193,7 +194,7 @@ class OperationParameter:
                 inlet_temperatures_cold_stream[operating_case] = self.temperatures_cold_stream_before_hex[operating_case]
         return inlet_temperatures_cold_stream
 
-    @property
+    @cached_property
     def outlet_temperatures_cold_stream(self):
         # TODO: add case if logarithmic_mean_temperature == 0 (heat loads == 0)
         outlet_temperatures_cold_stream = np.zeros([self.number_operating_cases])
@@ -219,7 +220,7 @@ class OperationParameter:
                 outlet_temperatures_cold_stream[operating_case] = self.temperatures_cold_stream_after_hex[operating_case]
         return outlet_temperatures_cold_stream
 
-    @property
+    @cached_property
     def mixer_fractions_hot_stream(self):
         mixer_fractions_hot_stream = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
@@ -233,7 +234,7 @@ class OperationParameter:
                 mixer_fractions_hot_stream[operating_case] = 0
         return mixer_fractions_hot_stream
 
-    @property
+    @cached_property
     def mixer_fractions_cold_stream(self):
         mixer_fractions_cold_stream = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
@@ -249,6 +250,19 @@ class OperationParameter:
 
     def random_choice(self, array, seed=rng.bit_generator._seed_seq.entropy):
         return np.random.default_rng(seed=seed).choice(array)
+
+    
+    def clear_cache(self):
+        try:
+            del self.__dict__['mixer_types']
+            del self.__dict__['inlet_temperatures_hot_stream']
+            del self.__dict__['outlet_temperatures_hot_stream']
+            del self.__dict__['inlet_temperatures_cold_stream']
+            del self.__dict__['outlet_temperatures_cold_stream']
+            del self.__dict__['mixer_fractions_hot_stream']
+            del self.__dict__['mixer_fractions_cold_stream']
+        except:
+            pass
 
     def __repr__(self):
         pass

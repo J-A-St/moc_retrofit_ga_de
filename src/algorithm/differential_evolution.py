@@ -52,7 +52,7 @@ class DifferentialEvolution():
         """Calculate the whole network including costs"""
         heat_exchanger_network = HeatExchangerNetwork(self.case_study)
         heat_exchanger_network.exchanger_addresses.matrix = exchanger_addresses
-        heat_exchanger_network.thermodynamic_parameter.clear_temperature_cache()
+        heat_exchanger_network.clear_cache()
         heat_exchanger_network.thermodynamic_parameter.heat_loads = np.array(individual)
         if heat_exchanger_network.is_feasible:
             fitness = 1 / heat_exchanger_network.total_annual_costs
@@ -82,7 +82,7 @@ class DifferentialEvolution():
         number_generations_de = 0
         number_without_improvement_de = 0
         while number_generations_de <= self.number_generations and number_without_improvement_de <= self.number_no_improvement:
-            # print('--DE: Generation %i --' % number_generations_de)
+            print('--DE: Generation %i --' % number_generations_de)
             number_generations_de += 1
             for pop, agent in enumerate(population):
                 individual_r1, individual_r2, individual_r3 = np.array(toolbox.select_parents_de(population))

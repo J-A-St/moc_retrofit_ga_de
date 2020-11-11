@@ -247,7 +247,7 @@ class OperationParameter:
                 mixer_fractions_cold_stream[operating_case] = 0
         return mixer_fractions_cold_stream
 
-    def random_choice(self, array, seed=rng.bit_generator._seed_seq.entropy):
+    def random_choice(self, array, seed=None):  # seed=rng.bit_generator._seed_seq.entropy
         return np.random.default_rng(seed=seed).choice(array)
 
     

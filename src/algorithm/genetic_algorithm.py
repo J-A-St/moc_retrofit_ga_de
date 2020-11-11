@@ -69,20 +69,40 @@ class GeneticAlgorithm:
     def mutation(self, individual):
         """Mutation operator of alleles: uniform distribution for process streams and enthalpy intervals, bounded by their max and min values,
          and random bit flip for the existence of a heat exchanger"""
-        for gene_number, gene in enumerate(individual):
-            if gene_number == 0:
-                individual[gene_number] = list(tools.mutUniformInt(gene, 0, self.case_study.number_hot_streams - 1, self.algorithm_parameter.genetic_algorithm_probability_bit_flip))
-                individual[gene_number] = individual[gene_number].pop(0)
-            elif gene_number == 1:
-                individual[gene_number] = list(tools.mutUniformInt(gene, 0, self.case_study.number_cold_streams - 1, self.algorithm_parameter.genetic_algorithm_probability_bit_flip))
-                individual[gene_number] = individual[gene_number].pop(0)
-            elif gene_number == 2:
-                individual[gene_number] = list(tools.mutUniformInt(gene, 0, self.case_study.number_enthalpy_stages - 1, self.algorithm_parameter.genetic_algorithm_probability_bit_flip))
-                individual[gene_number] = individual[gene_number].pop(0)
-            elif gene_number == 7:
-                individual[gene_number] = list(tools.mutFlipBit(gene, self.algorithm_parameter.genetic_algorithm_probability_bit_flip))
-                individual[gene_number] = individual[gene_number].pop(0)
+        allele_numbers = [7, 2, 1, 0]
+        exchanger_number = 0
+        while exchanger_number < self.case_study.number_heat_exchangers:
+            allele_index = 0
+            while allele_index < len(allele_numbers):
+                if allele_numbers[allele_index] == 7 and rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
+                    individual[exchanger_number][7] = not individual[exchanger_number][7]
+                    if individual[exchanger_number][7]:
+                        individual[exchanger_number][0] = rng.integers(0, self.case_study.number_hot_streams)
+                        individual[exchanger_number][1] = rng.integers(0, self.case_study.number_cold_streams)
+                        individual[exchanger_number][2] = rng.integers(0, self.case_study.number_enthalpy_stages)
+                        exchanger_number += 1
+                        allele_index = 0
+                    else:
+                        individual[exchanger_number][0] = 0
+                        individual[exchanger_number][1] = 0
+                        individual[exchanger_number][2] = 0
+                        exchanger_number += 1
+                        allele_index = 0
+                elif allele_numbers[allele_index] == 2 and individual[exchanger_number][7] and rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
+                    individual[exchanger_number][2] = rng.integers(0, self.case_study.number_enthalpy_stages)
+                    allele_index += 1
+                elif allele_numbers[allele_index] == 1 and individual[exchanger_number][7] and rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
+                    individual[exchanger_number][1] = rng.integers(0, self.case_study.number_cold_streams)
+                    allele_index += 1
+                elif allele_numbers[allele_index] == 0 and individual[exchanger_number][7] and rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
+                    individual[exchanger_number][0] = rng.integers(0, self.case_study.number_hot_streams)
+                    allele_index += 1
+                else:
+                    allele_index += 1
+            exchanger_number += 1
         return individual
+        
+
 
     def genetic_algorithm(self):
         """Genetic algorithm (topology optimization)"""
@@ -131,10 +151,13 @@ class GeneticAlgorithm:
                     del child_1.fitness.values
                     del child_2.fitness.values
 
+            # for mutant in offspring:
+            #     if rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
+            #         toolbox.mutate_ga(mutant)
+            #         del mutant.fitness.values
             for mutant in offspring:
-                if rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
-                    toolbox.mutate_ga(mutant)
-                    del mutant.fitness.values
+                toolbox.mutate_ga(mutant)
+                del mutant.fitness.values
             # GA: Evaluate individuals with invalid fitness (parallel computing of DE)
             invalid_individual_ga = [individual for individual in offspring if not individual.fitness.valid]
             if self.algorithm_parameter.number_workers != 1:

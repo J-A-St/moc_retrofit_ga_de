@@ -190,5 +190,6 @@ def run_differential_evolution():
 
 
 if __name__ == "__main__":
-    evaluate_single_solution()
+    # evaluate_single_solution()
     # evaluate_initial_population()
+    run_differential_evolution()

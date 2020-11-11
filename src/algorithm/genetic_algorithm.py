@@ -74,7 +74,9 @@ class GeneticAlgorithm:
         while exchanger_number < self.case_study.number_heat_exchangers:
             allele_index = 0
             while allele_index < len(allele_numbers):
-                if allele_numbers[allele_index] == 7 and rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
+                if exchanger_number < self.case_study.number_heat_exchangers and \
+                   allele_numbers[allele_index] == 7 and \
+                   rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
                     individual[exchanger_number][7] = not individual[exchanger_number][7]
                     if individual[exchanger_number][7]:
                         individual[exchanger_number][0] = rng.integers(0, self.case_study.number_hot_streams)
@@ -88,13 +90,22 @@ class GeneticAlgorithm:
                         individual[exchanger_number][2] = 0
                         exchanger_number += 1
                         allele_index = 0
-                elif allele_numbers[allele_index] == 2 and individual[exchanger_number][7] and rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
+                elif exchanger_number < self.case_study.number_heat_exchangers and \
+                     allele_numbers[allele_index] == 2 and \
+                     individual[exchanger_number][7] and \
+                     rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
                     individual[exchanger_number][2] = rng.integers(0, self.case_study.number_enthalpy_stages)
                     allele_index += 1
-                elif allele_numbers[allele_index] == 1 and individual[exchanger_number][7] and rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
+                elif exchanger_number < self.case_study.number_heat_exchangers and \
+                     allele_numbers[allele_index] == 1 and \
+                     individual[exchanger_number][7] and  \
+                     rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
                     individual[exchanger_number][1] = rng.integers(0, self.case_study.number_cold_streams)
                     allele_index += 1
-                elif allele_numbers[allele_index] == 0 and individual[exchanger_number][7] and rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
+                elif exchanger_number < self.case_study.number_heat_exchangers and \
+                     allele_numbers[allele_index] == 0 and \
+                     individual[exchanger_number][7] and \
+                     rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
                     individual[exchanger_number][0] = rng.integers(0, self.case_study.number_hot_streams)
                     allele_index += 1
                 else:
@@ -128,7 +139,7 @@ class GeneticAlgorithm:
         if self.algorithm_parameter.number_workers == 1:
             fitness = list(map(toolbox.evaluate_ga, population_ga))
         else:
-            with Pool(self.algorithm_parameter.number_workers) as worker:
+            with Pool() as worker:  #Pool(self.algorithm_parameter.number_workers)
                 fitness = list(worker.map(toolbox.evaluate_ga, population_ga))
         for individual, fit in zip(population_ga, fitness):
             individual.fitness.values = fit[0:2]
@@ -161,7 +172,7 @@ class GeneticAlgorithm:
             # GA: Evaluate individuals with invalid fitness (parallel computing of DE)
             invalid_individual_ga = [individual for individual in offspring if not individual.fitness.valid]
             if self.algorithm_parameter.number_workers != 1:
-                with Pool(self.algorithm_parameter.number_workers) as worker:
+                with Pool() as worker:  #Pool(self.algorithm_parameter.number_workers)
                     fitness = worker.map(toolbox.evaluate_ga, invalid_individual_ga)
             else:
                 fitness = map(toolbox.evaluate_ga, invalid_individual_ga)

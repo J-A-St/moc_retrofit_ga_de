@@ -34,16 +34,16 @@ def setup_model():
 def test_heat_loads():
     test_balance_exchanger, test_case, test_network = setup_model()
     for operating_case in test_case.range_operating_cases:
-        if test_balance_exchanger.utility_type == 'H':
+        if test_balance_exchanger.utility_type == 'HU':
             assert test_balance_exchanger.heat_loads[operating_case] == test_balance_exchanger.heat_capacity_flows[operating_case] * (test_network.cold_streams[test_balance_exchanger.connected_stream].target_temperatures[operating_case] - test_network.thermodynamic_parameter.enthalpy_stage_temperatures_cold_streams[test_balance_exchanger.connected_stream, 0, operating_case])
-        if test_balance_exchanger.utility_type == 'C':
+        if test_balance_exchanger.utility_type == 'CU':
             assert test_balance_exchanger.heat_loads[operating_case] == test_balance_exchanger.heat_capacity_flows[operating_case] * (test_network.thermodynamic_parameter.enthalpy_stage_temperatures_hot_streams[test_balance_exchanger.connected_stream, test_case.number_enthalpy_stages, operating_case] - test_network.hot_streams[test_balance_exchanger.connected_stream].target_temperatures[operating_case])
 
 
 def test_logarithmic_mean_temperature_difference():
     test_balance_exchanger, test_case, test_network = setup_model()
     for operating_case in test_case.range_operating_cases:
-        if test_balance_exchanger.utility_type == 'H':
+        if test_balance_exchanger.utility_type == 'HU':
             inlet_temperatures_utility = test_case.hot_streams[test_case.hot_utilities_indices[0]].supply_temperatures[operating_case]
             outlet_temperatures_utility = test_case.hot_streams[test_case.hot_utilities_indices[0]].target_temperatures[operating_case]
             inlet_temperatures_stream = test_case.cold_streams[test_balance_exchanger.connected_stream].supply_temperatures[operating_case]
@@ -51,7 +51,7 @@ def test_logarithmic_mean_temperature_difference():
             temperature_difference_a = outlet_temperatures_utility - inlet_temperatures_stream
             temperature_difference_b = inlet_temperatures_utility - outlet_temperatures_stream
 
-        if test_balance_exchanger.utility_type == 'C':
+        if test_balance_exchanger.utility_type == 'CU':
             inlet_temperatures_utility = test_case.cold_streams[test_case.cold_utilities_indices[0]].supply_temperatures[operating_case]
             outlet_temperatures_utility = test_case.cold_streams[test_case.cold_utilities_indices[0]].target_temperatures[operating_case]
             inlet_temperatures_stream = test_network.thermodynamic_parameter.enthalpy_stage_temperatures_hot_streams[test_balance_exchanger.connected_stream, 0, operating_case]

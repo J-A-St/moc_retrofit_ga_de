@@ -74,36 +74,30 @@ class GeneticAlgorithm:
         while exchanger_number < self.case_study.number_heat_exchangers:
             allele_index = 0
             while allele_index < len(allele_numbers):
-                if exchanger_number < self.case_study.number_heat_exchangers and \
-                   allele_numbers[allele_index] == 7 and \
+                if allele_numbers[allele_index] == 7 and \
                    rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
                     individual[exchanger_number][7] = not individual[exchanger_number][7]
                     if individual[exchanger_number][7]:
                         individual[exchanger_number][0] = rng.integers(0, self.case_study.number_hot_streams)
                         individual[exchanger_number][1] = rng.integers(0, self.case_study.number_cold_streams)
                         individual[exchanger_number][2] = rng.integers(0, self.case_study.number_enthalpy_stages)
-                        exchanger_number += 1
-                        allele_index = 0
+                        break
                     else:
                         individual[exchanger_number][0] = 0
                         individual[exchanger_number][1] = 0
                         individual[exchanger_number][2] = 0
-                        exchanger_number += 1
-                        allele_index = 0
-                elif exchanger_number < self.case_study.number_heat_exchangers and \
-                     allele_numbers[allele_index] == 2 and \
+                        break
+                elif allele_numbers[allele_index] == 2 and \
                      individual[exchanger_number][7] and \
                      rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
                     individual[exchanger_number][2] = rng.integers(0, self.case_study.number_enthalpy_stages)
                     allele_index += 1
-                elif exchanger_number < self.case_study.number_heat_exchangers and \
-                     allele_numbers[allele_index] == 1 and \
+                elif allele_numbers[allele_index] == 1 and \
                      individual[exchanger_number][7] and  \
                      rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
                     individual[exchanger_number][1] = rng.integers(0, self.case_study.number_cold_streams)
                     allele_index += 1
-                elif exchanger_number < self.case_study.number_heat_exchangers and \
-                     allele_numbers[allele_index] == 0 and \
+                elif allele_numbers[allele_index] == 0 and \
                      individual[exchanger_number][7] and \
                      rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
                     individual[exchanger_number][0] = rng.integers(0, self.case_study.number_hot_streams)

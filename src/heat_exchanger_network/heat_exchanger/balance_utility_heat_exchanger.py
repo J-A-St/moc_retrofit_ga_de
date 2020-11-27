@@ -39,17 +39,17 @@ class BalanceUtilityHeatExchanger:
 
     @property
     def film_heat_transfer_coefficient_utility(self):
-        if self.utility_type == 'H':
+        if self.utility_type == 'HU':
             film_heat_transfer_coefficient_utility = self.hot_streams[self.hot_utilities_indices[0]].film_heat_transfer_coefficients
-        elif self.utility_type == 'C':
+        elif self.utility_type == 'CU':
             film_heat_transfer_coefficient_utility = self.cold_streams[self.cold_utilities_indices[0]].film_heat_transfer_coefficients
         return film_heat_transfer_coefficient_utility
 
     @property
     def film_heat_transfer_coefficient_stream(self):
-        if self.utility_type == 'H':
+        if self.utility_type == 'HU':
             film_heat_transfer_coefficient_stream = self.cold_streams[self.connected_stream].film_heat_transfer_coefficients
-        elif self.utility_type == 'C':
+        elif self.utility_type == 'CU':
             film_heat_transfer_coefficient_stream = self.hot_streams[self.connected_stream].film_heat_transfer_coefficients
         return film_heat_transfer_coefficient_stream
 
@@ -59,41 +59,41 @@ class BalanceUtilityHeatExchanger:
 
     @property
     def heat_capacity_flows(self):
-        if self.utility_type == 'H':
+        if self.utility_type == 'HU':
             heat_capacity_flows = self.cold_streams[self.connected_stream].heat_capacity_flows
-        elif self.utility_type == 'C':
+        elif self.utility_type == 'CU':
             heat_capacity_flows = self.hot_streams[self.connected_stream].heat_capacity_flows
         return heat_capacity_flows
 
     @property
     def inlet_temperatures_utility(self):
-        if self.utility_type == 'H':
+        if self.utility_type == 'HU':
             inlet_temperatures_utility = self.hot_streams[self.hot_utilities_indices[0]].supply_temperatures
-        elif self.utility_type == 'C':
+        elif self.utility_type == 'CU':
             inlet_temperatures_utility = self.cold_streams[self.cold_utilities_indices[0]].supply_temperatures
         return inlet_temperatures_utility
 
     @property
     def outlet_temperatures_utility(self):
-        if self.utility_type == 'H':
+        if self.utility_type == 'HU':
             outlet_temperatures_utility = self.hot_streams[self.hot_utilities_indices[0]].target_temperatures
-        elif self.utility_type == 'C':
+        elif self.utility_type == 'CU':
             outlet_temperatures_utility = self.cold_streams[self.cold_utilities_indices[0]].target_temperatures
         return outlet_temperatures_utility
 
     @property
     def inlet_temperatures_stream(self):
-        if self.utility_type == 'H':
+        if self.utility_type == 'HU':
             inlet_temperatures_stream = self.thermodynamic_parameter.enthalpy_stage_temperatures_cold_streams[self.connected_stream, self.number_enthalpy_stages, :]
-        elif self.utility_type == 'C':
+        elif self.utility_type == 'CU':
             inlet_temperatures_stream = self.thermodynamic_parameter.enthalpy_stage_temperatures_hot_streams[self.connected_stream, 0, :]
         return inlet_temperatures_stream
 
     @property
     def outlet_temperatures_stream(self):
-        if self.utility_type == 'H':
+        if self.utility_type == 'HU':
             outlet_temperatures_stream = self.cold_streams[self.connected_stream].target_temperatures
-        elif self.utility_type == 'C':
+        elif self.utility_type == 'CU':
             outlet_temperatures_stream = self.hot_streams[self.connected_stream].target_temperatures
         return outlet_temperatures_stream
 
@@ -105,11 +105,11 @@ class BalanceUtilityHeatExchanger:
     def heat_loads(self):
         # TODO: is soft needs testing!
         heat_loads = np.zeros([self.number_operating_cases])
-        if self.utility_type == 'H':
+        if self.utility_type == 'HU':
             for operating_case in self.range_operating_cases:
                 if not self.cold_streams[self.connected_stream].is_soft[operating_case]:
                     heat_loads[operating_case] = self.heat_capacity_flows[operating_case] * (self.outlet_temperatures_stream[operating_case] - self.inlet_temperatures_stream[operating_case])
-        elif self.utility_type == 'C':
+        elif self.utility_type == 'CU':
             for operating_case in self.range_operating_cases:
                 if not self.hot_streams[self.connected_stream].is_soft[operating_case]:
                     heat_loads[operating_case] = self.heat_capacity_flows[operating_case] * (self.inlet_temperatures_stream[operating_case] - self.outlet_temperatures_stream[operating_case])

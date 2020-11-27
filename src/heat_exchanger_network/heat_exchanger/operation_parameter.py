@@ -96,7 +96,8 @@ class OperationParameter:
     @cached_property
     def mixer_types(self):
         # TODO: should not occur for gaseous streams! (practicability) --> argument for SA algorithm!
-        possible_mixer_types = ['bypass_hot', 'bypass_cold', 'admixer_hot', 'admixer_cold']
+        # possible_mixer_types = ['bypass_hot', 'bypass_cold', 'admixer_hot', 'admixer_cold']
+        possible_mixer_types = ['bypass_hot', 'bypass_cold']
         mixer_types = []
         if self.one_mixer_per_hex:
             if any(self.needed_areas != self.area):
@@ -223,7 +224,7 @@ class OperationParameter:
     def mixer_fractions_hot_stream(self):
         mixer_fractions_hot_stream = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
-            if self.heat_loads[operating_case] == 0:  # TODO: Needs testing! Is this correct or should it be 1?
+            if self.heat_loads[operating_case] == 0  or self.needed_areas[operating_case] == self.area:  # TODO: Needs testing! Is this correct or should it be 1?
                 mixer_fractions_hot_stream[operating_case] = 0
             elif self.mixer_types[operating_case] == 'admixer_hot':
                 mixer_fractions_hot_stream[operating_case] = (self.temperatures_hot_stream_before_hex[operating_case] - self.inlet_temperatures_hot_stream[operating_case]) / (self.inlet_temperatures_hot_stream[operating_case] - self.outlet_temperatures_hot_stream[operating_case])
@@ -237,7 +238,7 @@ class OperationParameter:
     def mixer_fractions_cold_stream(self):
         mixer_fractions_cold_stream = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
-            if self.heat_loads[operating_case] == 0:  # TODO: Needs testing! Is this correct or should it be 1?
+            if self.heat_loads[operating_case] == 0 or self.needed_areas[operating_case] == self.area:  # TODO: Needs testing! Is this correct or should it be 1?
                 mixer_fractions_cold_stream[operating_case] = 0
             elif self.mixer_types[operating_case] == 'admixer_cold':
                 mixer_fractions_cold_stream[operating_case] = (self.temperatures_cold_stream_before_hex[operating_case] - self.inlet_temperatures_cold_stream[operating_case]) / (self.inlet_temperatures_cold_stream[operating_case] - self.outlet_temperatures_cold_stream[operating_case])

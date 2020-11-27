@@ -52,17 +52,6 @@ def test_balance_utility_heat_exchangers():
         for i, _ in enumerate(test_network.balance_utility_heat_exchangers[exchanger].address_vector):
             assert test_network.balance_utility_heat_exchangers[exchanger].address_vector[i] == address_vector[i]
 
-
-def test_restrictions():
-    test_network, test_case = setup_model()
-    assert test_network.restrictions.max_splits == test_case.manual_parameter['MaxSplitsPerk'].iloc[0]
-    assert test_network.restrictions.max_bypass_fraction == test_case.manual_parameter['MaxBypass'].iloc[0]
-    assert test_network.restrictions.max_admix_fraction == test_case.manual_parameter['MaxAdmix'].iloc[0]
-    assert test_network.restrictions.temperature_difference_upper_bound == test_case.manual_parameter['dTUb'].iloc[0]
-    assert test_network.restrictions.temperature_difference_lower_bound == test_case.manual_parameter['dTLb'].iloc[0]
-    assert test_network.restrictions.minimal_heat_load == test_case.manual_parameter['MinimalHeatLoad'].iloc[0]
-
-
 def test_enthalpy_stage_temperatures():
     test_network, _ = setup_model()
     test_network.thermodynamic_parameter.heat_loads = np.array([[3500, 0], [0, 3800], [0, 100], [5800, 0], [1500, 3500], [0, 0], [0, 0]])
@@ -490,7 +479,7 @@ def test_infeasibility_energy_balance():
     test_network.thermodynamic_parameter.clear_cache()
     test_network.thermodynamic_parameter.heat_loads = np.array([[13500, 0], [0, 3800], [0, 100], [5800, 0], [1500, 3500], [0, 0], [0, 0]])
     assert test_network.infeasibility_energy_balance[0]
-    assert test_network.infeasibility_energy_balance[1] == (0 - np.sum(2))**2
+    assert test_network.infeasibility_energy_balance[1] == (0 - np.sum(15000))**2  # TODO: change to negative heat load 
 
 
 def test_split_heat_exchanger_violation_distance():

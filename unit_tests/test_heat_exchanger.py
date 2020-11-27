@@ -590,7 +590,7 @@ def test_infeasibility_mixer():
         mock_property_3.return_value = np.array([[290 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
         mock_property_4.return_value = np.array([[350 * (i + 1) for i in test_case.range_operating_cases] for e in test_case.range_heat_exchangers])
         mock_property_5.return_value = ['none', 'bypass_cold']
-        mock_property_6.return_value = [500, 600]
+        mock_property_6.return_value = [500, 1600]
         test_parameter.heat_loads[:, :] = 2000
         assert test_exchanger.infeasibility_mixer[0]
         assert test_exchanger.infeasibility_mixer[1] == (0 - np.sum(1))**2

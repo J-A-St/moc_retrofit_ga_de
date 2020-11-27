@@ -16,6 +16,9 @@ class HeatExchanger:
         self.operation_parameter = OperationParameter(thermodynamic_parameter, self.topology, case_study, number)
         self.extreme_temperature_hot_stream = case_study.hot_streams[self.topology.hot_stream].extreme_temperatures
         self.extreme_temperature_cold_stream = case_study.cold_streams[self.topology.cold_stream].extreme_temperatures
+        self.temperature_difference_lower_bound = case_study.manual_parameter['dTLb'].iloc[0]
+        self.max_bypass_fraction = case_study.manual_parameter['MaxBypass'].iloc[0]  # (-)
+        self.max_admix_fraction = case_study.manual_parameter['MaxAdmix'].iloc[0]  # (-)
         # Cost instance variables
         self.costs = Costs(case_study, number)
 
@@ -83,14 +86,14 @@ class HeatExchanger:
     def infeasibility_temperature_differences(self):
         is_infeasible = np.array([False] * self.operation_parameter.number_operating_cases)
         for operating_case in self.operation_parameter.range_operating_cases:
-            if any(np.isnan([self.operation_parameter.inlet_temperatures_hot_stream[operating_case],
+            if self.topology.existent and any(np.isnan([self.operation_parameter.inlet_temperatures_hot_stream[operating_case],
                          self.operation_parameter.outlet_temperatures_hot_stream[operating_case],
                          self.operation_parameter.inlet_temperatures_cold_stream[operating_case],
                          self.operation_parameter.outlet_temperatures_cold_stream[operating_case]])):  
                 is_infeasible[operating_case] = True
-            elif self.operation_parameter.outlet_temperatures_hot_stream[operating_case] <= self.operation_parameter.inlet_temperatures_cold_stream[operating_case]:
+            elif self.topology.existent and self.operation_parameter.outlet_temperatures_hot_stream[operating_case] - self.operation_parameter.inlet_temperatures_cold_stream[operating_case] - self.temperature_difference_lower_bound <= 0:
                 is_infeasible[operating_case] = True
-            elif self.operation_parameter.inlet_temperatures_hot_stream[operating_case] <= self.operation_parameter.outlet_temperatures_cold_stream[operating_case]:
+            elif self.topology.existent and self.operation_parameter.inlet_temperatures_hot_stream[operating_case] - self.operation_parameter.outlet_temperatures_cold_stream[operating_case] - self.temperature_difference_lower_bound <= 0:
                 is_infeasible[operating_case] = True
             else:
                 is_infeasible[operating_case] = False
@@ -100,13 +103,13 @@ class HeatExchanger:
     def infeasibility_mixer(self):
         is_infeasible = np.array([False] * self.operation_parameter.number_operating_cases)
         for operating_case in self.operation_parameter.range_operating_cases:
-            if self.operation_parameter.mixer_types[operating_case] == 'bypass_hot' and self.operation_parameter.outlet_temperatures_hot_stream[operating_case] < self.extreme_temperature_hot_stream[operating_case]:
+            if self.topology.existent and self.operation_parameter.mixer_types[operating_case] == 'bypass_hot' and self.operation_parameter.outlet_temperatures_hot_stream[operating_case] < self.extreme_temperature_hot_stream[operating_case]:
                 is_infeasible[operating_case] = True
-            elif self.operation_parameter.mixer_types[operating_case] == 'admixer_hot' and self.operation_parameter.inlet_temperatures_hot_stream[operating_case] <= self.operation_parameter.outlet_temperatures_hot_stream[operating_case]:
+            elif self.topology.existent and self.operation_parameter.mixer_types[operating_case] == 'admixer_hot' and self.operation_parameter.inlet_temperatures_hot_stream[operating_case] <= self.operation_parameter.outlet_temperatures_hot_stream[operating_case]:
                 is_infeasible[operating_case] = True
-            elif self.operation_parameter.mixer_types[operating_case] == 'bypass_cold' and self.operation_parameter.outlet_temperatures_cold_stream[operating_case] > self.extreme_temperature_cold_stream[operating_case]:
+            elif self.topology.existent and self.operation_parameter.mixer_types[operating_case] == 'bypass_cold' and self.operation_parameter.outlet_temperatures_cold_stream[operating_case] > self.extreme_temperature_cold_stream[operating_case]:
                 is_infeasible[operating_case] = True
-            elif self.operation_parameter.mixer_types[operating_case] == 'admixer_cold' and self.operation_parameter.inlet_temperatures_cold_stream[operating_case] >= self.operation_parameter.outlet_temperatures_cold_stream[operating_case]:
+            elif self.topology.existent and self.operation_parameter.mixer_types[operating_case] == 'admixer_cold' and self.operation_parameter.inlet_temperatures_cold_stream[operating_case] >= self.operation_parameter.outlet_temperatures_cold_stream[operating_case]:
                 is_infeasible[operating_case] = True
             else:
                 is_infeasible[operating_case] = False

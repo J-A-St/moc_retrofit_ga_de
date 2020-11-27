@@ -6,8 +6,6 @@ from heat_exchanger_network.exchanger_addresses import ExchangerAddresses
 from heat_exchanger_network.thermodynamic_parameter import ThermodynamicParameter
 from heat_exchanger_network.heat_exchanger.heat_exchanger import HeatExchanger
 from heat_exchanger_network.heat_exchanger.balance_utility_heat_exchanger import BalanceUtilityHeatExchanger
-from heat_exchanger_network.restrictions import Restrictions
-
 
 class HeatExchangerNetwork:
     """Heat exchanger network object"""
@@ -30,6 +28,7 @@ class HeatExchangerNetwork:
         self.cold_streams = case_study.cold_streams
         self.exchanger_addresses = ExchangerAddresses(case_study)
         self.thermodynamic_parameter = ThermodynamicParameter(case_study, self.exchanger_addresses)
+        self.max_splits = case_study.manual_parameter['MaxSplitsPerk'].iloc[0]  # (-)
 
         # Utilities
         self.hot_utilities_indices = case_study.hot_utilities_indices
@@ -39,9 +38,6 @@ class HeatExchangerNetwork:
         self.heat_exchangers = list()
         for exchanger in case_study.range_heat_exchangers:
             self.heat_exchangers.append(HeatExchanger(self.exchanger_addresses, self.thermodynamic_parameter, case_study, exchanger))
-
-        # Restrictions
-        self.restrictions = Restrictions(case_study)
 
         # Economics
         self.economics = Economics(case_study)
@@ -95,7 +91,7 @@ class HeatExchangerNetwork:
         for operating_case in self.range_operating_cases:
             hot_utility_demand[operating_case] = np.sum([self.heat_exchangers[exchanger].operation_parameter.heat_loads[operating_case] * self.operating_cases[operating_case].duration for exchanger in hot_utility_exchangers])
             for exchanger in self.range_balance_utility_heat_exchangers:
-                if self.balance_utility_heat_exchangers[exchanger].utility_type == 'H':
+                if self.balance_utility_heat_exchangers[exchanger].utility_type == 'HU':
                     hot_utility_demand[operating_case] += self.balance_utility_heat_exchangers[exchanger].heat_loads[operating_case] * self.operating_cases[operating_case].duration
         return hot_utility_demand
 
@@ -106,7 +102,7 @@ class HeatExchangerNetwork:
         for operating_case in self.range_operating_cases:
             cold_utility_demand[operating_case] = np.sum([self.heat_exchangers[exchanger].operation_parameter.heat_loads[operating_case] * self.operating_cases[operating_case].duration for exchanger in cold_utility_exchangers])
             for exchanger in self.range_balance_utility_heat_exchangers:
-                if self.balance_utility_heat_exchangers[exchanger].utility_type == 'C':
+                if self.balance_utility_heat_exchangers[exchanger].utility_type == 'CU':
                     cold_utility_demand[operating_case] += self.balance_utility_heat_exchangers[exchanger].heat_loads[operating_case] * self.operating_cases[operating_case].duration
         return cold_utility_demand
 
@@ -276,11 +272,13 @@ class HeatExchangerNetwork:
     @property
     def infeasibility_energy_balance(self):
         is_infeasible = np.array([[False] * self.number_operating_cases] * self.number_balance_utility_heat_exchangers)
+        distance = 0
         for exchanger in self.range_balance_utility_heat_exchangers:
             for operating_case in self.range_operating_cases:
                 if self.balance_utility_heat_exchangers[exchanger].heat_loads[operating_case] < 0:
                     is_infeasible[exchanger, operating_case] = True
-        return is_infeasible.any(), (0 - np.sum(is_infeasible))**2
+                    distance += abs(self.balance_utility_heat_exchangers[exchanger].heat_loads[operating_case])
+        return is_infeasible.any(), (0 - np.sum(distance))**2
 
     def split_heat_exchanger_violation_distance(self, exchanger_addresses):
         number_split_violations = 0
@@ -293,8 +291,8 @@ class HeatExchangerNetwork:
                             exchanger_addresses[exchanger][0] == stream and \
                             exchanger_addresses[exchanger][2] == stage:
                         h_dubs += 1
-                if h_dubs > self.restrictions.max_splits:
-                    number_split_violations += h_dubs - (self.restrictions.max_splits + 1)
+                if h_dubs > self.max_splits:
+                    number_split_violations += h_dubs - (self.max_splits + 1)
             for stream in self.range_cold_streams:
                 c_dubs = 0
                 for exchanger in self.range_heat_exchangers:
@@ -303,8 +301,8 @@ class HeatExchangerNetwork:
                             exchanger_addresses[exchanger][1] == stream and \
                             exchanger_addresses[exchanger][2] == stage:
                         c_dubs += 1
-                if c_dubs > self.restrictions.max_splits:
-                    number_split_violations += c_dubs - (self.restrictions.max_splits + 1)
+                if c_dubs > self.max_splits:
+                    number_split_violations += c_dubs - (self.max_splits + 1)
         return number_split_violations
 
     def utility_connections_violation_distance(self, exchanger_addresses):
@@ -321,7 +319,7 @@ class HeatExchangerNetwork:
     @property
     def is_feasible(self):
         if self.feasibility_heat_exchanger and  \
-                not self.infeasibility_energy_balance:
+                not self.infeasibility_energy_balance[0]:
             return True
         else:
             return False

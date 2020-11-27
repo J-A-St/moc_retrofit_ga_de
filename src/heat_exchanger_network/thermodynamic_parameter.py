@@ -62,7 +62,10 @@ class ThermodynamicParameter:
                     if stage == self.number_enthalpy_stages:
                         enthalpy_stage_temperatures_hot_streams[stream, stage, operating_case] = self.hot_streams[stream].supply_temperatures[operating_case]
                     else:
-                        enthalpy_stage_temperatures_hot_streams[stream, stage, operating_case] = enthalpy_stage_temperatures_hot_streams[stream, stage + 1, operating_case] - enthalpy_difference[operating_case] / (self.hot_streams[stream].heat_capacity_flows[operating_case])
+                        if self.hot_streams[stream].heat_capacity_flows[operating_case] != 0:
+                            enthalpy_stage_temperatures_hot_streams[stream, stage, operating_case] = enthalpy_stage_temperatures_hot_streams[stream, stage + 1, operating_case] - enthalpy_difference[operating_case] / (self.hot_streams[stream].heat_capacity_flows[operating_case])
+                        else:
+                            enthalpy_stage_temperatures_hot_streams[stream, stage, operating_case] = enthalpy_stage_temperatures_hot_streams[stream, stage + 1, operating_case]
         return enthalpy_stage_temperatures_hot_streams
 
     @cached_property
@@ -79,7 +82,10 @@ class ThermodynamicParameter:
                     if stage == 0:
                         enthalpy_stage_temperatures_cold_streams[stream, stage, operating_case] = self.cold_streams[stream].supply_temperatures[operating_case]
                     else:
-                        enthalpy_stage_temperatures_cold_streams[stream, stage, operating_case] = enthalpy_stage_temperatures_cold_streams[stream, stage - 1, operating_case] + enthalpy_difference[operating_case] / (self.cold_streams[stream].heat_capacity_flows[operating_case])
+                        if self.cold_streams[stream].heat_capacity_flows[operating_case] != 0:
+                            enthalpy_stage_temperatures_cold_streams[stream, stage, operating_case] = enthalpy_stage_temperatures_cold_streams[stream, stage - 1, operating_case] + enthalpy_difference[operating_case] / (self.cold_streams[stream].heat_capacity_flows[operating_case])
+                        else:
+                            enthalpy_stage_temperatures_cold_streams[stream, stage, operating_case] = enthalpy_stage_temperatures_cold_streams[stream, stage - 1, operating_case]
         return enthalpy_stage_temperatures_cold_streams
 
     @cached_property

@@ -8,7 +8,7 @@ from algorithm.genetic_algorithm import GeneticAlgorithm
 def main():
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     os.chdir('..')
-    case_study = CaseStudy('Jones_P3_PinCH_2.xlsx')
+    case_study = CaseStudy('Zweifel_relaxed_without_oil_reheating.xlsx')
     algorithm_parameter = AlgorithmParameter('AlgorithmParameter.xlsx')
     genetic_algorithm = GeneticAlgorithm(case_study, algorithm_parameter)
     genetic_algorithm.genetic_algorithm()

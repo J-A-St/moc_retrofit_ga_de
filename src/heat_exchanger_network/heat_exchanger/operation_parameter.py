@@ -11,16 +11,18 @@ class OperationParameter:
         self.number = number
         self.number_operating_cases = case_study.number_operating_cases
         self.range_operating_cases = case_study.range_operating_cases
-        self.film_heat_transfer_coefficients_hot_stream = case_study.hot_streams[topology.hot_stream].film_heat_transfer_coefficients
-        self.film_heat_transfer_coefficients_cold_stream = case_study.cold_streams[topology.cold_stream].film_heat_transfer_coefficients
+        self.hot_stream = topology.hot_stream
+        self.cold_stream = topology.cold_stream
+        self.film_heat_transfer_coefficients_hot_stream = case_study.hot_streams[self.hot_stream].film_heat_transfer_coefficients
+        self.film_heat_transfer_coefficients_cold_stream = case_study.cold_streams[self.cold_stream].film_heat_transfer_coefficients
+        self.heat_capacity_flows_hot_stream = case_study.hot_streams[self.hot_stream].heat_capacity_flows
+        self.heat_capacity_flows_cold_stream = case_study.cold_streams[self.cold_stream].heat_capacity_flows
+        self.hot_utilities_indices = case_study.hot_utilities_indices
+        self.cold_utilities_indices = case_study.cold_utilities_indices
         self.initial_area = case_study.initial_exchanger_address_matrix['A_ex'][number]
-        self.one_mixer_per_hex = case_study.manual_parameter['OneMixerBool'].iloc[0]
-
         self.thermodynamic_parameter = thermodynamic_parameter
         self.thermodynamic_parameter.bind_to(self.update_all_heat_loads)
         self.all_heat_loads = self.thermodynamic_parameter.heat_loads
-
-        # self.operation_parameter = thermodynamic_parameter._matrix
 
     def update_all_heat_loads(self, all_heat_loads):
         self.all_heat_loads = all_heat_loads
@@ -87,7 +89,7 @@ class OperationParameter:
         """Logarithmic mean temperature difference due to area"""
         logarithmic_mean_temperature_differences = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
-            if np.isnan(self.area) or self.area == 0.0:  # TODO: Needs testing!
+            if np.isnan(self.area) or self.area == 0.0:
                 logarithmic_mean_temperature_differences[operating_case] = np.nan
             else:
                 logarithmic_mean_temperature_differences[operating_case] = self.heat_loads[operating_case] / (self.overall_heat_transfer_coefficients[operating_case] * self.area)
@@ -95,30 +97,33 @@ class OperationParameter:
 
     @cached_property
     def mixer_types(self):
-        # TODO: should not occur for gaseous streams! (practicability) --> argument for SA algorithm!
-        # possible_mixer_types = ['bypass_hot', 'bypass_cold', 'admixer_hot', 'admixer_cold']
-        possible_mixer_types = ['bypass_hot', 'bypass_cold']
         mixer_types = []
-        if self.one_mixer_per_hex:
-            if any(self.needed_areas != self.area):
-                # TODO: should here be a area difference tolerance?
-                mixer_type = self.random_choice(possible_mixer_types)
-            else:
-                mixer_type = 'none'
-            for operating_case in self.range_operating_cases:
-                mixer_types.append(mixer_type)
-        elif not self.one_mixer_per_hex:
-            for operating_case in self.range_operating_cases:
-                if self.needed_areas[operating_case] != self.area:
-                    # TODO: should here be a area difference tolerance?
-                    mixer_types.append(self.random_choice(possible_mixer_types))
+        for operating_case in self.range_operating_cases:
+            if self.hot_stream in self.hot_utilities_indices or self.cold_stream in self.cold_utilities_indices:
+                mixer_types.append('none')
+            elif self.needed_areas[operating_case] != self.area:
+                if self.heat_capacity_flows_hot_stream[operating_case] > self.heat_capacity_flows_cold_stream[operating_case]:
+                    temperature_difference_1 = self.temperatures_cold_stream_after_hex[operating_case] - self.temperatures_cold_stream_before_hex[operating_case]
+                    temperature_difference_2 = self.temperatures_hot_stream_after_hex[operating_case] - self.temperatures_cold_stream_before_hex[operating_case]
+                    if temperature_difference_1 > temperature_difference_2:
+                        mixer_types.append('admixer_cold')
+                    else:
+                        mixer_types.append('bypass_cold')
+                elif self.heat_capacity_flows_hot_stream[operating_case] < self.heat_capacity_flows_cold_stream[operating_case]:
+                    temperature_difference_1 = self.temperatures_hot_stream_after_hex[operating_case] - self.temperatures_cold_stream_before_hex[operating_case]
+                    temperature_difference_2 = self.temperatures_hot_stream_before_hex[operating_case] - self.temperatures_hot_stream_after_hex[operating_case]
+                    if temperature_difference_1 > temperature_difference_2:
+                        mixer_types.append('bypass_hot')
+                    else:
+                        mixer_types.append('admixer_hot')
                 else:
-                    mixer_types.append('none')
+                    mixer_types.append(self.random_choice(['bypass_hot', 'bypass_cold', 'admixer_hot', 'admixer_cold']))
+            else:
+                mixer_types.append('none')
         return mixer_types
 
     @cached_property
     def inlet_temperatures_hot_stream(self):
-        # TODO: Needs testing!
         inlet_temperatures_hot_stream = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
             if self.mixer_types[operating_case] == 'admixer_hot' and self.heat_loads[operating_case] != 0:  
@@ -144,7 +149,6 @@ class OperationParameter:
 
     @cached_property
     def outlet_temperatures_hot_stream(self):
-        # TODO: Needs testing!
         outlet_temperatures_hot_stream = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
             if self.mixer_types[operating_case] == 'bypass_hot' and self.heat_loads[operating_case] != 0:  
@@ -170,7 +174,6 @@ class OperationParameter:
 
     @cached_property
     def inlet_temperatures_cold_stream(self):
-        # TODO: Needs testing!
         inlet_temperatures_cold_stream = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
             if self.mixer_types[operating_case] == 'admixer_cold' and self.heat_loads[operating_case] != 0:  
@@ -196,7 +199,6 @@ class OperationParameter:
 
     @cached_property
     def outlet_temperatures_cold_stream(self):
-        # TODO: Needs testing!
         outlet_temperatures_cold_stream = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
             if self.mixer_types[operating_case] == 'bypass_cold' and self.heat_loads[operating_case] != 0:  
@@ -224,7 +226,7 @@ class OperationParameter:
     def mixer_fractions_hot_stream(self):
         mixer_fractions_hot_stream = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
-            if self.heat_loads[operating_case] == 0  or self.needed_areas[operating_case] == self.area:  # TODO: Needs testing! Is this correct or should it be 1?
+            if self.heat_loads[operating_case] == 0  or self.needed_areas[operating_case] == self.area: 
                 mixer_fractions_hot_stream[operating_case] = 0
             elif self.mixer_types[operating_case] == 'admixer_hot':
                 mixer_fractions_hot_stream[operating_case] = (self.temperatures_hot_stream_before_hex[operating_case] - self.inlet_temperatures_hot_stream[operating_case]) / (self.inlet_temperatures_hot_stream[operating_case] - self.outlet_temperatures_hot_stream[operating_case])
@@ -238,7 +240,7 @@ class OperationParameter:
     def mixer_fractions_cold_stream(self):
         mixer_fractions_cold_stream = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
-            if self.heat_loads[operating_case] == 0 or self.needed_areas[operating_case] == self.area:  # TODO: Needs testing! Is this correct or should it be 1?
+            if self.heat_loads[operating_case] == 0 or self.needed_areas[operating_case] == self.area:  
                 mixer_fractions_cold_stream[operating_case] = 0
             elif self.mixer_types[operating_case] == 'admixer_cold':
                 mixer_fractions_cold_stream[operating_case] = (self.temperatures_cold_stream_before_hex[operating_case] - self.inlet_temperatures_cold_stream[operating_case]) / (self.inlet_temperatures_cold_stream[operating_case] - self.outlet_temperatures_cold_stream[operating_case])
@@ -248,7 +250,7 @@ class OperationParameter:
                 mixer_fractions_cold_stream[operating_case] = 0
         return mixer_fractions_cold_stream
 
-    def random_choice(self, array, seed=None):  # seed=rng.bit_generator._seed_seq.entropy
+    def random_choice(self, array, seed=None): 
         return np.random.default_rng(seed=seed).choice(array)
 
     

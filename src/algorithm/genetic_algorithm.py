@@ -44,7 +44,6 @@ class GeneticAlgorithm:
 
     def fitness_function(self, individual):
         """Evaluation of HEN topology (if feasible DE population is generated and optimized)"""
-        # TODO: add differential evolution solution to GA solution! (see ga_de_retrofit)
         quadratic_distance_split_infeasibility = (0 - self.heat_exchanger_network.split_heat_exchanger_violation_distance(individual))**2
         quadratic_distance_utility_connection_infeasibility = (0 - self.heat_exchanger_network.utility_connections_violation_distance(individual))**2
         if quadratic_distance_split_infeasibility > 0 or quadratic_distance_utility_connection_infeasibility > 0:
@@ -54,13 +53,20 @@ class GeneticAlgorithm:
             self.differential_evolution.differential_evolution(individual)
             fitness = self.differential_evolution.best_solution.fitness.values[0]
             best_individual_differential_evolution = self.differential_evolution.best_solution
-
+            for exchanger in self.case_study.range_heat_exchangers:
+                if 'bypass_hot' in best_individual_differential_evolution[1].heat_exchangers[exchanger].operation_parameter.mixer_types:
+                    individual[exchanger][3] = True
+                if 'admixer_hot' in best_individual_differential_evolution[1].heat_exchangers[exchanger].operation_parameter.mixer_types:
+                    individual[exchanger][4] = True
+                if 'bypass_cold' in best_individual_differential_evolution[1].heat_exchangers[exchanger].operation_parameter.mixer_types:
+                    individual[exchanger][5] = True
+                if 'admixer_cold' in best_individual_differential_evolution[1].heat_exchangers[exchanger].operation_parameter.mixer_types:
+                    individual[exchanger][6] = True
         total_annual_cost = 1 / fitness
-        return fitness, total_annual_cost, best_individual_differential_evolution
+        return fitness, total_annual_cost, best_individual_differential_evolution, individual
 
     @staticmethod
     def crossover(child_1, child_2):
-        # TODO: needs testing!
         """Crossover operator of genes"""
         cxpoint = rng.integers(1, len(child_1))
         child_1[cxpoint:], child_2[cxpoint:] = child_2[cxpoint:].copy(), child_1[cxpoint:].copy()
@@ -113,6 +119,7 @@ class GeneticAlgorithm:
         """Genetic algorithm (topology optimization)"""
         # GA: Create GA classes
         weights_de_individual = np.ones([self.case_study.number_heat_exchangers, self.case_study.number_operating_cases])
+        weights_de_operation_parameter = np.ones([2, self.case_study.number_heat_exchangers, self.case_study.number_operating_cases]).tolist()
         creator.create('FitnessMin_ga', base.Fitness, weights=(1.0, 1.0, weights_de_individual))
         creator.create('Individual_ga', list, fitness=creator.FitnessMin_ga)
         # DE: Create DE classes
@@ -155,11 +162,6 @@ class GeneticAlgorithm:
                     toolbox.mate_ga(child_1, child_2)
                     del child_1.fitness.values
                     del child_2.fitness.values
-
-            # for mutant in offspring:
-            #     if rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
-            #         toolbox.mutate_ga(mutant)
-            #         del mutant.fitness.values
             for mutant in offspring:
                 toolbox.mutate_ga(mutant)
                 del mutant.fitness.values
@@ -186,7 +188,7 @@ class GeneticAlgorithm:
             print('TAC:', 1 / hall_of_fame_ga[0].fitness.values[0])
             print('fitness:', hall_of_fame_ga[0].fitness.values[0])
             print('GA chromosome:', hall_of_fame_ga[0])
-            print('DE chromosome:', hall_of_fame_ga[0].individual_de)
+            print('DE chromosome:', hall_of_fame_ga[0].individual_de[0])
 
         print('-- End of evolution --')
         end = timer()
@@ -197,6 +199,6 @@ class GeneticAlgorithm:
             print('TAC:', 1 / hall_of_fame_ga[i].fitness.values[0])
             print('fitness:', hall_of_fame_ga[i].fitness.values[0])
             print('GA chromosome:', hall_of_fame_ga[i])
-            print('DE chromosome:', hall_of_fame_ga[i].individual_de)
+            print('DE chromosome:', hall_of_fame_ga[i].individual_de[0])
             print(10*'-')
         return hall_of_fame_ga

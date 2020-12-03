@@ -35,7 +35,6 @@ class DifferentialEvolution():
 
     def initialize_individual(self, individual_class, exchanger_addresses):
         """Create an individual matrix of heat duties for all existing HEX matches"""
-        # TODO: needs testing!
         heat_duties = np.zeros([self.number_heat_exchangers, self.number_operating_cases])
         for exchanger in self.range_heat_exchangers:
             if exchanger_addresses[exchanger, 7] == 1:
@@ -45,7 +44,7 @@ class DifferentialEvolution():
                         heat_duties[exchanger, operating_case] = (max_heat_duty - self.min_heat_load) * rng.random() + self.min_heat_load
                     else:
                         heat_duties[exchanger, operating_case] = max_heat_duty
-        individual = individual_class(heat_duties.tolist())
+        individual = individual_class([heat_duties.tolist(), HeatExchangerNetwork(self.case_study)])
         return individual
 
     def fitness_function(self, exchanger_addresses, individual):
@@ -53,11 +52,9 @@ class DifferentialEvolution():
         heat_exchanger_network = HeatExchangerNetwork(self.case_study)
         heat_exchanger_network.exchanger_addresses.matrix = exchanger_addresses
         heat_exchanger_network.clear_cache()
-        heat_exchanger_network.thermodynamic_parameter.heat_loads = np.array(individual)
+        heat_exchanger_network.thermodynamic_parameter.heat_loads = np.array(individual[0])
         if heat_exchanger_network.is_feasible:
             fitness = 1 / heat_exchanger_network.total_annual_costs
-            if np.isnan(heat_exchanger_network.total_annual_costs):
-                print('feabible but nan!')
         else:
             quadratic_distance = sum([heat_exchanger_network.heat_exchangers[exchanger].infeasibility_temperature_differences[1] + heat_exchanger_network.heat_exchangers[exchanger].infeasibility_mixer[1] for exchanger in self.range_heat_exchangers] + heat_exchanger_network.infeasibility_energy_balance[1])
 
@@ -68,23 +65,24 @@ class DifferentialEvolution():
         """Main differential evolution algorithm"""
         exchanger_addresses = np.array(exchanger_addresses)
         toolbox = base.Toolbox()
-        toolbox.register('individual_de', self.initialize_individual, creator.Individual_de, exchanger_addresses)  # TODO: exchanger addresses?
+        toolbox.register('individual_de', self.initialize_individual, creator.Individual_de, exchanger_addresses)
         toolbox.register('population_de', tools.initRepeat, list, toolbox.individual_de)
         toolbox.register('select_parents_de', tools.selRandom, k=3)
-        toolbox.register('evaluate_de', self.fitness_function, exchanger_addresses)  # TODO: exchanger addresses?
+        toolbox.register('evaluate_de', self.fitness_function, exchanger_addresses)
 
         # Initialize population
         population = toolbox.population_de(n=self.population_size)
         hall_of_fame_de = tools.HallOfFame(maxsize=self.hall_of_fame_size, similar=np.array_equal)
         # Evaluate entire population
-        fitness = list(toolbox.map(toolbox.evaluate_de, population))  # TODO: exchanger addresses?
+        fitness = list(toolbox.map(toolbox.evaluate_de, population))
         for individual, fit in zip(population, fitness):
             individual.fitness.values = fit
+            individual[1] = fit[1]
 
         number_generations_de = 0
         number_without_improvement_de = 0
         while number_generations_de <= self.number_generations and number_without_improvement_de <= self.number_no_improvement:
-            print('--DE: Generation %i --' % number_generations_de)
+            # print('--DE: Generation %i --' % number_generations_de)
             number_generations_de += 1
             for pop, agent in enumerate(population):
                 individual_r1, individual_r2, individual_r3 = np.array(toolbox.select_parents_de(population))
@@ -95,12 +93,12 @@ class DifferentialEvolution():
                         # recombination / Crossover
                         if pop == index or rng.random() < self.probability_crossover:
                             # Mutation
-                            individual_donor[exchanger][operating_case] = np.absolute(individual_r1[exchanger][operating_case] + self.scaling_factor * (individual_r2[exchanger][operating_case] - individual_r3[exchanger][operating_case]))
+                            individual_donor[0][exchanger][operating_case] = np.absolute(individual_r1[0][exchanger][operating_case] + self.scaling_factor * (individual_r2[0][exchanger][operating_case] - individual_r3[0][exchanger][operating_case]))
                             max_heat_duty = np.nanmin((self.hot_streams[exchanger_addresses[exchanger, 0]].enthalpy_flows[operating_case], self.cold_streams[exchanger_addresses[exchanger, 1]].enthalpy_flows[operating_case]))
-                            if max_heat_duty != 0 and (individual_donor[exchanger][operating_case] < self.min_heat_load or individual_donor[exchanger][operating_case] > max_heat_duty):
-                                individual_donor[exchanger][operating_case] = (max_heat_duty - self.min_heat_load) * rng.random() + self.min_heat_load
-                individual_donor.fitness.values = toolbox.evaluate_de(individual_donor)  # TODO: exchanger addresses?
-                # Selection (objective 1/TAC)
+                            if max_heat_duty != 0 and (individual_donor[0][exchanger][operating_case] < self.min_heat_load or individual_donor[0][exchanger][operating_case] > max_heat_duty):
+                                individual_donor[0][exchanger][operating_case] = (max_heat_duty - self.min_heat_load) * rng.random() + self.min_heat_load
+                individual_donor.fitness.values = toolbox.evaluate_de(individual_donor) 
+                # Selection 
                 if individual_donor.fitness.values[0] > agent.fitness.values[0]:
                     population[pop] = individual_donor
             if number_generations_de > 1:
@@ -114,5 +112,3 @@ class DifferentialEvolution():
             else:
                 hall_of_fame_de.update(population)
         self.best_solution = hall_of_fame_de[0]
-        _ = toolbox.evaluate_de(hall_of_fame_de[0])
-        # TODO: best DE solution has to be attached to the GA solution (heat loads and mixer fractions; mixer types have to be updated in the exchanger addresses!)

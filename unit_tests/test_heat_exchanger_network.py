@@ -479,7 +479,7 @@ def test_infeasibility_energy_balance():
     test_network.thermodynamic_parameter.clear_cache()
     test_network.thermodynamic_parameter.heat_loads = np.array([[13500, 0], [0, 3800], [0, 100], [5800, 0], [1500, 3500], [0, 0], [0, 0]])
     assert test_network.infeasibility_energy_balance[0]
-    assert test_network.infeasibility_energy_balance[1] == (0 - np.sum(15000))**2  # TODO: change to negative heat load 
+    assert test_network.infeasibility_energy_balance[1] == (0 - np.sum(15000))**2 
 
 
 def test_split_heat_exchanger_violation_distance():

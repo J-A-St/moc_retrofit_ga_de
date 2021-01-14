@@ -54,14 +54,20 @@ class GeneticAlgorithm:
             fitness = self.differential_evolution.best_solution.fitness.values[0]
             best_individual_differential_evolution = self.differential_evolution.best_solution
             for exchanger in self.case_study.range_heat_exchangers:
-                if 'bypass_hot' in best_individual_differential_evolution[1].heat_exchangers[exchanger].operation_parameter.mixer_types:
-                    individual[exchanger][3] = True
-                if 'admixer_hot' in best_individual_differential_evolution[1].heat_exchangers[exchanger].operation_parameter.mixer_types:
-                    individual[exchanger][4] = True
-                if 'bypass_cold' in best_individual_differential_evolution[1].heat_exchangers[exchanger].operation_parameter.mixer_types:
-                    individual[exchanger][5] = True
-                if 'admixer_cold' in best_individual_differential_evolution[1].heat_exchangers[exchanger].operation_parameter.mixer_types:
-                    individual[exchanger][6] = True
+                if best_individual_differential_evolution[1].heat_exchangers[exchanger].topology.existent:
+                    if 'bypass_hot' in best_individual_differential_evolution[1].heat_exchangers[exchanger].operation_parameter.mixer_types:
+                        individual[exchanger][3] = 1
+                    if 'admixer_hot' in best_individual_differential_evolution[1].heat_exchangers[exchanger].operation_parameter.mixer_types:
+                        individual[exchanger][4] = 1
+                    if 'bypass_cold' in best_individual_differential_evolution[1].heat_exchangers[exchanger].operation_parameter.mixer_types:
+                        individual[exchanger][5] = 1
+                    if 'admixer_cold' in best_individual_differential_evolution[1].heat_exchangers[exchanger].operation_parameter.mixer_types:
+                        individual[exchanger][6] = 1
+                else:
+                    individual[exchanger][3] = 0
+                    individual[exchanger][4] = 0
+                    individual[exchanger][5] = 0
+                    individual[exchanger][6] = 0
         total_annual_cost = 1 / fitness
         return fitness, total_annual_cost, best_individual_differential_evolution, individual
 
@@ -119,7 +125,6 @@ class GeneticAlgorithm:
         """Genetic algorithm (topology optimization)"""
         # GA: Create GA classes
         weights_de_individual = np.ones([self.case_study.number_heat_exchangers, self.case_study.number_operating_cases])
-        weights_de_operation_parameter = np.ones([2, self.case_study.number_heat_exchangers, self.case_study.number_operating_cases]).tolist()
         creator.create('FitnessMin_ga', base.Fitness, weights=(1.0, 1.0, weights_de_individual))
         creator.create('Individual_ga', list, fitness=creator.FitnessMin_ga)
         # DE: Create DE classes
@@ -139,9 +144,15 @@ class GeneticAlgorithm:
         # GA: Evaluate entire population
         if self.algorithm_parameter.number_workers == 1:
             fitness = list(map(toolbox.evaluate_ga, population_ga))
-        else:
-            with Pool() as worker:  #Pool(self.algorithm_parameter.number_workers)
+        elif np.isnan(self.algorithm_parameter.number_workers):
+            with Pool() as worker: 
                 fitness = list(worker.map(toolbox.evaluate_ga, population_ga))
+        else:
+            with Pool(self.algorithm_parameter.number_workers) as worker:
+                fitness = list(worker.map(toolbox.evaluate_ga, population_ga))
+
+        for individual in range(len(population_ga)):
+                population_ga[individual] = fitness[individual][3]
         for individual, fit in zip(population_ga, fitness):
             individual.fitness.values = fit[0:2]
             individual.individual_de = fit[2]
@@ -167,14 +178,22 @@ class GeneticAlgorithm:
                 del mutant.fitness.values
             # GA: Evaluate individuals with invalid fitness (parallel computing of DE)
             invalid_individual_ga = [individual for individual in offspring if not individual.fitness.valid]
-            if self.algorithm_parameter.number_workers != 1:
-                with Pool() as worker:  #Pool(self.algorithm_parameter.number_workers)
-                    fitness = worker.map(toolbox.evaluate_ga, invalid_individual_ga)
+
+            if self.algorithm_parameter.number_workers == 1:
+                fitness = list(map(toolbox.evaluate_ga, invalid_individual_ga))
+
+            elif np.isnan(self.algorithm_parameter.number_workers):
+                 with Pool() as worker: 
+                    fitness = list(worker.map(toolbox.evaluate_ga, invalid_individual_ga))
             else:
-                fitness = map(toolbox.evaluate_ga, invalid_individual_ga)
-            for individual, fit in zip(invalid_individual_ga, fitness):
-                individual.fitness.values = fit[0:2]
-                individual.individual_de = fit[2]
+                with Pool(self.algorithm_parameter.number_workers) as worker: 
+                    fitness = list(worker.map(toolbox.evaluate_ga, invalid_individual_ga))
+
+            for ind in range(len(offspring)):
+                if not offspring[ind].fitness.valid:
+                    offspring[ind] = fitness[ind][3]
+                    offspring[ind].fitness.values = fitness[ind][0:2]
+                    offspring[ind].individual_de = fitness[ind][2]        
             population_ga[:] = offspring
 
             # GA: Update Hall of Fame

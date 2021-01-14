@@ -12,7 +12,6 @@ class AlgorithmParameter:
         self.name = name_algorithm_parameter
         self.genetic_algorithm_population_size = None
         self.genetic_algorithm_tournament_size = None
-        self.genetic_algorithm_roulette_size = None
         self.genetic_algorithm_number_generations = None
         self.genetic_algorithm_hall_of_fame_size = None
         self.genetic_algorithm_probability_bit_flip = None
@@ -35,17 +34,14 @@ class AlgorithmParameter:
         # Genetic algorithm parameter
         self.genetic_algorithm_population_size = algorithm_parameter['PopSizeGA'].iloc[0]
         self.genetic_algorithm_tournament_size = algorithm_parameter['TournSizeGA'].iloc[0]
-        self.genetic_algorithm_roulette_size = algorithm_parameter['RoulSizeGA'].iloc[0]
         self.genetic_algorithm_hall_of_fame_size = algorithm_parameter['HoFSizeGA'].iloc[0]
         self.genetic_algorithm_number_generations = algorithm_parameter['NumGenGA'].iloc[0]
-        self.genetic_algorithm_probability_bit_flip = algorithm_parameter['ProbFlipGA'].iloc[0]
         self.genetic_algorithm_probability_crossover = algorithm_parameter['CrossProbGA'].iloc[0]
         self.genetic_algorithm_probability_mutation = algorithm_parameter['MutProbGA'].iloc[0]
         # Differential evolution parameter
         self.differential_evolution_population_size = algorithm_parameter['PopSizeDE'].iloc[0]
-        self.differential_evolution_hall_of_fame_size = algorithm_parameter['HoFSizeDE'].iloc[0]
         self.differential_evolution_number_generations = algorithm_parameter['NumGenDE'].iloc[0]
-        self.differential_evolution_scaling_factor = algorithm_parameter['ScalingDE'].iloc[0]
+        self.differential_evolution_perturbation_factor = algorithm_parameter['PerturbationDE'].iloc[0]
         self.differential_evolution_probability_crossover = algorithm_parameter['CrossProbDE'].iloc[0]
         self.differential_evolution_number_no_improvement = algorithm_parameter['NumNoImprovDE'].iloc[0]
         os.chdir('..')

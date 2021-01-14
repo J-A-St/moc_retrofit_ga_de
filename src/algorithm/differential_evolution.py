@@ -3,6 +3,7 @@ from deap import creator
 from deap import base
 import numpy as np
 rng = np.random.default_rng()
+np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
 from heat_exchanger_network.heat_exchanger_network import HeatExchangerNetwork
 
@@ -25,11 +26,10 @@ class DifferentialEvolution():
         self.penalty_total_annual_cost_value = case_study.manual_parameter['GA_TAC_Penalty'].iloc[0]
 
         self.population_size = algorithm_parameter.differential_evolution_population_size
-        self.hall_of_fame_size = algorithm_parameter.differential_evolution_hall_of_fame_size
         self.number_generations = algorithm_parameter.differential_evolution_number_generations
         self.number_no_improvement = algorithm_parameter.differential_evolution_number_no_improvement
         self.probability_crossover = algorithm_parameter.differential_evolution_probability_crossover
-        self.scaling_factor = algorithm_parameter.differential_evolution_scaling_factor
+        self.perturbation_factor = algorithm_parameter.differential_evolution_perturbation_factor
 
         self.best_solution = None
 
@@ -51,8 +51,26 @@ class DifferentialEvolution():
         """Calculate the whole network including costs"""
         heat_exchanger_network = HeatExchangerNetwork(self.case_study)
         heat_exchanger_network.exchanger_addresses.matrix = exchanger_addresses
-        heat_exchanger_network.clear_cache()
         heat_exchanger_network.thermodynamic_parameter.heat_loads = np.array(individual[0])
+        for exchanger in self.range_heat_exchangers:
+            if 'bypass_hot' in  heat_exchanger_network.heat_exchangers[exchanger].operation_parameter.mixer_types:
+                heat_exchanger_network.exchanger_addresses.matrix[exchanger, 3] = 1
+            else:
+                heat_exchanger_network.exchanger_addresses.matrix[exchanger, 3] = 0
+            if 'admixer_hot' in  heat_exchanger_network.heat_exchangers[exchanger].operation_parameter.mixer_types:
+                heat_exchanger_network.exchanger_addresses.matrix[exchanger, 4] = 1
+            else:
+                heat_exchanger_network.exchanger_addresses.matrix[exchanger, 4] = 0
+            if 'bypass_cold' in  heat_exchanger_network.heat_exchangers[exchanger].operation_parameter.mixer_types:
+                heat_exchanger_network.exchanger_addresses.matrix[exchanger, 5] = 1
+            else:
+                heat_exchanger_network.exchanger_addresses.matrix[exchanger, 5] = 0
+            if 'admixer_cold' in  heat_exchanger_network.heat_exchangers[exchanger].operation_parameter.mixer_types:
+                heat_exchanger_network.exchanger_addresses.matrix[exchanger, 6] = 1
+            else:
+                heat_exchanger_network.exchanger_addresses.matrix[exchanger, 6] = 0
+            
+        heat_exchanger_network.clear_cache()
         if heat_exchanger_network.is_feasible:
             fitness = 1 / heat_exchanger_network.total_annual_costs
         else:
@@ -72,7 +90,7 @@ class DifferentialEvolution():
 
         # Initialize population
         population = toolbox.population_de(n=self.population_size)
-        hall_of_fame_de = tools.HallOfFame(maxsize=self.hall_of_fame_size, similar=np.array_equal)
+        hall_of_fame_de = tools.HallOfFame(maxsize=1, similar=np.array_equal)
         # Evaluate entire population
         fitness = list(toolbox.map(toolbox.evaluate_de, population))
         for individual, fit in zip(population, fitness):
@@ -93,10 +111,13 @@ class DifferentialEvolution():
                         # recombination / Crossover
                         if pop == index or rng.random() < self.probability_crossover:
                             # Mutation
-                            individual_donor[0][exchanger][operating_case] = np.absolute(individual_r1[0][exchanger][operating_case] + self.scaling_factor * (individual_r2[0][exchanger][operating_case] - individual_r3[0][exchanger][operating_case]))
-                            max_heat_duty = np.nanmin((self.hot_streams[exchanger_addresses[exchanger, 0]].enthalpy_flows[operating_case], self.cold_streams[exchanger_addresses[exchanger, 1]].enthalpy_flows[operating_case]))
-                            if max_heat_duty != 0 and (individual_donor[0][exchanger][operating_case] < self.min_heat_load or individual_donor[0][exchanger][operating_case] > max_heat_duty):
-                                individual_donor[0][exchanger][operating_case] = (max_heat_duty - self.min_heat_load) * rng.random() + self.min_heat_load
+                            if exchanger_addresses[exchanger, 7]:
+                                individual_donor[0][exchanger][operating_case] = np.absolute(individual_r1[0][exchanger][operating_case] + self.perturbation_factor * (individual_r2[0][exchanger][operating_case] - individual_r3[0][exchanger][operating_case]))
+                                max_heat_duty = np.nanmin((self.hot_streams[exchanger_addresses[exchanger, 0]].enthalpy_flows[operating_case], self.cold_streams[exchanger_addresses[exchanger, 1]].enthalpy_flows[operating_case]))
+                                if max_heat_duty != 0 and (individual_donor[0][exchanger][operating_case] < self.min_heat_load or individual_donor[0][exchanger][operating_case] > max_heat_duty):
+                                    individual_donor[0][exchanger][operating_case] = (max_heat_duty - self.min_heat_load) * rng.random() + self.min_heat_load
+                            else:
+                                individual_donor[0][exchanger][operating_case] = 0.0
                 individual_donor.fitness.values = toolbox.evaluate_de(individual_donor) 
                 # Selection 
                 if individual_donor.fitness.values[0] > agent.fitness.values[0]:

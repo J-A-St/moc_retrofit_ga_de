@@ -7,16 +7,14 @@ from functools import cached_property
 class OperationParameter:
     """Heat exchanger operation parameter"""
 
-    def __init__(self, thermodynamic_parameter, topology, case_study, number):
+    def __init__(self, thermodynamic_parameter, exchanger_addresses, case_study, number):
         self.number = number
+        self.case_study = case_study
         self.number_operating_cases = case_study.number_operating_cases
         self.range_operating_cases = case_study.range_operating_cases
-        self.hot_stream = topology.hot_stream
-        self.cold_stream = topology.cold_stream
-        self.film_heat_transfer_coefficients_hot_stream = case_study.hot_streams[self.hot_stream].film_heat_transfer_coefficients
-        self.film_heat_transfer_coefficients_cold_stream = case_study.cold_streams[self.cold_stream].film_heat_transfer_coefficients
-        self.heat_capacity_flows_hot_stream = case_study.hot_streams[self.hot_stream].heat_capacity_flows
-        self.heat_capacity_flows_cold_stream = case_study.cold_streams[self.cold_stream].heat_capacity_flows
+        self.exchanger_addresses = exchanger_addresses
+        self.exchanger_addresses.bind_to(self.update_address_matrix)
+        self.address_matrix = self.exchanger_addresses.matrix
         self.hot_utilities_indices = case_study.hot_utilities_indices
         self.cold_utilities_indices = case_study.cold_utilities_indices
         self.initial_area = case_study.initial_exchanger_address_matrix['A_ex'][number]
@@ -26,6 +24,42 @@ class OperationParameter:
 
     def update_all_heat_loads(self, all_heat_loads):
         self.all_heat_loads = all_heat_loads
+
+
+    def update_address_matrix(self, address_matrix):
+        self.address_matrix = address_matrix
+
+    @property
+    def address_vector(self):
+        return self.address_matrix[self.number]
+
+    @property
+    def hot_stream(self):
+        return self.address_vector[0]
+
+    @property
+    def cold_stream(self):
+        return self.address_vector[1]
+
+    @property
+    def hex_existent(self):
+        return self.address_vector[7]
+
+    @property
+    def film_heat_transfer_coefficients_hot_stream(self):
+        return self.case_study.hot_streams[self.hot_stream].film_heat_transfer_coefficients
+
+    @property
+    def film_heat_transfer_coefficients_cold_stream(self):
+        return self.case_study.cold_streams[self.cold_stream].film_heat_transfer_coefficients
+
+    @property
+    def heat_capacity_flows_hot_stream(self):
+        return self.case_study.hot_streams[self.hot_stream].heat_capacity_flows
+
+    @property
+    def heat_capacity_flows_cold_stream(self):
+        return self.case_study.cold_streams[self.cold_stream].heat_capacity_flows
 
     @property
     def heat_loads(self):
@@ -98,28 +132,40 @@ class OperationParameter:
     @cached_property
     def mixer_types(self):
         mixer_types = []
-        for operating_case in self.range_operating_cases:
-            if self.hot_stream in self.hot_utilities_indices or self.cold_stream in self.cold_utilities_indices:
-                mixer_types.append('none')
-            elif self.needed_areas[operating_case] != self.area:
-                if self.heat_capacity_flows_hot_stream[operating_case] > self.heat_capacity_flows_cold_stream[operating_case]:
-                    temperature_difference_1 = self.temperatures_cold_stream_after_hex[operating_case] - self.temperatures_cold_stream_before_hex[operating_case]
-                    temperature_difference_2 = self.temperatures_hot_stream_after_hex[operating_case] - self.temperatures_cold_stream_before_hex[operating_case]
-                    if temperature_difference_1 > temperature_difference_2:
-                        mixer_types.append('admixer_cold')
-                    else:
-                        mixer_types.append('bypass_cold')
-                elif self.heat_capacity_flows_hot_stream[operating_case] < self.heat_capacity_flows_cold_stream[operating_case]:
-                    temperature_difference_1 = self.temperatures_hot_stream_after_hex[operating_case] - self.temperatures_cold_stream_before_hex[operating_case]
-                    temperature_difference_2 = self.temperatures_hot_stream_before_hex[operating_case] - self.temperatures_hot_stream_after_hex[operating_case]
-                    if temperature_difference_1 > temperature_difference_2:
+        if self.hex_existent:
+            for operating_case in self.range_operating_cases:
+                if self.hot_stream in self.hot_utilities_indices or self.cold_stream in self.cold_utilities_indices:
+                    mixer_types.append('none')
+                elif self.heat_loads[operating_case] == 0:
+                    if self.heat_capacity_flows_hot_stream[operating_case] > 0:
                         mixer_types.append('bypass_hot')
+                    elif self.heat_capacity_flows_hot_stream[operating_case] == 0 and self.heat_capacity_flows_cold_stream[operating_case] > 0:
+                        mixer_types.append('bypass_cold')
+                    elif self.heat_capacity_flows_cold_stream[operating_case] == 0 and self.heat_capacity_flows_cold_stream[operating_case] == 0:
+                        mixer_types.append('none')
+                elif self.needed_areas[operating_case] != self.area:
+                    if self.heat_capacity_flows_hot_stream[operating_case] > self.heat_capacity_flows_cold_stream[operating_case]:
+                        temperature_difference_1 = self.temperatures_cold_stream_after_hex[operating_case] - self.temperatures_cold_stream_before_hex[operating_case]
+                        temperature_difference_2 = self.temperatures_hot_stream_after_hex[operating_case] - self.temperatures_cold_stream_before_hex[operating_case]
+                        if temperature_difference_1 > temperature_difference_2:
+                            mixer_types.append('admixer_cold')
+                        else:
+                            mixer_types.append('bypass_cold')
+                    elif self.heat_capacity_flows_hot_stream[operating_case] < self.heat_capacity_flows_cold_stream[operating_case]:
+                        temperature_difference_1 = self.temperatures_hot_stream_after_hex[operating_case] - self.temperatures_cold_stream_before_hex[operating_case]
+                        temperature_difference_2 = self.temperatures_hot_stream_before_hex[operating_case] - self.temperatures_hot_stream_after_hex[operating_case]
+                        if temperature_difference_1 > temperature_difference_2:
+                            mixer_types.append('bypass_hot')
+                        else:
+                            mixer_types.append('admixer_hot')
                     else:
-                        mixer_types.append('admixer_hot')
+                        mixer_types.append(self.random_choice(['bypass_hot', 'bypass_cold', 'admixer_hot', 'admixer_cold']))
                 else:
-                    mixer_types.append(self.random_choice(['bypass_hot', 'bypass_cold', 'admixer_hot', 'admixer_cold']))
-            else:
+                    mixer_types.append('none')
+        else:
+            for operating_case in self.range_operating_cases:
                 mixer_types.append('none')
+            
         return mixer_types
 
     @cached_property
@@ -140,7 +186,7 @@ class OperationParameter:
                     elif temperature_difference_2 < self.logarithmic_mean_temperature_differences[operating_case]:
                         temperature_difference_1_ratio = - lambertw(-temperature_difference_2_ratio * np.exp(-temperature_difference_2_ratio), -1).real / temperature_difference_2_ratio
                         temperature_difference_1 = temperature_difference_1_ratio * temperature_difference_2
-                        # temperature_difference_1 = (2 * self.logarithmic_mean_temperature_differences[operating_case]**0.3275-temperature_difference_2**0.3275)**(1/0.3275)
+                        # temp. Chen's approx: temperature_difference_1 = (2 * self.logarithmic_mean_temperature_differences[operating_case]**0.3275-temperature_difference_2**0.3275)**(1/0.3275)
 
                     inlet_temperatures_hot_stream[operating_case] = self.temperatures_cold_stream_after_hex[operating_case] + temperature_difference_1
             else:
@@ -165,7 +211,7 @@ class OperationParameter:
                     elif temperature_difference_2 < self.logarithmic_mean_temperature_differences[operating_case]:
                         temperature_difference_1_ratio = - lambertw(-temperature_difference_2_ratio * np.exp(-temperature_difference_2_ratio), -1).real / temperature_difference_2_ratio
                         temperature_difference_1 = temperature_difference_1_ratio * temperature_difference_2
-                        # temperature_difference_1 = (2 * self.logarithmic_mean_temperature_differences[operating_case]**0.3275-temperature_difference_2**0.3275)**(1/0.3275)
+                        # temp. Chen's approx: temperature_difference_1 = (2 * self.logarithmic_mean_temperature_differences[operating_case]**0.3275-temperature_difference_2**0.3275)**(1/0.3275)
 
                     outlet_temperatures_hot_stream[operating_case] = self.temperatures_cold_stream_before_hex[operating_case] + temperature_difference_1
             else:
@@ -190,7 +236,7 @@ class OperationParameter:
                     elif temperature_difference_2 < self.logarithmic_mean_temperature_differences[operating_case]:
                         temperature_difference_1_ratio = - lambertw(-temperature_difference_2_ratio * np.exp(-temperature_difference_2_ratio), -1).real / temperature_difference_2_ratio
                         temperature_difference_1 = temperature_difference_1_ratio * temperature_difference_2
-                        # temperature_difference_1 = (2 * self.logarithmic_mean_temperature_differences[operating_case]**0.3275-temperature_difference_2**0.3275)**(1/0.3275)
+                        # temp. Chen's approx: temperature_difference_1 = (2 * self.logarithmic_mean_temperature_differences[operating_case]**0.3275-temperature_difference_2**0.3275)**(1/0.3275)
 
                     inlet_temperatures_cold_stream[operating_case] = self.temperatures_hot_stream_after_hex[operating_case] - temperature_difference_1
             else:
@@ -215,7 +261,7 @@ class OperationParameter:
                     elif temperature_difference_2 < self.logarithmic_mean_temperature_differences[operating_case]:
                         temperature_difference_1_ratio = - lambertw(-temperature_difference_2_ratio * np.exp(-temperature_difference_2_ratio), -1).real / temperature_difference_2_ratio
                         temperature_difference_1 = temperature_difference_1_ratio * temperature_difference_2
-                        # temperature_difference_1 = (2 * self.logarithmic_mean_temperature_differences[operating_case]**0.3275-temperature_difference_2**0.3275)**(1/0.3275)
+                        # temp. Chen's approx: temperature_difference_1 = (2 * self.logarithmic_mean_temperature_differences[operating_case]**0.3275-temperature_difference_2**0.3275)**(1/0.3275)
 
                     outlet_temperatures_cold_stream[operating_case] = self.temperatures_hot_stream_before_hex[operating_case] - temperature_difference_1
             else:
@@ -226,8 +272,10 @@ class OperationParameter:
     def mixer_fractions_hot_stream(self):
         mixer_fractions_hot_stream = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
-            if self.heat_loads[operating_case] == 0  or self.needed_areas[operating_case] == self.area: 
+            if not self.hex_existent or self.needed_areas[operating_case] == self.area: 
                 mixer_fractions_hot_stream[operating_case] = 0
+            elif self.mixer_types[operating_case] == 'bypass_hot' and self.heat_loads[operating_case] == 0 and self.heat_capacity_flows_hot_stream[operating_case] > 0:
+                mixer_fractions_hot_stream[operating_case] = 1
             elif self.mixer_types[operating_case] == 'admixer_hot':
                 mixer_fractions_hot_stream[operating_case] = (self.temperatures_hot_stream_before_hex[operating_case] - self.inlet_temperatures_hot_stream[operating_case]) / (self.inlet_temperatures_hot_stream[operating_case] - self.outlet_temperatures_hot_stream[operating_case])
             elif self.mixer_types[operating_case] == 'bypass_hot':
@@ -240,8 +288,10 @@ class OperationParameter:
     def mixer_fractions_cold_stream(self):
         mixer_fractions_cold_stream = np.zeros([self.number_operating_cases])
         for operating_case in self.range_operating_cases:
-            if self.heat_loads[operating_case] == 0 or self.needed_areas[operating_case] == self.area:  
+            if not self.hex_existent or self.needed_areas[operating_case] == self.area:  
                 mixer_fractions_cold_stream[operating_case] = 0
+            elif  self.mixer_types[operating_case] == 'bypass_cold' and self.heat_loads[operating_case] == 0 and self.heat_capacity_flows_cold_stream[operating_case] > 0:
+                mixer_fractions_cold_stream[operating_case] = 1
             elif self.mixer_types[operating_case] == 'admixer_cold':
                 mixer_fractions_cold_stream[operating_case] = (self.temperatures_cold_stream_before_hex[operating_case] - self.inlet_temperatures_cold_stream[operating_case]) / (self.inlet_temperatures_cold_stream[operating_case] - self.outlet_temperatures_cold_stream[operating_case])
             elif self.mixer_types[operating_case] == 'bypass_cold':

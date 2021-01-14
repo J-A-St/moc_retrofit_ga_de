@@ -13,12 +13,10 @@ class HeatExchanger:
         # Topology instance variables
         self.topology = Topology(exchanger_addresses, case_study, number)
         # Operation parameter instance variables
-        self.operation_parameter = OperationParameter(thermodynamic_parameter, self.topology, case_study, number)
+        self.operation_parameter = OperationParameter(thermodynamic_parameter, exchanger_addresses, case_study, number)
         self.extreme_temperature_hot_stream = case_study.hot_streams[self.topology.hot_stream].extreme_temperatures
         self.extreme_temperature_cold_stream = case_study.cold_streams[self.topology.cold_stream].extreme_temperatures
         self.temperature_difference_lower_bound = case_study.manual_parameter['dTLb'].iloc[0]
-        self.max_bypass_fraction = case_study.manual_parameter['MaxBypass'].iloc[0]  # (-)
-        self.max_admix_fraction = case_study.manual_parameter['MaxAdmix'].iloc[0]  # (-)
         # Cost instance variables
         self.costs = Costs(case_study, number)
 
@@ -72,16 +70,6 @@ class HeatExchanger:
     def total_costs(self):
         return self.exchanger_costs + self.admixer_costs + self.bypass_costs
 
-    # @property
-    # def infeasibility_logarithmic_mean_temperature_differences(self):
-    #     is_infeasible = np.array([False] * self.operation_parameter.number_operating_cases)
-    #     for operating_case in self.operation_parameter.range_operating_cases:
-    #         if np.isnan(self.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case]) or self.operation_parameter.logarithmic_mean_temperature_differences_no_mixer[operating_case] <= 0:
-    #             is_infeasible[operating_case] = True
-    #         else:
-    #             is_infeasible[operating_case] = False
-    #     return is_infeasible.any(), (0 - np.sum(is_infeasible))**2
-
     @property
     def infeasibility_temperature_differences(self):
         is_infeasible = np.array([False] * self.operation_parameter.number_operating_cases)
@@ -117,26 +105,14 @@ class HeatExchanger:
 
     @property
     def is_feasible(self):
-        if not self.infeasibility_temperature_differences[0] and not self.infeasibility_mixer[0]:  # and not self.infeasibility_logarithmic_mean_temperature_differences[0]
+        if not self.infeasibility_temperature_differences[0] and not self.infeasibility_mixer[0]:  
             return True
         else:
             return False
 
     def __repr__(self):
         pass
-        # return '\n'.join(['heat exchanger number {}:'.format(self.number), 'address matrix: {}'.format(self.topology.address_vector),
-        #                   'is feasible: {}'.format(self.is_feasible),
-        #                   'heat loads: {}'.format(self.operation_parameter.heat_loads), 'hot stream split factions: {}'.format(self.operation_parameter.split_fractions_hot_stream),
-        #                   'cold stream split fractions: {}'.format(self.operation_parameter.split_fractions_cold_stream),
-        #                   'hot stream mixer fractions: {}'.format(self.operation_parameter.mixer_fractions_hot_stream),
-        #                   'cold stream mixer fractions: {}'.format(self.operation_parameter.mixer_fractions_cold_stream),
-        #                   'inlet temperatures hot stream: {}'.format(self.operation_parameter.inlet_temperatures_hot_stream),
-        #                   'outlet temperatures hot stream: {}'.format(self.operation_parameter.outlet_temperatures_hot_stream),
-        #                   'inlet temperatures cold stream: {}'.format(self.operation_parameter.inlet_temperatures_cold_stream),
-        #                   'outlet temperatures cold stream: {}'.format(self.operation_parameter.outlet_temperatures_cold_stream),
-        #                   'logarithmic temperature difference: {}'.format(self.operation_parameter.logarithmic_mean_temperature_differences_no_mixer),
-        #                   'needed areas: {}'.format(self.operation_parameter.needed_areas),
-        #                   'area: {}'.format(self.operation_parameter.area)])
+    
 
     def __str__(self):
         pass

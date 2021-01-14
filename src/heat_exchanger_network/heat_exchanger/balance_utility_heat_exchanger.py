@@ -103,7 +103,6 @@ class BalanceUtilityHeatExchanger:
 
     @property
     def heat_loads(self):
-        # TODO: is soft needs testing!
         heat_loads = np.zeros([self.number_operating_cases])
         if self.utility_type == 'HU':
             for operating_case in self.range_operating_cases:

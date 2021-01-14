@@ -1,7 +1,7 @@
-# Evolutionary based HEN retrofit for processes with MOC
+# Evolutionary based heat exchanger network retrofit for processes with multiple operating cases
 Copyright 2021 Jan Stampfli
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4441114.svg)](https://doi.org/10.5281/zenodo.4441114)
 
 ## Description
    

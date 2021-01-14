@@ -20,7 +20,7 @@ def setup_module():
     """Setup testing model"""
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     os.chdir('..')
-    test_case = CaseStudy('Jones_P3_PinCH_2.xlsx')
+    test_case = CaseStudy('JonesP3.xlsx')
     os.chdir('unit_tests')
     test_addresses = ExchangerAddresses(test_case)
     test_parameter = ThermodynamicParameter(test_case, test_addresses)

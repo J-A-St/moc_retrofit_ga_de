@@ -17,7 +17,7 @@ def setup_model():
     """Setup testing model"""
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     os.chdir('..')
-    test_case = CaseStudy('Jones_P3_PinCH_2.xlsx')
+    test_case = CaseStudy('JonesP3.xlsx')
     os.chdir('unit_tests')
     test_network = HeatExchangerNetwork(test_case)
     return test_network, test_case

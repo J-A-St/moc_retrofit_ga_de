@@ -258,6 +258,11 @@ class HeatExchangerNetwork:
         return sum(self.hot_utility_demand * self.economics.specific_hot_utilities_cost) + sum(self.cold_utility_demand * self.economics.specific_cold_utilities_cost)
 
     @property
+    def operating_emissions(self):
+        return sum(self.hot_utility_demand * self.economics.specific_hot_utilities_emissions) + sum(self.cold_utility_demand * self.economics.specific_cold_utilities_emissions)
+
+
+    @property
     def total_annual_costs(self):
         return self.economics.annuity_factor * self.capital_costs + self.operating_costs
 

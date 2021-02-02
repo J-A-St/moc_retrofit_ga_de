@@ -5,17 +5,21 @@ class Economics:
     """Economic data and cost calculations for heat exchanger network"""
 
     def __init__(self, case_study):
-        self.specific_hot_utilities_cost = np.empty([len(case_study.hot_utilities_indices), case_study.number_operating_cases])  # e.g. (CHF/m2)
-        self.specific_cold_utilities_cost = np.empty([len(case_study.cold_utilities_indices), case_study.number_operating_cases])  # e.g. (CHF/m2)
+        self.specific_hot_utilities_cost = np.empty([len(case_study.hot_utilities_indices), case_study.number_operating_cases])  # e.g. (CHF/kWh)
+        self.specific_hot_utilities_emissions = np.empty([len(case_study.hot_utilities_indices), case_study.number_operating_cases])  # (tCO2/kWh)
+        self.specific_cold_utilities_cost = np.empty([len(case_study.cold_utilities_indices), case_study.number_operating_cases])  # e.g. (CHF/kWh)
+        self.specific_cold_utilities_emissions = np.empty([len(case_study.cold_utilities_indices), case_study.number_operating_cases])  # e.g. (tCO2/kWh)
         for operating_case in case_study.range_operating_cases:
             hot_utility = 0
             cold_utility = 0
             for stream in case_study.range_streams:
                 if case_study.stream_data['H/C'][stream] == 'H' and not np.isnan(case_study.stream_data['UtilityCostperkWh'][stream + case_study.number_streams * operating_case]):
                     self.specific_hot_utilities_cost[hot_utility, operating_case] = case_study.stream_data['UtilityCostperkWh'][stream + case_study.number_streams * operating_case]
+                    self.specific_hot_utilities_emissions[hot_utility, operating_case] = case_study.stream_data['tonsCO2emissionsperkWh'][stream + case_study.number_streams * operating_case]
                     hot_utility += 1
                 elif case_study.stream_data['H/C'][stream] == 'C' and not np.isnan(case_study.stream_data['UtilityCostperkWh'][stream + case_study.number_streams * operating_case]):
                     self.specific_cold_utilities_cost[cold_utility, operating_case] = case_study.stream_data['UtilityCostperkWh'][stream + case_study.number_streams * operating_case]
+                    self.specific_cold_utilities_emissions[cold_utility, operating_case] = case_study.stream_data['tonsCO2emissionsperkWh'][stream + case_study.number_streams * operating_case]
                     cold_utility += 1
 
         self.specific_hot_utilities_cost = np.squeeze(self.specific_hot_utilities_cost)

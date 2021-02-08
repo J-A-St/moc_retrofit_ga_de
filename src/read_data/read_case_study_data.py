@@ -17,6 +17,7 @@ class CaseStudy:
         self.define_problem_dimensions()
         self.define_operating_cases()
         self.define_streams()
+        self.define_initial_utility_demand()
 
     def read_case_study(self):
         # Read data
@@ -74,6 +75,18 @@ class CaseStudy:
                 if not np.isnan(self.stream_data['UtilityCostperkWh'][stream]):
                     self.cold_utilities_indices = np.append(self.cold_utilities_indices, cold_stream)
                 cold_stream += 1
+    
+    def define_initial_utility_demand(self):
+        self.initial_hot_utility_demand = np.zeros([self.number_operating_cases])
+        self.initial_cold_utility_demand = np.zeros([self.number_operating_cases])
+        for operating_case in self.range_operating_cases:
+            for stream in self.range_streams:
+                if self.stream_data['H/C'][stream] == 'H' and \
+                   not np.isnan(self.stream_data['UtilityCostperkWh'][stream]):
+                    self.initial_hot_utility_demand[operating_case] += self.stream_data['H_dot'][stream + self.number_streams * operating_case] * self.operating_cases[operating_case].duration
+                elif self.stream_data['H/C'][stream] == 'C' and \
+                     not np.isnan(self.stream_data['UtilityCostperkWh'][stream]):
+                    self.initial_cold_utility_demand[operating_case] += self.stream_data['H_dot'][stream + self.number_streams * operating_case] * self.operating_cases[operating_case].duration
 
     def __repr__(self):
         pass

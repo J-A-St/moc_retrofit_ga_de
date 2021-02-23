@@ -11,8 +11,6 @@ class HeatExchangerNetwork:
     """Heat exchanger network object"""
 
     def __init__(self, case_study):
-        self.initial_hot_utility_demand = case_study.initial_hot_utility_demand
-        self.initial_cold_utility_demand = case_study.initial_cold_utility_demand
         self.number_heat_exchangers = case_study.number_heat_exchangers
         self.range_heat_exchangers = case_study.range_heat_exchangers
         self.number_balance_utility_heat_exchangers = case_study.number_balance_utility_heat_exchangers
@@ -254,14 +252,6 @@ class HeatExchangerNetwork:
     @property
     def capital_costs(self):
         return self.split_costs + self.repipe_costs + self.resequence_costs + self.match_costs + self.heat_exchanger_costs
-
-    @property
-    def initial_operating_costs(self):
-        return sum(self.initial_hot_utility_demand * self.economics.specific_hot_utilities_cost) + sum(self.initial_cold_utility_demand * self.economics.specific_cold_utilities_cost)
-
-    @property
-    def initial_operating_emissions(self):
-        return sum(self.initial_hot_utility_demand * self.economics.specific_hot_utilities_emissions) + sum(self.initial_cold_utility_demand * self.economics.specific_cold_utilities_emissions)
 
     @property
     def operating_costs(self):

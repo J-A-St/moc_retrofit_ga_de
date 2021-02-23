@@ -12,12 +12,13 @@ from heat_exchanger_network.heat_exchanger_network import HeatExchangerNetwork
 class GeneticAlgorithm:
     """genetic algorithm (GA) for optimization of the heat exchanger network topology"""
 
-    def __init__(self, case_study, algorithm_parameter):
+    def __init__(self, case_study, algorithm_parameter, weight_factor=1):
+        self.weight_factor = weight_factor
         self.case_study = case_study
         self.algorithm_parameter = algorithm_parameter
         self.penalty_total_annual_cost_value = case_study.manual_parameter['GA_TAC_Penalty'].iloc[0]
         self.heat_exchanger_network = HeatExchangerNetwork(case_study)
-        self.differential_evolution = DifferentialEvolution(case_study, algorithm_parameter)
+        self.differential_evolution = DifferentialEvolution(case_study, algorithm_parameter, weight_factor)
 
     def initialize_individual(self, individual_class):
         """Creates an individual (HEN topology) with the genes: hot_stream, cold_stream, enthalpy_stage, bypass_hot_stream (in DE determined),
@@ -47,12 +48,17 @@ class GeneticAlgorithm:
         quadratic_distance_split_infeasibility = (0 - self.heat_exchanger_network.split_heat_exchanger_violation_distance(individual))**2
         quadratic_distance_utility_connection_infeasibility = (0 - self.heat_exchanger_network.utility_connections_violation_distance(individual))**2
         if quadratic_distance_split_infeasibility > 0 or quadratic_distance_utility_connection_infeasibility > 0:
-            fitness = 1 / (self.penalty_total_annual_cost_value + quadratic_distance_split_infeasibility + quadratic_distance_utility_connection_infeasibility)
+            fitness = 1 / (2 + (quadratic_distance_split_infeasibility + quadratic_distance_utility_connection_infeasibility) / 10)
             best_individual_differential_evolution = np.zeros([self.case_study.number_heat_exchangers, self.case_study.number_operating_cases]).tolist()
+            best_individual_differential_evolution = [best_individual_differential_evolution, self.heat_exchanger_network]
+            total_annual_costs = self.differential_evolution.economics.initial_operating_costs * 2
+            operating_emissions = self.differential_evolution.economics.initial_operating_emissions * 2
         else:
             self.differential_evolution.differential_evolution(individual)
             fitness = self.differential_evolution.best_solution.fitness.values[0]
             best_individual_differential_evolution = self.differential_evolution.best_solution
+            total_annual_costs = best_individual_differential_evolution[1].total_annual_costs
+            operating_emissions = best_individual_differential_evolution[1].operating_emissions
             for exchanger in self.case_study.range_heat_exchangers:
                 if best_individual_differential_evolution[1].heat_exchangers[exchanger].topology.existent:
                     if 'bypass_hot' in best_individual_differential_evolution[1].heat_exchangers[exchanger].operation_parameter.mixer_types:
@@ -68,8 +74,8 @@ class GeneticAlgorithm:
                     individual[exchanger][4] = 0
                     individual[exchanger][5] = 0
                     individual[exchanger][6] = 0
-        total_annual_cost = 1 / fitness
-        return fitness, total_annual_cost, best_individual_differential_evolution, individual
+                
+        return fitness, total_annual_costs, best_individual_differential_evolution, individual 
 
     @staticmethod
     def crossover(child_1, child_2):
@@ -125,7 +131,7 @@ class GeneticAlgorithm:
         """Genetic algorithm (topology optimization)"""
         # GA: Create GA classes
         weights_de_individual = np.ones([self.case_study.number_heat_exchangers, self.case_study.number_operating_cases])
-        creator.create('FitnessMin_ga', base.Fitness, weights=(1.0, 1.0, weights_de_individual))
+        creator.create('FitnessMin_ga', base.Fitness, weights=(1.0, 1.0, 1.0, weights_de_individual))
         creator.create('Individual_ga', list, fitness=creator.FitnessMin_ga)
         # DE: Create DE classes
         creator.create('FitnessMin_de', base.Fitness, weights=(1.0,))
@@ -152,7 +158,7 @@ class GeneticAlgorithm:
                 fitness = list(worker.map(toolbox.evaluate_ga, population_ga))
 
         for individual in range(len(population_ga)):
-                population_ga[individual] = fitness[individual][3]
+            population_ga[individual] = fitness[individual][3]
         for individual, fit in zip(population_ga, fitness):
             individual.fitness.values = fit[0:2]
             individual.individual_de = fit[2]
@@ -183,7 +189,7 @@ class GeneticAlgorithm:
                 fitness = list(map(toolbox.evaluate_ga, invalid_individual_ga))
 
             elif np.isnan(self.algorithm_parameter.number_workers):
-                 with Pool() as worker: 
+                with Pool() as worker: 
                     fitness = list(worker.map(toolbox.evaluate_ga, invalid_individual_ga))
             else:
                 with Pool(self.algorithm_parameter.number_workers) as worker: 

@@ -75,9 +75,9 @@ class HeatExchanger:
         is_infeasible = np.array([False] * self.operation_parameter.number_operating_cases)
         for operating_case in self.operation_parameter.range_operating_cases:
             if self.topology.existent and any(np.isnan([self.operation_parameter.inlet_temperatures_hot_stream[operating_case],
-                         self.operation_parameter.outlet_temperatures_hot_stream[operating_case],
-                         self.operation_parameter.inlet_temperatures_cold_stream[operating_case],
-                         self.operation_parameter.outlet_temperatures_cold_stream[operating_case]])):  
+               self.operation_parameter.outlet_temperatures_hot_stream[operating_case],
+               self.operation_parameter.inlet_temperatures_cold_stream[operating_case],
+               self.operation_parameter.outlet_temperatures_cold_stream[operating_case]])):  
                 is_infeasible[operating_case] = True
             elif self.topology.existent and self.operation_parameter.outlet_temperatures_hot_stream[operating_case] - self.operation_parameter.inlet_temperatures_cold_stream[operating_case] - self.temperature_difference_lower_bound <= 0:
                 is_infeasible[operating_case] = True

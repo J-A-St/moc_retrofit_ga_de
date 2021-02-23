@@ -5,6 +5,7 @@ import numpy as np
 rng = np.random.default_rng()
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 
+from heat_exchanger_network.economics import Economics
 from heat_exchanger_network.heat_exchanger_network import HeatExchangerNetwork
 
 
@@ -12,8 +13,9 @@ class DifferentialEvolution():
     """Differential evolution (DE) algorithm for optimization of heat duties for from genetic algorithm predefined
     HEX matches"""
 
-    def __init__(self, case_study, algorithm_parameter):
+    def __init__(self, case_study, algorithm_parameter, weight_factor):
         self.case_study = case_study
+        self.economics = Economics(case_study)
         self.number_heat_exchangers = case_study.number_heat_exchangers
         self.range_heat_exchangers = case_study.range_heat_exchangers
         self.number_operating_cases = case_study.number_operating_cases
@@ -24,7 +26,7 @@ class DifferentialEvolution():
         self.cold_streams = case_study.cold_streams
         self.min_heat_load = case_study.manual_parameter['MinimalHeatLoad'].iloc[0]
         self.penalty_total_annual_cost_value = case_study.manual_parameter['GA_TAC_Penalty'].iloc[0]
-
+        self.weight_factor = weight_factor
         self.population_size = algorithm_parameter.differential_evolution_population_size
         self.number_generations = algorithm_parameter.differential_evolution_number_generations
         self.number_no_improvement = algorithm_parameter.differential_evolution_number_no_improvement
@@ -72,11 +74,12 @@ class DifferentialEvolution():
             
         heat_exchanger_network.clear_cache()
         if heat_exchanger_network.is_feasible:
-            fitness = 1 / heat_exchanger_network.total_annual_costs
+            fitness = 1 / (heat_exchanger_network.total_annual_costs / self.economics.initial_operating_costs * self.weight_factor + heat_exchanger_network.operating_emissions / self.economics.initial_operating_emissions * (1-self.weight_factor))
         else:
             quadratic_distance = sum([heat_exchanger_network.heat_exchangers[exchanger].infeasibility_temperature_differences[1] + heat_exchanger_network.heat_exchangers[exchanger].infeasibility_mixer[1] for exchanger in self.range_heat_exchangers] + heat_exchanger_network.infeasibility_energy_balance[1])
 
             fitness = 1 / (self.penalty_total_annual_cost_value + quadratic_distance)
+            # fitness = 1 / (2 + quadratic_distance / 10)
         return fitness, heat_exchanger_network
 
     def differential_evolution(self, exchanger_addresses):

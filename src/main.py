@@ -12,7 +12,7 @@ def main():
     os.chdir('..')
     case_study = CaseStudy('Zweifel.xlsx')
     algorithm_parameter = AlgorithmParameter('AlgorithmParameter.xlsx')
-    genetic_algorithm = GeneticAlgorithm(case_study, algorithm_parameter)
+    genetic_algorithm = GeneticAlgorithm(case_study, algorithm_parameter, case_study.weight_factor)
     best_solution = genetic_algorithm.genetic_algorithm()
     return best_solution, case_study
 

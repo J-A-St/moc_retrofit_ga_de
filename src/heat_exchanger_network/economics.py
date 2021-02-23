@@ -26,11 +26,12 @@ class Economics:
         self.specific_cold_utilities_cost = np.squeeze(self.specific_cold_utilities_cost)
         self.specific_hot_utilities_emissions = np.squeeze(self.specific_hot_utilities_emissions)
         self.specific_cold_utilities_emissions = np.squeeze(self.specific_cold_utilities_emissions)
-        self.penalty_total_annual_cost_value = case_study.manual_parameter['GA_TAC_Penalty'].iloc[0]  # e.g. (CHF/y)
         self.match_cost = case_study.match_cost.values[:, 2:]  # (y)
         self.deprecation_lifetime = case_study.economic_data['DeprecationLifetime'].iloc[0]  # (-)
         self.interest_rate = case_study.economic_data['InterestRate'].iloc[0]
         self.annuity_factor = (self.interest_rate * (1 + self.interest_rate) ** self.deprecation_lifetime) / ((1 + self.interest_rate) ** self.deprecation_lifetime - 1)
+        self.initial_operating_costs = sum(case_study.initial_hot_utility_demand * self.specific_hot_utilities_cost) + sum(case_study.initial_cold_utility_demand * self.specific_cold_utilities_cost)
+        self.initial_operating_emissions = sum(case_study.initial_hot_utility_demand * self.specific_hot_utilities_emissions) + sum(case_study.initial_cold_utility_demand * self.specific_cold_utilities_emissions)
 
     def __repr__(self):
         pass

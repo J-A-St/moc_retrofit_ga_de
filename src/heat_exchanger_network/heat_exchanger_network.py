@@ -263,7 +263,7 @@ class HeatExchangerNetwork:
 
 
     @property
-    def total_annual_costs(self):
+    def total_annual_cost(self):
         return self.economics.annuity_factor * self.capital_costs + self.operating_costs
 
     @property

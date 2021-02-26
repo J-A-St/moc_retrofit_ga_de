@@ -1,4 +1,7 @@
 import os
+import sys
+import code
+import keyboard
 import numpy as np
 
 from read_data.read_case_study_data import CaseStudy
@@ -39,4 +42,16 @@ if __name__ == "__main__":
         else:
             heat_exchanger_network.exchanger_addresses.matrix[exchanger, 6] = 0
     heat_exchanger_network.clear_cache()
-
+    print("Press ENTER to access the resulting variables or ESC to exit.")
+    while True:
+        try:
+            if keyboard.is_pressed('Esc'):
+                sys.exit(0)
+            elif keyboard.is_pressed('ENTER'):
+                print(10*"-")
+                print("Press exit() to exit")
+                print(10*"-")
+                code.interact(local=locals())
+        except KeyboardInterrupt:
+            break
+            

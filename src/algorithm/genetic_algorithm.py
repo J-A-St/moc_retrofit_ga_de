@@ -16,7 +16,6 @@ class GeneticAlgorithm:
         self.weight_factor = weight_factor
         self.case_study = case_study
         self.algorithm_parameter = algorithm_parameter
-        self.penalty_total_annual_cost_value = case_study.manual_parameter['GA_TAC_Penalty'].iloc[0]
         self.heat_exchanger_network = HeatExchangerNetwork(case_study)
         self.differential_evolution = DifferentialEvolution(case_study, algorithm_parameter, weight_factor)
 
@@ -57,7 +56,7 @@ class GeneticAlgorithm:
             self.differential_evolution.differential_evolution(individual)
             fitness = self.differential_evolution.best_solution.fitness.values[0]
             best_individual_differential_evolution = self.differential_evolution.best_solution
-            total_annual_costs = best_individual_differential_evolution[1].total_annual_costs
+            total_annual_costs = best_individual_differential_evolution[1].total_annual_cost
             operating_emissions = best_individual_differential_evolution[1].operating_emissions
             for exchanger in self.case_study.range_heat_exchangers:
                 if best_individual_differential_evolution[1].heat_exchangers[exchanger].topology.existent:

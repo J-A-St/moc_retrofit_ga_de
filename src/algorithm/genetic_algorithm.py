@@ -209,7 +209,8 @@ class GeneticAlgorithm:
                 hall_of_fame_ga.update(population_ga)
                 new = sum(hall_of_fame_ga[0].fitness.getValues())
 
-            print('TAC:', 1 / hall_of_fame_ga[0].fitness.values[0])
+            print('TAC:', hall_of_fame_ga[0].individual_de[1].total_annual_cost)
+            print('CO2:', hall_of_fame_ga[0].individual_de[1].operating_emissions)
             print('fitness:', hall_of_fame_ga[0].fitness.values[0])
             print('GA chromosome:', hall_of_fame_ga[0])
             print('DE chromosome:', hall_of_fame_ga[0].individual_de[0])
@@ -220,7 +221,8 @@ class GeneticAlgorithm:
         print('Hall of fame list:')
         for i in range(len(hall_of_fame_ga)):
             print('Rank:', i + 1)
-            print('TAC:', 1 / hall_of_fame_ga[i].fitness.values[0])
+            print('TAC:', hall_of_fame_ga[0].individual_de[1].total_annual_cost)
+            print('CO2:', hall_of_fame_ga[0].individual_de[1].operating_emissions)
             print('fitness:', hall_of_fame_ga[i].fitness.values[0])
             print('GA chromosome:', hall_of_fame_ga[i])
             print('DE chromosome:', hall_of_fame_ga[i].individual_de[0])

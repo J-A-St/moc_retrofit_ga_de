@@ -227,4 +227,8 @@ class GeneticAlgorithm:
             print('GA chromosome:', hall_of_fame_ga[i])
             print('DE chromosome:', hall_of_fame_ga[i].individual_de[0])
             print(10*'-')
+        del creator.FitnessMin_ga
+        del creator.Individual_ga
+        del creator.FitnessMin_de
+        del creator.Individual_de
         return hall_of_fame_ga

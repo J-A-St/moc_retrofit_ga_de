@@ -29,7 +29,6 @@ class CaseStudy:
         self.match_cost = pd.read_excel(self.file, sheet_name='MatchCosts')
         self.economic_data = pd.read_excel(self.file, sheet_name='EconomicData')
         self.manual_parameter = pd.read_excel(self.file, sheet_name='ManualParameter')
-        self.weight_factor = self.manual_parameter['TACEmissionWeightFactor'].iloc[0]
         os.chdir('..')
 
     def define_problem_dimensions(self):

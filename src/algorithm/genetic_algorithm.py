@@ -85,6 +85,7 @@ class GeneticAlgorithm:
     def mutation(self, individual):
         """Mutation operator of alleles: uniform distribution for process streams and enthalpy intervals, bounded by their max and min values,
          and random bit flip for the existence of a heat exchanger"""
+        mutated = False
         allele_numbers = [7, 2, 1, 0]
         exchanger_number = 0
         while exchanger_number < self.case_study.number_heat_exchangers:
@@ -92,6 +93,7 @@ class GeneticAlgorithm:
             while allele_index < len(allele_numbers):
                 if allele_numbers[allele_index] == 7 and \
                    rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
+                    mutated = True
                     individual[exchanger_number][7] = not individual[exchanger_number][7]
                     if individual[exchanger_number][7]:
                         individual[exchanger_number][0] = rng.integers(0, self.case_study.number_hot_streams)
@@ -106,25 +108,26 @@ class GeneticAlgorithm:
                 elif allele_numbers[allele_index] == 2 and \
                      individual[exchanger_number][7] and \
                      rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
+                    mutated = True
                     individual[exchanger_number][2] = rng.integers(0, self.case_study.number_enthalpy_stages)
                     allele_index += 1
                 elif allele_numbers[allele_index] == 1 and \
                      individual[exchanger_number][7] and  \
                      rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
+                    mutated = True
                     individual[exchanger_number][1] = rng.integers(0, self.case_study.number_cold_streams)
                     allele_index += 1
                 elif allele_numbers[allele_index] == 0 and \
                      individual[exchanger_number][7] and \
                      rng.random() < self.algorithm_parameter.genetic_algorithm_probability_mutation:
+                    mutated = True
                     individual[exchanger_number][0] = rng.integers(0, self.case_study.number_hot_streams)
                     allele_index += 1
                 else:
                     allele_index += 1
             exchanger_number += 1
-        return individual
+        return mutated
         
-
-
     def genetic_algorithm(self):
         """Genetic algorithm (topology optimization)"""
         # GA: Create GA classes

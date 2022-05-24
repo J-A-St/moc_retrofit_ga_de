@@ -12,12 +12,11 @@ from heat_exchanger_network.heat_exchanger_network import HeatExchangerNetwork
 class GeneticAlgorithm:
     """genetic algorithm (GA) for optimization of the heat exchanger network topology"""
 
-    def __init__(self, case_study, algorithm_parameter, weight_factor=1):
-        self.weight_factor = weight_factor
+    def __init__(self, case_study, algorithm_parameter):
         self.case_study = case_study
         self.algorithm_parameter = algorithm_parameter
         self.heat_exchanger_network = HeatExchangerNetwork(case_study)
-        self.differential_evolution = DifferentialEvolution(case_study, algorithm_parameter, weight_factor)
+        self.differential_evolution = DifferentialEvolution(case_study, algorithm_parameter)
 
     def initialize_individual(self, individual_class):
         """Creates an individual (HEN topology) with the genes: hot_stream, cold_stream, enthalpy_stage, bypass_hot_stream (in DE determined),
@@ -41,7 +40,7 @@ class GeneticAlgorithm:
         exchanger_addresses = list(map(list, zip(*exchanger_addresses)))
         individual = individual_class(np.transpose(exchanger_addresses).tolist())
         return individual
-
+    
     def fitness_function(self, individual):
         """Evaluation of HEN topology (if feasible DE population is generated and optimized)"""
         quadratic_distance_split_infeasibility = (0 - self.heat_exchanger_network.split_heat_exchanger_violation_distance(individual))**2
@@ -131,8 +130,7 @@ class GeneticAlgorithm:
     def genetic_algorithm(self):
         """Genetic algorithm (topology optimization)"""
         # GA: Create GA classes
-        weights_de_individual = np.ones([self.case_study.number_heat_exchangers, self.case_study.number_operating_cases])
-        creator.create('FitnessMin_ga', base.Fitness, weights=(1.0, 1.0, 1.0, weights_de_individual))
+        creator.create('FitnessMin_ga', base.Fitness, weights=(1.0, 1.0))
         creator.create('Individual_ga', list, fitness=creator.FitnessMin_ga)
         # DE: Create DE classes
         creator.create('FitnessMin_de', base.Fitness, weights=(1.0,))

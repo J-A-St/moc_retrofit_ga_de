@@ -57,17 +57,18 @@ class GeneticAlgorithm:
         """Evaluation of HEN topology (if feasible DE population is generated and optimized)"""
         quadratic_distance_split_infeasibility = (0 - self.heat_exchanger_network.split_heat_exchanger_violation_distance(individual))**2
         quadratic_distance_utility_connection_infeasibility = (0 - self.heat_exchanger_network.utility_connections_violation_distance(individual))**2
-        if quadratic_distance_split_infeasibility > 0 or quadratic_distance_utility_connection_infeasibility > 0:
-            fitness = 1 / (2 + (quadratic_distance_split_infeasibility + quadratic_distance_utility_connection_infeasibility) / 10)
-            best_individual_differential_evolution = np.zeros([self.case_study.number_heat_exchangers, self.case_study.number_operating_cases]).tolist()
-            best_individual_differential_evolution = [best_individual_differential_evolution, self.heat_exchanger_network]
-            total_annual_costs = self.differential_evolution.economics.initial_operating_costs * 2
-            operating_emissions = self.differential_evolution.economics.initial_operating_emissions * 2
+        quadratic_distance = quadratic_distance_split_infeasibility + quadratic_distance_utility_connection_infeasibility
+        if quadratic_distance > 0:
+            of_total_annual_cost = 1 / (2 + quadratic_distance)
+            of_greenhouse_gases = 1 / (2 + quadratic_distance)
+            self.pseudo_pareto_front_de[0][1].exchanger_addresses.matrix = individual
+            self.pseudo_pareto_front_de[0].fitness.values = (of_total_annual_cost, of_greenhouse_gases)
+            pareto_front_de = cp.deepcopy(self.pseudo_pareto_front_de)
         else:
             self.differential_evolution.differential_evolution(individual)
-            fitness = self.differential_evolution.best_solution.fitness.values[0]
-            best_individual_differential_evolution = self.differential_evolution.best_solution
-            total_annual_costs = best_individual_differential_evolution[1].total_annual_cost
+            pareto_front_de = cp.deepcopy(self.differential_evolution.pareto_front_de)
+        return pareto_front_de  
+
             operating_emissions = best_individual_differential_evolution[1].operating_emissions
             for exchanger in self.case_study.range_heat_exchangers:
                 if best_individual_differential_evolution[1].heat_exchangers[exchanger].topology.existent:

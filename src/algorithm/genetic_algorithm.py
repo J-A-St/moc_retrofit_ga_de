@@ -44,6 +44,15 @@ class GeneticAlgorithm:
         individual = individual_class(np.transpose(exchanger_addresses).tolist())
         return individual
     
+    def initialize_pseudo_pareto_front_de(self, toolbox):
+        """Create a pseudo differential evolution pareto front for infeasible genetic algorithm individuals"""
+        pseudo_exchanger_addresses = np.zeros([self.case_study.number_heat_exchangers, 8],dtype=int)
+        toolbox.register('pseudo_individual_de', self.differential_evolution.initialize_individual, creator.Individual_de, pseudo_exchanger_addresses)
+        toolbox.register('pseudo_population_de', tools.initRepeat, list, toolbox.pseudo_individual_de)
+        pseudo_population_de = toolbox.pseudo_population_de(n=1)
+        pseudo_population_de[0][1].exchanger_addresses.matrix = pseudo_exchanger_addresses
+        return pseudo_population_de
+
     def fitness_function(self, individual):
         """Evaluation of HEN topology (if feasible DE population is generated and optimized)"""
         quadratic_distance_split_infeasibility = (0 - self.heat_exchanger_network.split_heat_exchanger_violation_distance(individual))**2
@@ -134,11 +143,11 @@ class GeneticAlgorithm:
         """Genetic algorithm (topology optimization)"""
         # GA: Create GA classes
         creator.create('FitnessMin_ga', base.Fitness, weights=(1.0, 1.0))
-        creator.create('Individual_ga', list, fitness=creator.FitnessMin_ga)
+        creator.create('Individual_ga', list, fitness=creator.FitnessMin_ga) 
         # DE: Create DE classes
-        creator.create('FitnessMin_de', base.Fitness, weights=(1.0,))
+        creator.create('FitnessMin_de', base.Fitness, weights=(1.0,1.0))
         creator.create('Individual_de', list, fitness=creator.FitnessMin_de)
-        # GA: Define individuals of exchanger address matrices
+        # GA: Define individuals of exchanger address matrices: 
         toolbox = base.Toolbox()
         toolbox.register('individual_ga', self.initialize_individual, creator.Individual_ga)
         toolbox.register('population_ga', tools.initRepeat, list, toolbox.individual_ga)
@@ -146,6 +155,8 @@ class GeneticAlgorithm:
         toolbox.register('select_ga', tools.selTournament, tournsize=self.algorithm_parameter.genetic_algorithm_tournament_size)
         toolbox.register('mate_ga', self.crossover)
         toolbox.register('mutate_ga', self.mutation)
+        # GA: Create a pseudo DE population for infeasible GA individuals
+        self.pseudo_pareto_front_de = self.initialize_pseudo_pareto_front_de(toolbox)
         # GA: Generate population
         population_ga = toolbox.population_ga(self.algorithm_parameter.genetic_algorithm_population_size)
         hall_of_fame_ga = tools.HallOfFame(maxsize=self.algorithm_parameter.genetic_algorithm_hall_of_fame_size)
@@ -171,7 +182,7 @@ class GeneticAlgorithm:
             """Genetic algorithm"""
             number_generations_ga += 1
             print('--GA: Generation %i --' % number_generations_ga)
-            # GA: Select the next generation of individuals
+            # GA: Select the next generation of individuals 
             offspring = toolbox.select_ga(population_ga, len(population_ga))
             # GA: Clone selected individuals
             offspring = list(toolbox.map(toolbox.clone, offspring))

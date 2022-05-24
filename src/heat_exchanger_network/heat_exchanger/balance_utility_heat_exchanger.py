@@ -25,7 +25,7 @@ class BalanceUtilityHeatExchanger:
         self.number_enthalpy_stages = case_study.number_enthalpy_stages
 
         # Operation parameter instance variables
-        self.initial_heat_loads = np.array(case_study.initial_utility_balance_heat_loads)[number, 1:3]
+        self.initial_heat_loads = np.array(case_study.initial_utility_balance_heat_loads)[number, 1::]
         self.initial_area = case_study.initial_exchanger_balance_utilities['A_ex'][number]
 
         # Cost instance variables

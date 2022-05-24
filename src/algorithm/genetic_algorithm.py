@@ -69,18 +69,49 @@ class GeneticAlgorithm:
             pareto_front_de = cp.deepcopy(self.differential_evolution.pareto_front_de)
         return pareto_front_de  
 
-            operating_emissions = best_individual_differential_evolution[1].operating_emissions
-            for exchanger in self.case_study.range_heat_exchangers:
-                if best_individual_differential_evolution[1].heat_exchangers[exchanger].topology.existent:
-                    if 'bypass_hot' in best_individual_differential_evolution[1].heat_exchangers[exchanger].operation_parameter.mixer_types:
-                        individual[exchanger][3] = 1
-                    if 'admixer_hot' in best_individual_differential_evolution[1].heat_exchangers[exchanger].operation_parameter.mixer_types:
-                        individual[exchanger][4] = 1
-                    if 'bypass_cold' in best_individual_differential_evolution[1].heat_exchangers[exchanger].operation_parameter.mixer_types:
-                        individual[exchanger][5] = 1
-                    if 'admixer_cold' in best_individual_differential_evolution[1].heat_exchangers[exchanger].operation_parameter.mixer_types:
-                        individual[exchanger][6] = 1
-                else:
+    def update_hall_of_fame(self, population, hall_of_fame):
+        """Custom update function of the hall of fame update using the fitness attribute indicator instead of fitness"""
+        for ind in population:
+            duplicate = False
+            if len(hall_of_fame) == 0 and hall_of_fame.maxsize !=0:
+                # Working on an empty hall of fame is problematic for the
+                # "for else"
+                self.insert_hall_of_fame_item(population[0], hall_of_fame)
+                continue
+            if ind.indicator > hall_of_fame[-1].indicator or len(hall_of_fame) < hall_of_fame.maxsize:
+                for hofer in range(len(hall_of_fame)):
+                    if all([np.array_equal(ind[0][2], hall_of_fame[hofer][0][2]), ind.indicator == hall_of_fame[hofer].indicator]):
+                        duplicate = True
+                        break                 
+                if duplicate:
+                    continue
+                if len(hall_of_fame) >= hall_of_fame.maxsize:
+                    self.remove_hall_of_fame_item(hall_of_fame, -1)
+                self.insert_hall_of_fame_item(ind, hall_of_fame)
+        
+    def insert_hall_of_fame_item(self, item, hall_of_fame):
+        """Custom insert function of the hall of fame insert using the fitness attribute indicator instead of fitness"""
+        item = cp.deepcopy(item)
+        i = bc.bisect_right([abs(key.wvalues[0]) for key in hall_of_fame.keys], abs(item.indicator.wvalues[0]))
+        hall_of_fame.items.insert(i, item)
+        hall_of_fame.keys.insert(i, item.indicator)
+
+    def remove_hall_of_fame_item(self, hall_of_fame, index):
+        """Custom remove function of the hall of fame remove"""
+        del hall_of_fame.keys[index]
+        del hall_of_fame.items[index]
+
+    def update_population_ga(self, toolbox, results_de):
+        """Creates a new population based on the results of the differential evolution"""
+        population_ga = toolbox.population_pareto(len(results_de))
+        for res, result in enumerate(results_de):
+            ind_de = 0
+            while ind_de < len(result):
+                population_ga[res].append(result[ind_de])
+                population_ga[res][ind_de].append(result[ind_de][1].exchanger_addresses.matrix)
+                ind_de += 1
+        return population_ga
+
     def evaluate_hypervolume(self, population_ga):
         """Evaluates the hypervolumes of all differential evolution pareto fronts. These values are used for the selection in the GA algorithm"""
         fitnesses = []

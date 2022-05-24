@@ -81,7 +81,6 @@ class GeneticAlgorithm:
         """Crossover operator of genes"""
         cxpoint = rng.integers(1, len(child_1))
         child_1[cxpoint:], child_2[cxpoint:] = child_2[cxpoint:].copy(), child_1[cxpoint:].copy()
-        return child_1, child_2
 
     def mutation(self, individual):
         """Mutation operator of alleles: uniform distribution for process streams and enthalpy intervals, bounded by their max and min values,

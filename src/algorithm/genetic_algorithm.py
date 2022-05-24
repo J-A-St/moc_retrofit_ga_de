@@ -81,10 +81,23 @@ class GeneticAlgorithm:
                     if 'admixer_cold' in best_individual_differential_evolution[1].heat_exchangers[exchanger].operation_parameter.mixer_types:
                         individual[exchanger][6] = 1
                 else:
-                    individual[exchanger][3] = 0
-                    individual[exchanger][4] = 0
-                    individual[exchanger][5] = 0
-                    individual[exchanger][6] = 0
+    def evaluate_hypervolume(self, population_ga):
+        """Evaluates the hypervolumes of all differential evolution pareto fronts. These values are used for the selection in the GA algorithm"""
+        fitnesses = []
+        for _, individual_ga in enumerate(population_ga):
+            ind_de = 0
+            while ind_de < len(individual_ga):
+                fitnesses.append(individual_ga[ind_de].fitness.wvalues)
+                ind_de += 1
+        fitnesses = np.array(fitnesses)
+        reference_point = (np.max(fitnesses[:,0])+1, np.max(fitnesses[:,1])+1)
+        for _, individual_ga in enumerate(population_ga):
+            if len(individual_ga) <=1 and np.sum(individual_ga[0][0]) == 0.0:
+                # All heat loads are zero if we use the pseudo Pareto front (infeasible GA solutions)
+                individual_ga.indicator.values = -100,
+            else:
+                fitnesses_de = np.array([ind_de.fitness.wvalues for ind_de in individual_ga])
+                individual_ga.indicator.values = hv.hypervolume(fitnesses_de, reference_point) * -1, 
                 
         return fitness, total_annual_costs, best_individual_differential_evolution, individual 
 
@@ -145,6 +158,8 @@ class GeneticAlgorithm:
         # GA: Create GA classes
         creator.create('FitnessMin_ga', base.Fitness, weights=(1.0, 1.0))
         creator.create('Individual_ga', list, fitness=creator.FitnessMin_ga) 
+        creator.create('HyperVolumeIndicator_ga', base.Fitness, weights=(1.0,))
+        creator.create('ParetoIndividual_ga', list, indicator=creator.HyperVolumeIndicator_ga)
         # DE: Create DE classes
         creator.create('FitnessMin_de', base.Fitness, weights=(1.0,1.0))
         creator.create('Individual_de', list, fitness=creator.FitnessMin_de)
@@ -182,8 +197,8 @@ class GeneticAlgorithm:
             number_generations_ga += 1
             print('--GA: Generation %i --' % number_generations_ga)
             # GA: Select the next generation of individuals 
-            offspring = toolbox.select_ga(population_ga, len(population_ga))
-            # GA: Clone selected individuals
+            offspring = toolbox.select_ga(population_ga, fit_attr="indicator") 
+            # GA: Clone selected individuals and bring offspring in initial population design
             offspring = list(toolbox.map(toolbox.clone, offspring))
             # GA: crossover
             for child_1, child_2 in zip(offspring[::2], offspring[1::2]):

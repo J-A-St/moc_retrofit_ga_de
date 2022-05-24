@@ -1,6 +1,7 @@
 from deap import tools
 from deap import creator
 from deap import base
+import copy as cp
 import numpy as np
 rng = np.random.default_rng()
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
@@ -51,15 +52,9 @@ class DifferentialEvolution():
         individual = individual_class([heat_duties.tolist(), self.heat_exchanger_network])
         return individual
 
-    
-    def twin_check(self, individual, halloffamer):
-        # TODO: write a function which compares the individual heat loads for similarity to remove similar solutions from the front: tolerance ~ 10kW or better relative to the total heating/cooling demand?
-        return np.allclose(individual[0], halloffamer[0], atol=self.absolute_heat_load_tolerance)
-
-
     def fitness_function(self, exchanger_addresses, individual):
         """Calculate the whole network including costs"""
-        heat_exchanger_network = self.heat_exchanger_network 
+        heat_exchanger_network = cp.deepcopy(self.heat_exchanger_network) 
         heat_exchanger_network.exchanger_addresses.matrix = exchanger_addresses
         heat_exchanger_network.thermodynamic_parameter.heat_loads = np.array(individual[0])
         for exchanger in self.range_heat_exchangers:
@@ -81,14 +76,13 @@ class DifferentialEvolution():
                 heat_exchanger_network.exchanger_addresses.matrix[exchanger, 6] = 0
 
         heat_exchanger_network.clear_cache()
-        #TODO: Check if new fitness function if correct!
         if heat_exchanger_network.is_feasible:
             of_total_annual_cost = self.economics.initial_operating_costs / heat_exchanger_network.total_annual_cost
             of_greenhouse_gases = self.economics.initial_operating_emissions / heat_exchanger_network.operating_emissions
         else:
             quadratic_distance = sum([heat_exchanger_network.heat_exchangers[exchanger].infeasibility_temperature_differences[1] + heat_exchanger_network.heat_exchangers[exchanger].infeasibility_mixer[1] for exchanger in self.range_heat_exchangers] + heat_exchanger_network.infeasibility_energy_balance[1])
-            of_total_annual_cost = 1 / (1 + quadratic_distance * 10)
-            of_greenhouse_gases = 1 / (1 + quadratic_distance * 10)
+            of_total_annual_cost = 1 / (2 + quadratic_distance)
+            of_greenhouse_gases = 1 / (2 + quadratic_distance)
         return of_total_annual_cost, of_greenhouse_gases, heat_exchanger_network
 
     def differential_evolution(self, exchanger_addresses):
@@ -98,13 +92,11 @@ class DifferentialEvolution():
         toolbox.register('individual_de', self.initialize_individual, creator.Individual_de, exchanger_addresses)
         toolbox.register('population_de', tools.initRepeat, list, toolbox.individual_de)
         toolbox.register('select_parents_de', tools.selRandom, k=3)
+        toolbox.register('select_de', tools.selNSGA2, nd='log')
         toolbox.register('evaluate_de', self.fitness_function, exchanger_addresses)
 
         # Initialize population
         population = toolbox.population_de(n=self.population_size)
-        # hall_of_fame_de = tools.HallOfFame(maxsize=1, similar=np.array_equal)
-        # TODO: We need to write an equal function for comparing similar solutions (current compares only the shape of a individual: fitness or/and heat loads should be compared!! Tolerance???)
-        pareto_front_de = tools.ParetoFront(similar=self.twin_check)
         # Evaluate entire population
         fitness = list(toolbox.map(toolbox.evaluate_de, population))
         for individual, fit in zip(population, fitness):
@@ -116,10 +108,11 @@ class DifferentialEvolution():
         while number_generations_de <= self.number_generations and number_without_improvement_de <= self.number_no_improvement:
             # print('--DE: Generation %i --' % number_generations_de)
             number_generations_de += 1
+            population_temporary = list()
             for pop, agent in enumerate(population):
                 individual_r1, individual_r2, individual_r3 = np.array(toolbox.select_parents_de(population))
                 individual_donor = toolbox.clone(agent)
-                index = rng.choice(len(individual_r1))
+                index = rng.choice(len(individual_r1[0]))
                 for exchanger in self.range_heat_exchangers:
                     for operating_case in self.range_operating_cases:
                         # recombination / Crossover
@@ -135,19 +128,17 @@ class DifferentialEvolution():
                 evaluated_donor = toolbox.evaluate_de(individual_donor)
                 individual_donor.fitness.values = evaluated_donor[0:2]
                 individual_donor[1] = evaluated_donor[2]
-                # Selection
-                
-                if individual_donor.fitness.values[0] > agent.fitness.values[0]:
-                    population[pop] = individual_donor
-            if number_generations_de > 1:
-                best_old = pareto_front_de[0].fitness.values
-                pareto_front_de.update(population)
-                best_new = pareto_front_de[0].fitness.values
-                if best_old[0] >= best_new[0] and best_old[1] >= best_new[1]:
+                # Selection             
+                if (individual_donor.fitness.values[0] > agent.fitness.values[0]) and (individual_donor.fitness.values[1] > agent.fitness.values[1]):
+                    population_temporary.append(individual_donor)
+                    number_without_improvement_de = 0
+                elif (individual_donor.fitness.values[0] < agent.fitness.values[0]) and (individual_donor.fitness.values[1] < agent.fitness.values[1]):
+                    population_temporary.append(agent)
                     number_without_improvement_de += 1
                 else:
+                    population_temporary.append(individual_donor)
+                    population_temporary.append(agent)
                     number_without_improvement_de = 0
-            else:
-                pareto_front_de.update(population)
-                # hall_of_fame_de.update(population)
-        self.pareto_front_de = pareto_front_de
+            
+            population = toolbox.select_de(population_temporary, len(population))
+        self.pareto_front_de = population

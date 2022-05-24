@@ -1,7 +1,10 @@
 from multiprocessing import Pool
 from timeit import default_timer as timer
+import copy as cp
+import bisect as bc
 import numpy as np
 from deap import tools
+from deap.tools._hypervolume import hv
 from deap import creator
 from deap import base
 rng = np.random.default_rng()

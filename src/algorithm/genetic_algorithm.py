@@ -298,33 +298,27 @@ class GeneticAlgorithm:
             population_ga = toolbox.select_ga(population_ga_updated, fit_attr="indicator")
 
             # GA: Update Hall of Fame
-            if number_generations_ga == 1:
-                hall_of_fame_ga.update(population_ga)
-            elif number_generations_ga != 1:
-                old = sum(hall_of_fame_ga[0].fitness.getValues())
-                hall_of_fame_ga.update(population_ga)
-                new = sum(hall_of_fame_ga[0].fitness.getValues())
-
-            print('TAC:', hall_of_fame_ga[0].individual_de[1].total_annual_cost)
-            print('CO2:', hall_of_fame_ga[0].individual_de[1].operating_emissions)
-            print('fitness:', hall_of_fame_ga[0].fitness.values[0])
-            print('GA chromosome:', hall_of_fame_ga[0])
-            print('DE chromosome:', hall_of_fame_ga[0].individual_de[0])
+            self.update_hall_of_fame(population_ga, hall_of_fame)
+            print('TAC:', hall_of_fame[0][0][1].total_annual_cost)
+            print('CO2:', hall_of_fame[0][0][1].operating_emissions)
+            print('indicator:', hall_of_fame[0].indicator.values[0])
+            print('GA chromosome:\n', hall_of_fame[0][0][2])
+            print('DE chromosome:\n', np.array(hall_of_fame[0][0][0]))
 
         print('-- End of evolution --')
         end = timer()
         print('Computation time: %s s' % (end - start))
         print('Hall of fame list:')
-        for i in range(len(hall_of_fame_ga)):
+        for i in range(len(hall_of_fame)):
             print('Rank:', i + 1)
-            print('TAC:', hall_of_fame_ga[0].individual_de[1].total_annual_cost)
-            print('CO2:', hall_of_fame_ga[0].individual_de[1].operating_emissions)
-            print('fitness:', hall_of_fame_ga[i].fitness.values[0])
-            print('GA chromosome:', hall_of_fame_ga[i])
-            print('DE chromosome:', hall_of_fame_ga[i].individual_de[0])
+            print('TAC:',  hall_of_fame[i][0][1].total_annual_cost)
+            print('CO2:', hall_of_fame[i][0][1].operating_emissions)
+            print('indicator:', hall_of_fame[i].indicator.values[0])
+            print('GA chromosome\n:', hall_of_fame[i][0][2])
+            print('DE chromosome\n:', np.array(hall_of_fame[i][0][0]))
             print(10*'-')
         del creator.FitnessMin_ga
         del creator.Individual_ga
         del creator.FitnessMin_de
         del creator.Individual_de
-        return hall_of_fame_ga
+        return hall_of_fame

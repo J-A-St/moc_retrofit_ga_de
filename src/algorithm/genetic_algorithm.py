@@ -98,8 +98,16 @@ class GeneticAlgorithm:
             else:
                 fitnesses_de = np.array([ind_de.fitness.wvalues for ind_de in individual_ga])
                 individual_ga.indicator.values = hv.hypervolume(fitnesses_de, reference_point) * -1, 
-                
-        return fitness, total_annual_costs, best_individual_differential_evolution, individual 
+
+    def reformat_individual_evolution(self, individual_de):
+        """Reformat the DE individual for the GA evolution and optimization"""
+        del individual_de[0][0:2]
+        if not isinstance(individual_de[0][0], list):
+            individual_de[0][0:7] = individual_de[0][0].tolist()
+        if len(individual_de[0]) < 7:
+            individual_de = cp.copy(individual_de[0])
+        del individual_de[0].fitness.values
+        return individual_de[0]
 
     @staticmethod
     def crossover(child_1, child_2):
@@ -201,33 +209,62 @@ class GeneticAlgorithm:
             # GA: Clone selected individuals and bring offspring in initial population design
             offspring = list(toolbox.map(toolbox.clone, offspring))
             # GA: crossover
+            invalid_individuals = toolbox.initial_population_ga(0) 
+            valid_individuals = toolbox.initial_population_ga(0) 
             for child_1, child_2 in zip(offspring[::2], offspring[1::2]):
                 if rng.random() < self.algorithm_parameter.genetic_algorithm_probability_crossover:
+                    child_1 = self.reformat_individual_evolution(child_1)
+                    child_2 = self.reformat_individual_evolution(child_2)
                     toolbox.mate_ga(child_1, child_2)
-                    del child_1.fitness.values
-                    del child_2.fitness.values
-            for mutant in offspring:
-                toolbox.mutate_ga(mutant)
-                del mutant.fitness.values
-            # GA: Evaluate individuals with invalid fitness (parallel computing of DE)
-            invalid_individual_ga = [individual for individual in offspring if not individual.fitness.valid]
+                    toolbox.mutate_ga(child_1)
+                    toolbox.mutate_ga(child_2)
+                    invalid_individuals.append(child_1)
+                    invalid_individuals.append(child_2)
+                else:
+                    child_1_temporary = cp.deepcopy(child_1)
+                    child_1_temporary = self.reformat_individual_evolution(child_1_temporary)
+                    child_2_temporary = cp.deepcopy(child_2)
+                    child_2_temporary = self.reformat_individual_evolution(child_2_temporary)
+                    mutated_child_1 = toolbox.mutate_ga(child_1_temporary)
+                    mutated_child_2 = toolbox.mutate_ga(child_2_temporary)
+                    if mutated_child_1:
+                        invalid_individuals.append(child_1_temporary)
+                    else:
+                        del child_1.indicator.values
+                        valid_individuals.append(child_1)
+                    if mutated_child_2:
+                        invalid_individuals.append(child_2_temporary)
+                    else:
+                        del child_2.indicator.values
+                        valid_individuals.append(child_2)
+
+            if not len(offspring) % 2 == 0:
+                last_individual = offspring[-1]
+                last_individual_temporary = cp.deepcopy(offspring[-1])
+                last_individual_temporary = self.reformat_individual_evolution(last_individual_temporary)
+                mutated = toolbox.mutate_ga(last_individual_temporary)
+                if mutated:
+                    invalid_individuals.append(last_individual_temporary)
+                else:
+                    del last_individual.indicator.values
+                    valid_individuals.append(last_individual)
 
             if self.algorithm_parameter.number_workers == 1:
-                fitness = list(map(toolbox.evaluate_ga, invalid_individual_ga))
+                results_de = list(map(toolbox.evaluate_ga, invalid_individuals))
 
             elif np.isnan(self.algorithm_parameter.number_workers):
                 with Pool() as worker: 
-                    fitness = list(worker.map(toolbox.evaluate_ga, invalid_individual_ga))
+                    results_de = list(worker.map(toolbox.evaluate_ga, invalid_individuals))
             else:
                 with Pool(self.algorithm_parameter.number_workers) as worker: 
-                    fitness = list(worker.map(toolbox.evaluate_ga, invalid_individual_ga))
+                    results_de = list(worker.map(toolbox.evaluate_ga, invalid_individuals))
+            
+            population_ga_updated = self.update_population_ga(toolbox, results_de)
+            for _, valid_individual in enumerate(valid_individuals):
+                population_ga_updated.append(valid_individual)
 
-            for ind in range(len(offspring)):
-                if not offspring[ind].fitness.valid:
-                    offspring[ind] = fitness[ind][3]
-                    offspring[ind].fitness.values = fitness[ind][0:2]
-                    offspring[ind].individual_de = fitness[ind][2]        
-            population_ga[:] = offspring
+            self.evaluate_hypervolume(population_ga_updated)
+            population_ga = toolbox.select_ga(population_ga_updated, fit_attr="indicator")
 
             # GA: Update Hall of Fame
             if number_generations_ga == 1:

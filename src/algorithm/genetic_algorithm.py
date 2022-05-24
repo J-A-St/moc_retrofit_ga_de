@@ -151,31 +151,29 @@ class GeneticAlgorithm:
         # GA: Define individuals of exchanger address matrices: 
         toolbox = base.Toolbox()
         toolbox.register('individual_ga', self.initialize_individual, creator.Individual_ga)
-        toolbox.register('population_ga', tools.initRepeat, list, toolbox.individual_ga)
+        toolbox.register('initial_population_ga', tools.initRepeat, list, toolbox.individual_ga)
+        toolbox.register('population_pareto', tools.initRepeat, list, creator.ParetoIndividual_ga)
         toolbox.register('evaluate_ga', self.fitness_function)
-        toolbox.register('select_ga', tools.selTournament, tournsize=self.algorithm_parameter.genetic_algorithm_tournament_size)
+        toolbox.register('select_ga', tools.selTournament, k=self.algorithm_parameter.genetic_algorithm_population_size, tournsize=self.algorithm_parameter.genetic_algorithm_tournament_size)
         toolbox.register('mate_ga', self.crossover)
         toolbox.register('mutate_ga', self.mutation)
         # GA: Create a pseudo DE population for infeasible GA individuals
         self.pseudo_pareto_front_de = self.initialize_pseudo_pareto_front_de(toolbox)
         # GA: Generate population
-        population_ga = toolbox.population_ga(self.algorithm_parameter.genetic_algorithm_population_size)
-        hall_of_fame_ga = tools.HallOfFame(maxsize=self.algorithm_parameter.genetic_algorithm_hall_of_fame_size)
-        # GA: Evaluate entire population
+        population_initial = toolbox.initial_population_ga(self.algorithm_parameter.genetic_algorithm_population_size)
+        hall_of_fame = tools.HallOfFame(maxsize=self.algorithm_parameter.genetic_algorithm_hall_of_fame_size) 
+        # GA: Evaluate entire population 
         if self.algorithm_parameter.number_workers == 1:
-            fitness = list(map(toolbox.evaluate_ga, population_ga))
+            results_de = list(map(toolbox.evaluate_ga, population_initial)) 
         elif np.isnan(self.algorithm_parameter.number_workers):
             with Pool() as worker: 
-                fitness = list(worker.map(toolbox.evaluate_ga, population_ga))
+                results_de = list(worker.map(toolbox.evaluate_ga, population_initial))
         else:
             with Pool(self.algorithm_parameter.number_workers) as worker:
-                fitness = list(worker.map(toolbox.evaluate_ga, population_ga))
+                results_de = list(worker.map(toolbox.evaluate_ga, population_initial))
+        population_ga = self.update_population_ga(toolbox, results_de)
 
-        for individual in range(len(population_ga)):
-            population_ga[individual] = fitness[individual][3]
-        for individual, fit in zip(population_ga, fitness):
-            individual.fitness.values = fit[0:2]
-            individual.individual_de = fit[2]
+        self.evaluate_hypervolume(population_ga)
 
         number_generations_ga = 0
         start = timer()

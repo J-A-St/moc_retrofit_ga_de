@@ -45,9 +45,3 @@ class AlgorithmParameter:
         self.differential_evolution_probability_crossover = algorithm_parameter['CrossProbDE'].iloc[0]
         self.differential_evolution_number_no_improvement = algorithm_parameter['NumNoImprovDE'].iloc[0]
         os.chdir('..')
-
-    def __repr__(self):
-        pass
-
-    def __str__(self):
-        pass

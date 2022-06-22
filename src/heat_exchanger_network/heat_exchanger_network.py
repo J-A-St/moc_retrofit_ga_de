@@ -332,9 +332,3 @@ class HeatExchangerNetwork:
         self.thermodynamic_parameter.clear_cache()
         for exchanger in self.range_heat_exchangers:
             self.heat_exchangers[exchanger].operation_parameter.clear_cache()
-
-    def __repr__(self):
-        pass
-
-    def __str__(self):
-        pass

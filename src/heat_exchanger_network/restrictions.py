@@ -8,9 +8,3 @@ class Restrictions:
         self.temperature_difference_lower_bound = case_study.manual_parameter['dTLb'].iloc[0]  # (°C)
         self.minimal_heat_load = case_study.manual_parameter['MinimalHeatLoad'].iloc[0]  # (kW)
         self.absolute_heat_load_tolerance = case_study.manual_parameter['AbsHeatLoadTol'].iloc[0]  # (kW)
-
-    def __repr__(self):
-        pass
-
-    def __str__(self):
-        pass

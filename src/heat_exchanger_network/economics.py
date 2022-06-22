@@ -33,8 +33,3 @@ class Economics:
         self.initial_operating_costs = sum(case_study.initial_hot_utility_demand * self.specific_hot_utilities_cost) + sum(case_study.initial_cold_utility_demand * self.specific_cold_utilities_cost)
         self.initial_operating_emissions = sum(case_study.initial_hot_utility_demand * self.specific_hot_utilities_emissions) + sum(case_study.initial_cold_utility_demand * self.specific_cold_utilities_emissions)
 
-    def __repr__(self):
-        pass
-
-    def __str__(self):
-        pass

@@ -25,9 +25,3 @@ class Stream:
             self.enthalpy_flows[operating_case] = self.heat_capacity_flows[operating_case] * abs(self.target_temperatures[operating_case] - self.supply_temperatures[operating_case])
             self.extreme_temperatures[operating_case] = stream_data['ExtremT'][number + number_streams * operating_case] +273.15
             self.is_soft[operating_case] = stream_data['Soft'][number + number_streams * operating_case]
-
-    def __repr__(self):
-        pass
-
-    def __str__(self):
-        pass

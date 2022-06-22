@@ -87,9 +87,3 @@ class CaseStudy:
                 elif self.stream_data['H/C'][stream] == 'C' and \
                      not np.isnan(self.stream_data['UtilityCostperkWh'][stream]):
                     self.initial_cold_utility_demand[operating_case] += self.stream_data['H_dot'][stream + self.number_streams * operating_case] * self.operating_cases[operating_case].duration
-
-    def __repr__(self):
-        pass
-
-    def __str__(self):
-        pass

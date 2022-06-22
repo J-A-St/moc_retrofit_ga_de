@@ -2,6 +2,9 @@ import os
 import sys
 import code
 import numpy as np
+if sys.platform == "linux":
+    import resource
+    resource.setrlimit(resource.RLIMIT_DATA, (2147483648,2147483648))
 
 from read_data.read_case_study_data import CaseStudy
 from read_data.read_algorithm_parameter import AlgorithmParameter

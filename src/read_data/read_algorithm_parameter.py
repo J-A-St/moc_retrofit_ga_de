@@ -18,9 +18,10 @@ class AlgorithmParameter:
         self.genetic_algorithm_probability_crossover = None
         self.genetic_algorithm_probability_mutation = None
         self.differential_evolution_population_size = None
+        self.differential_evolution_pareto_size = None
         self.differential_evolution_hall_of_fame_size = None
         self.differential_evolution_number_generations = None
-        self.differential_evolution_scaling_factor = None
+        self.differential_evolution_perturbation_factor = None
         self.differential_evolution_probability_crossover = None
         self.differential_evolution_number_no_improvement = None
         self.read_parameter()
@@ -40,6 +41,7 @@ class AlgorithmParameter:
         self.genetic_algorithm_probability_mutation = algorithm_parameter['MutProbGA'].iloc[0]
         # Differential evolution parameter
         self.differential_evolution_population_size = algorithm_parameter['PopSizeDE'].iloc[0]
+        self.differential_evolution_pareto_size = algorithm_parameter['ParetoSize'].iloc[0]
         self.differential_evolution_number_generations = algorithm_parameter['NumGenDE'].iloc[0]
         self.differential_evolution_perturbation_factor = algorithm_parameter['PerturbationDE'].iloc[0]
         self.differential_evolution_probability_crossover = algorithm_parameter['CrossProbDE'].iloc[0]

@@ -31,6 +31,7 @@ class DifferentialEvolution():
         self.cold_streams = case_study.cold_streams
         self.min_heat_load = case_study.manual_parameter['MinimalHeatLoad'].iloc[0]
         self.population_size = algorithm_parameter.differential_evolution_population_size
+        self.pareto_size = algorithm_parameter.differential_evolution_pareto_size
         self.number_generations = algorithm_parameter.differential_evolution_number_generations
         self.number_no_improvement = algorithm_parameter.differential_evolution_number_no_improvement
         self.probability_crossover = algorithm_parameter.differential_evolution_probability_crossover
@@ -92,7 +93,7 @@ class DifferentialEvolution():
         toolbox.register('individual_de', self.initialize_individual, creator.Individual_de, exchanger_addresses)
         toolbox.register('population_de', tools.initRepeat, list, toolbox.individual_de)
         toolbox.register('select_parents_de', tools.selRandom, k=3)
-        toolbox.register('select_de', tools.selNSGA2, nd='log')
+        toolbox.register('select_de', tools.selNSGA2, k=self.pareto_size, nd='log')
         toolbox.register('evaluate_de', self.fitness_function, exchanger_addresses)
 
         # Initialize population
@@ -128,7 +129,7 @@ class DifferentialEvolution():
                 evaluated_donor = toolbox.evaluate_de(individual_donor)
                 individual_donor.fitness.values = evaluated_donor[0:2]
                 individual_donor[1] = evaluated_donor[2]
-                # Selection             
+                # Selection
                 if (individual_donor.fitness.values[0] > agent.fitness.values[0]) and (individual_donor.fitness.values[1] > agent.fitness.values[1]):
                     population_temporary.append(individual_donor)
                     number_without_improvement_de = 0
@@ -139,6 +140,6 @@ class DifferentialEvolution():
                     population_temporary.append(individual_donor)
                     population_temporary.append(agent)
                     number_without_improvement_de = 0
-            
-            population = toolbox.select_de(population_temporary, len(population))
+            population = toolbox.select_de(population_temporary)
+            gc.collect()
         self.pareto_front_de = population

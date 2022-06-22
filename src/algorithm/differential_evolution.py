@@ -1,7 +1,7 @@
 from deap import tools
 from deap import creator
 from deap import base
-import copy as cp
+import gc
 import numpy as np
 rng = np.random.default_rng()
 np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
@@ -9,7 +9,6 @@ np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
 from heat_exchanger_network.economics import Economics
 from heat_exchanger_network.restrictions import Restrictions
 from heat_exchanger_network.heat_exchanger_network import HeatExchangerNetwork
-
 
 class DifferentialEvolution():
     """Differential evolution (DE) algorithm for optimization of heat duties for from genetic algorithm predefined
@@ -36,7 +35,7 @@ class DifferentialEvolution():
         self.number_no_improvement = algorithm_parameter.differential_evolution_number_no_improvement
         self.probability_crossover = algorithm_parameter.differential_evolution_probability_crossover
         self.perturbation_factor = algorithm_parameter.differential_evolution_perturbation_factor
-
+        self.pareto_front_de = None
         self.best_solution = None
 
     def initialize_individual(self, individual_class, exchanger_addresses):
@@ -52,10 +51,10 @@ class DifferentialEvolution():
                         heat_duties[exchanger, operating_case] = max_heat_duty
         individual = individual_class([heat_duties.tolist(), self.heat_exchanger_network])
         return individual
-
+    
     def fitness_function(self, exchanger_addresses, individual):
         """Calculate the whole network including costs"""
-        heat_exchanger_network = cp.deepcopy(self.heat_exchanger_network) 
+        heat_exchanger_network = HeatExchangerNetwork(self.case_study)
         heat_exchanger_network.exchanger_addresses.matrix = exchanger_addresses
         heat_exchanger_network.thermodynamic_parameter.heat_loads = np.array(individual[0])
         for exchanger in self.range_heat_exchangers:

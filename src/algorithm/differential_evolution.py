@@ -81,8 +81,8 @@ class DifferentialEvolution():
             of_greenhouse_gases = self.economics.initial_operating_emissions / heat_exchanger_network.operating_emissions
         else:
             quadratic_distance = sum([heat_exchanger_network.heat_exchangers[exchanger].infeasibility_temperature_differences[1] + heat_exchanger_network.heat_exchangers[exchanger].infeasibility_mixer[1] for exchanger in self.range_heat_exchangers] + heat_exchanger_network.infeasibility_energy_balance[1])
-            of_total_annual_cost = 1 / (2 + quadratic_distance)
-            of_greenhouse_gases = 1 / (2 + quadratic_distance)
+            of_total_annual_cost = 1 / (4 + quadratic_distance)
+            of_greenhouse_gases = 1 / (4 + quadratic_distance)
         return of_total_annual_cost, of_greenhouse_gases, heat_exchanger_network
 
     def differential_evolution(self, exchanger_addresses):
@@ -92,7 +92,7 @@ class DifferentialEvolution():
         toolbox.register('individual_de', self.initialize_individual, creator.Individual_de, exchanger_addresses)
         toolbox.register('population_de', tools.initRepeat, list, toolbox.individual_de)
         toolbox.register('select_parents_de', tools.selRandom, k=3)
-        toolbox.register('select_de', tools.selNSGA2, k=self.pareto_size, nd='log')
+        toolbox.register('select_de', tools.selNSGA2, k=2*self.pareto_size, nd='log')
         toolbox.register('evaluate_de', self.fitness_function, exchanger_addresses)
 
         # Initialize population
@@ -139,6 +139,14 @@ class DifferentialEvolution():
                     population_temporary.append(individual_donor)
                     population_temporary.append(agent)
                     number_without_improvement_de = 0
+            del population
             population = toolbox.select_de(population_temporary)
             gc.collect()
-        self.pareto_front_de = population
+        population_feasible = list()
+        for individual in range(len(population)):
+            if population[individual][1].is_feasible:
+                population_feasible.append(population[individual])
+        if len(population_feasible) > 0:
+            self.pareto_front_de = tools.sortLogNondominated(population_feasible, k=self.pareto_size, first_front_only=True)
+        else:
+            self.pareto_front_de = list()

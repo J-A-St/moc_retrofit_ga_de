@@ -67,6 +67,8 @@ class GeneticAlgorithm:
         else:
             self.differential_evolution.differential_evolution(individual)
             pareto_front_de = cp.deepcopy(self.differential_evolution.pareto_front_de)
+            if len(pareto_front_de) == 0:
+                pareto_front_de = cp.deepcopy(self.pseudo_pareto_front_de)
         return pareto_front_de  
 
     def update_hall_of_fame(self, population, hall_of_fame):
@@ -74,8 +76,6 @@ class GeneticAlgorithm:
         for ind in population:
             duplicate = False
             if len(hall_of_fame) == 0 and hall_of_fame.maxsize !=0:
-                # Working on an empty hall of fame is problematic for the
-                # "for else"
                 self.insert_hall_of_fame_item(population[0], hall_of_fame)
                 continue
             if ind.indicator > hall_of_fame[-1].indicator or len(hall_of_fame) < hall_of_fame.maxsize:

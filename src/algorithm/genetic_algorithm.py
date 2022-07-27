@@ -59,8 +59,8 @@ class GeneticAlgorithm:
         quadratic_distance_utility_connection_infeasibility = (0 - self.heat_exchanger_network.utility_connections_violation_distance(individual))**2
         quadratic_distance = quadratic_distance_split_infeasibility + quadratic_distance_utility_connection_infeasibility
         if quadratic_distance > 0:
-            of_total_annual_cost = 1 / (2 + quadratic_distance)
-            of_greenhouse_gases = 1 / (2 + quadratic_distance)
+            of_total_annual_cost = 1 / (4 + quadratic_distance)
+            of_greenhouse_gases = 1 / (4 + quadratic_distance)
             self.pseudo_pareto_front_de[0][1].exchanger_addresses.matrix = individual
             self.pseudo_pareto_front_de[0].fitness.values = (of_total_annual_cost, of_greenhouse_gases)
             pareto_front_de = cp.deepcopy(self.pseudo_pareto_front_de)
@@ -68,6 +68,10 @@ class GeneticAlgorithm:
             self.differential_evolution.differential_evolution(individual)
             pareto_front_de = cp.deepcopy(self.differential_evolution.pareto_front_de)
             if len(pareto_front_de) == 0:
+                of_total_annual_cost = 1 / 4
+                of_greenhouse_gases = 1 / 4
+                self.pseudo_pareto_front_de[0][1].exchanger_addresses.matrix = individual
+                self.pseudo_pareto_front_de[0].fitness.values = (of_total_annual_cost, of_greenhouse_gases)
                 pareto_front_de = cp.deepcopy(self.pseudo_pareto_front_de)
         return pareto_front_de  
 
@@ -78,7 +82,7 @@ class GeneticAlgorithm:
             if len(hall_of_fame) == 0 and hall_of_fame.maxsize !=0:
                 self.insert_hall_of_fame_item(population[0], hall_of_fame)
                 continue
-            if ind.indicator > hall_of_fame[-1].indicator or len(hall_of_fame) < hall_of_fame.maxsize:
+            if ind.indicator > hall_of_fame[0].indicator or len(hall_of_fame) < hall_of_fame.maxsize:
                 for hofer in range(len(hall_of_fame)):
                     if all([np.array_equal(ind[0][2], hall_of_fame[hofer][0][2]), ind.indicator == hall_of_fame[hofer].indicator]):
                         duplicate = True
@@ -86,13 +90,13 @@ class GeneticAlgorithm:
                 if duplicate:
                     continue
                 if len(hall_of_fame) >= hall_of_fame.maxsize:
-                    self.remove_hall_of_fame_item(hall_of_fame, -1)
+                    self.remove_hall_of_fame_item(hall_of_fame, 0)
                 self.insert_hall_of_fame_item(ind, hall_of_fame)
         
     def insert_hall_of_fame_item(self, item, hall_of_fame):
         """Custom insert function of the hall of fame insert using the fitness attribute indicator instead of fitness"""
         item = cp.deepcopy(item)
-        i = bc.bisect_right([abs(key.wvalues[0]) for key in hall_of_fame.keys], abs(item.indicator.wvalues[0]))
+        i = bc.bisect_right([key.wvalues[0] for key in hall_of_fame.keys],item.indicator.wvalues[0])
         hall_of_fame.items.insert(i, item)
         hall_of_fame.keys.insert(i, item.indicator)
 
@@ -114,21 +118,23 @@ class GeneticAlgorithm:
 
     def evaluate_hypervolume(self, population_ga):
         """Evaluates the hypervolumes of all differential evolution pareto fronts. These values are used for the selection in the GA algorithm"""
-        fitnesses = []
+        fitnesses_reversed = []
         for _, individual_ga in enumerate(population_ga):
             ind_de = 0
             while ind_de < len(individual_ga):
-                fitnesses.append(individual_ga[ind_de].fitness.wvalues)
+                if np.sum(individual_ga[ind_de][0]) > 0.0 and individual_ga[ind_de][1].is_feasible:
+                    fitnesses_reversed.append([1/individual_ga[ind_de].fitness.wvalues[0], 1/individual_ga[ind_de].fitness.wvalues[1]])
                 ind_de += 1
-        fitnesses = np.array(fitnesses)
-        reference_point = (np.max(fitnesses[:,0])+1, np.max(fitnesses[:,1])+1)
+        fitnesses_reversed = np.array(fitnesses_reversed)
         for _, individual_ga in enumerate(population_ga):
             if len(individual_ga) <=1 and np.sum(individual_ga[0][0]) == 0.0:
                 # All heat loads are zero if we use the pseudo Pareto front (infeasible GA solutions)
-                individual_ga.indicator.values = -100,
+                # We are maximizing here --> the smaller the indicator the better! --> either change indicator back with *-1 and -100 or use TAC and GHG 
+                individual_ga.indicator.values = 0.0,
             else:
-                fitnesses_de = np.array([ind_de.fitness.wvalues for ind_de in individual_ga])
-                individual_ga.indicator.values = hv.hypervolume(fitnesses_de, reference_point) * -1, 
+                reference_point = (np.max(fitnesses_reversed[:,0])*2, np.max(fitnesses_reversed[:,1])*2)
+                fitnesses_reversed_de = np.array([[1/ind_de.fitness.wvalues[0], 1/ind_de.fitness.wvalues[1]] for ind_de in individual_ga])
+                individual_ga.indicator.values = hv.hypervolume(fitnesses_reversed_de, reference_point),
 
     def reformat_individual_evolution(self, individual_de):
         """Reformat the DE individual for the GA evolution and optimization"""
@@ -295,22 +301,23 @@ class GeneticAlgorithm:
                 population_ga_updated.append(valid_individual)
 
             self.evaluate_hypervolume(population_ga_updated)
-            population_ga = toolbox.select_ga(population_ga_updated, fit_attr="indicator")
+            population_ga = tools.selBest(population_ga_updated, k=self.algorithm_parameter.genetic_algorithm_population_size, fit_attr="indicator")
 
             # GA: Update Hall of Fame
             self.update_hall_of_fame(population_ga, hall_of_fame)
-            print('TAC:', hall_of_fame[0][0][1].total_annual_cost)
-            print('CO2:', hall_of_fame[0][0][1].operating_emissions)
-            print('indicator:', hall_of_fame[0].indicator.values[0])
-            print('GA chromosome:\n', hall_of_fame[0][0][2])
-            print('DE chromosome:\n', np.array(hall_of_fame[0][0][0]))
+            if hall_of_fame[-1].indicator.wvalues[0] > 0:
+                print('TAC:', hall_of_fame[-1][0][1].total_annual_cost)
+                print('CO2:', hall_of_fame[-1][0][1].operating_emissions)
+                print('indicator:', hall_of_fame[-1].indicator.values[0])
+                print('GA chromosome:\n', hall_of_fame[-1][0][2])
+                print('DE chromosome:\n', np.array(hall_of_fame[-1][0][0]))
 
         print('-- End of evolution --')
         end = timer()
         print('Computation time: %s s' % (end - start))
         print('Hall of fame list:')
-        for i in range(len(hall_of_fame)):
-            print('Rank:', i + 1)
+        for i in reversed(range(len(hall_of_fame))):
+            print('Rank:', len(hall_of_fame)- i)
             print('TAC:',  hall_of_fame[i][0][1].total_annual_cost)
             print('CO2:', hall_of_fame[i][0][1].operating_emissions)
             print('indicator:', hall_of_fame[i].indicator.values[0])

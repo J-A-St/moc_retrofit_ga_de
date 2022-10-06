@@ -35,6 +35,7 @@ class DifferentialEvolution():
         self.number_no_improvement = algorithm_parameter.differential_evolution_number_no_improvement
         self.probability_crossover = algorithm_parameter.differential_evolution_probability_crossover
         self.perturbation_factor = algorithm_parameter.differential_evolution_perturbation_factor
+        self.objective_types = algorithm_parameter.objective_types
         self.pareto_front_de = None
         self.best_solution = None
 
@@ -77,13 +78,22 @@ class DifferentialEvolution():
 
         heat_exchanger_network.clear_cache()
         if heat_exchanger_network.is_feasible:
-            of_total_annual_cost = self.economics.initial_operating_costs / heat_exchanger_network.total_annual_cost
-            of_greenhouse_gases = self.economics.initial_operating_emissions / heat_exchanger_network.operating_emissions
+            objectives = np.zeros(len(self.objective_types))
+            for of in range(len(self.objective_types)):
+                if self.objective_types[of] == 'TAC':
+                    objectives[of] = self.economics.initial_operating_costs / heat_exchanger_network.total_annual_cost
+                elif self.objective_types[of] == 'CAP':
+                    objectives[of] = self.economics.initial_operating_costs / (heat_exchanger_network.capital_costs * heat_exchanger_network.economics.annuity_factor)
+                elif self.objective_types[of] == 'COP':
+                    objectives[of] = self.economics.initial_operating_costs / heat_exchanger_network.operating_costs
+                elif self.objective_types[of] == 'GHG':
+                    objectives[of] = self.economics.initial_operating_emissions / heat_exchanger_network.operating_emissions
+
         else:
             quadratic_distance = sum([heat_exchanger_network.heat_exchangers[exchanger].infeasibility_temperature_differences[1] + heat_exchanger_network.heat_exchangers[exchanger].infeasibility_mixer[1] for exchanger in self.range_heat_exchangers] + heat_exchanger_network.infeasibility_energy_balance[1])
-            of_total_annual_cost = 1 / (4 + quadratic_distance)
-            of_greenhouse_gases = 1 / (4 + quadratic_distance)
-        return of_total_annual_cost, of_greenhouse_gases, heat_exchanger_network
+            objectives[0] = 1 / (4 + quadratic_distance)
+            objectives[1] = 1 / (4 + quadratic_distance)
+        return objectives[0], objectives[1], heat_exchanger_network
 
     def differential_evolution(self, exchanger_addresses):
         """Main differential evolution algorithm"""

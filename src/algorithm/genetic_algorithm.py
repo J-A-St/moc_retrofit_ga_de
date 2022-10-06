@@ -59,19 +59,19 @@ class GeneticAlgorithm:
         quadratic_distance_utility_connection_infeasibility = (0 - self.heat_exchanger_network.utility_connections_violation_distance(individual))**2
         quadratic_distance = quadratic_distance_split_infeasibility + quadratic_distance_utility_connection_infeasibility
         if quadratic_distance > 0:
-            of_total_annual_cost = 1 / (4 + quadratic_distance)
-            of_greenhouse_gases = 1 / (4 + quadratic_distance)
+            objective_one = 1 / (4 + quadratic_distance)
+            objective_two = 1 / (4 + quadratic_distance)
             self.pseudo_pareto_front_de[0][1].exchanger_addresses.matrix = individual
-            self.pseudo_pareto_front_de[0].fitness.values = (of_total_annual_cost, of_greenhouse_gases)
+            self.pseudo_pareto_front_de[0].fitness.values = (objective_one, objective_two)
             pareto_front_de = cp.deepcopy(self.pseudo_pareto_front_de)
         else:
             self.differential_evolution.differential_evolution(individual)
             pareto_front_de = cp.deepcopy(self.differential_evolution.pareto_front_de)
             if len(pareto_front_de) == 0:
-                of_total_annual_cost = 1 / 4
-                of_greenhouse_gases = 1 / 4
+                objective_one = 1 / 4
+                objective_two = 1 / 4
                 self.pseudo_pareto_front_de[0][1].exchanger_addresses.matrix = individual
-                self.pseudo_pareto_front_de[0].fitness.values = (of_total_annual_cost, of_greenhouse_gases)
+                self.pseudo_pareto_front_de[0].fitness.values = (objective_one, objective_two)
                 pareto_front_de = cp.deepcopy(self.pseudo_pareto_front_de)
         return pareto_front_de  
 
@@ -128,8 +128,6 @@ class GeneticAlgorithm:
         fitnesses_reversed = np.array(fitnesses_reversed)
         for _, individual_ga in enumerate(population_ga):
             if len(individual_ga) <=1 and np.sum(individual_ga[0][0]) == 0.0:
-                # All heat loads are zero if we use the pseudo Pareto front (infeasible GA solutions)
-                # We are maximizing here --> the smaller the indicator the better! --> either change indicator back with *-1 and -100 or use TAC and GHG 
                 individual_ga.indicator.values = 0.0,
             else:
                 reference_point = (np.max(fitnesses_reversed[:,0])*2, np.max(fitnesses_reversed[:,1])*2)

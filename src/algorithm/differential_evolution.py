@@ -77,8 +77,8 @@ class DifferentialEvolution():
                 heat_exchanger_network.exchanger_addresses.matrix[exchanger, 6] = 0
 
         heat_exchanger_network.clear_cache()
+        objectives = np.zeros(len(self.objective_types))
         if heat_exchanger_network.is_feasible:
-            objectives = np.zeros(len(self.objective_types))
             for of in range(len(self.objective_types)):
                 if self.objective_types[of] == 'TAC':
                     objectives[of] = self.economics.initial_operating_costs / heat_exchanger_network.total_annual_cost

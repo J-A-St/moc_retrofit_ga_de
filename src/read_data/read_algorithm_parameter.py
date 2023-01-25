@@ -32,7 +32,7 @@ class AlgorithmParameter:
         sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
         os.chdir('data')
         algorithm_parameter = pd.read_excel(self.name, sheet_name='Parameter')
-        self.number_workers = algorithm_parameter['NumProcessors'].iloc[0]
+        self.number_workers = int(algorithm_parameter['NumProcessors'].iloc[0])
         # Genetic algorithm parameter
         self.genetic_algorithm_population_size = int(algorithm_parameter['PopSizeGA'].iloc[0])
         self.genetic_algorithm_tournament_size = int(algorithm_parameter['TournSizeGA'].iloc[0])
